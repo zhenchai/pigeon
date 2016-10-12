@@ -152,7 +152,7 @@ public class DefaultChannelPool<C extends Channel> implements ChannelPool<C> {
 
                 if (pooledChannel != null) {
                     if (!pooledChannel.isAvaliable()) {
-                        reconnectChannel(pooledChannel);
+                        reconnectChannel(pooledChannel, this);
                     } else {
                         return pooledChannel;
                     }
@@ -189,9 +189,9 @@ public class DefaultChannelPool<C extends Channel> implements ChannelPool<C> {
         return channel;
     }
 
-    private void reconnectChannel(Channel channel) {
+    protected static void reconnectChannel(Channel channel, ChannelPool channelPool) {
         if (reconnectChannels.putIfAbsent(channel, PRESENT) == null) {
-            reconnectExecutor.submit(new ReconnectChannelTask(channel, DefaultChannelPool.this));
+            reconnectExecutor.submit(new ReconnectChannelTask(channel, channelPool));
         }
     }
 
@@ -237,7 +237,7 @@ public class DefaultChannelPool<C extends Channel> implements ChannelPool<C> {
         return "ChannelPool[poolSize=" + pooledChannels.size() + "]";
     }
 
-    class ReconnectChannelTask implements Runnable {
+    static class ReconnectChannelTask implements Runnable {
 
         private WeakReference<Channel> channelRef;
         private WeakReference<ChannelPool> poolRef;
@@ -268,7 +268,7 @@ public class DefaultChannelPool<C extends Channel> implements ChannelPool<C> {
         }
     }
 
-    class CheckChannelTask implements Runnable {
+    static class CheckChannelTask implements Runnable {
 
         private WeakReference<ChannelPool> poolRef;
 
@@ -288,7 +288,7 @@ public class DefaultChannelPool<C extends Channel> implements ChannelPool<C> {
                     Channel channel = channels.get(index);
 
                     if (!channel.isAvaliable()) {
-                        reconnectChannel(channel);
+                        reconnectChannel(channel, channelPool);
                     }
                 }
 
