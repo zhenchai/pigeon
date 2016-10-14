@@ -172,9 +172,9 @@ public class DefaultResponse implements InvocationResponse {
     @Override
     public String toString() {
         if (this.messageType == Constants.MESSAGE_TYPE_SERVICE) {
-            return "DefaultResponse[serialize" + serialize + ",seq" + seq + ",messageType" + messageType + "]";
+            return "DefaultResponse[serialize=" + serialize + ",seq=" + seq + ",messageType=" + messageType + "]";
         } else {
-            return "DefaultResponse[serialize" + serialize + ",seq" + seq + ",messageType" + messageType + ",return" + returnVal + "]";
+            return "DefaultResponse[serialize=" + serialize + ",seq=" + seq + ",messageType=" + messageType + ",return=" + returnVal + "]";
         }
     }
 
