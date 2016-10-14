@@ -6,6 +6,7 @@ package com.dianping.pigeon.console;
 
 import java.net.URL;
 
+import com.dianping.pigeon.console.servlet.*;
 import com.dianping.pigeon.console.servlet.json.*;
 import com.dianping.pigeon.log.Logger;
 import org.mortbay.jetty.Server;
@@ -13,11 +14,6 @@ import org.mortbay.jetty.servlet.Context;
 import org.mortbay.jetty.servlet.DefaultServlet;
 import org.mortbay.jetty.servlet.ServletHolder;
 
-import com.dianping.pigeon.console.servlet.ServiceOfflineServlet;
-import com.dianping.pigeon.console.servlet.ServiceOnlineServlet;
-import com.dianping.pigeon.console.servlet.ServicePublishServlet;
-import com.dianping.pigeon.console.servlet.ServiceServlet;
-import com.dianping.pigeon.console.servlet.ServiceUnpublishServlet;
 import com.dianping.pigeon.log.LoggerLoader;
 import com.dianping.pigeon.remoting.http.provider.JettyHttpServerProcessor;
 import com.dianping.pigeon.remoting.provider.config.ServerConfig;
@@ -57,6 +53,9 @@ public class JettyConsoleProcessor implements JettyHttpServerProcessor {
 		ServiceStatusJsonServlet serviceStatusJsonServlet = new ServiceStatusJsonServlet(serverConfig, port);
 		context.addServlet(new ServletHolder(serviceStatusJsonServlet), "/services.status");
 		context.addServlet(new ServletHolder(serviceStatusJsonServlet), "/status");
+
+		ProviderOnlineStatusServlet providerOnlineStatusServlet = new ProviderOnlineStatusServlet();
+		context.addServlet(new ServletHolder(providerOnlineStatusServlet), "/onlineStatus");
 
 		ServletHolder holder = new ServletHolder(new DefaultServlet());
 		URL url = JettyConsoleProcessor.class.getClassLoader().getResource("statics");
