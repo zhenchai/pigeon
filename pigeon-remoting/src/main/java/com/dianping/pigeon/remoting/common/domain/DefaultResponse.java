@@ -7,10 +7,6 @@ package com.dianping.pigeon.remoting.common.domain;
 import java.io.Serializable;
 import java.util.Map;
 
-import org.apache.commons.lang.builder.ToStringBuilder;
-import org.apache.commons.lang.builder.ToStringStyle;
-
-import com.dianping.pigeon.remoting.common.domain.InvocationResponse;
 import com.dianping.pigeon.remoting.common.util.Constants;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -171,11 +167,17 @@ public class DefaultResponse implements InvocationResponse {
 
     @Override
     public String toString() {
-        if (this.messageType == Constants.MESSAGE_TYPE_SERVICE) {
-            return "DefaultResponse[serialize=" + serialize + ",seq=" + seq + ",messageType=" + messageType + "]";
-        } else {
-            return "DefaultResponse[serialize=" + serialize + ",seq=" + seq + ",messageType=" + messageType + ",return=" + returnVal + "]";
+        StringBuilder builder = new StringBuilder();
+
+        builder.append("DefaultResponse[").append("[serialize=").append(serialize).append(", seq=").append(seq).
+                append(", messageType=").append(messageType);
+        if (!(this.messageType == Constants.MESSAGE_TYPE_SERVICE)) {
+            builder.append(", return=").append(returnVal);
         }
+
+        builder.append("]");
+
+        return builder.toString();
     }
 
     @Override

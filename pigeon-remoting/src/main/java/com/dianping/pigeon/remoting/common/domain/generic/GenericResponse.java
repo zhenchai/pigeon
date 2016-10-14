@@ -1,8 +1,6 @@
 package com.dianping.pigeon.remoting.common.domain.generic;
 
 import com.dianping.pigeon.remoting.common.util.Constants;
-import org.apache.commons.lang.builder.ToStringBuilder;
-import org.apache.commons.lang.builder.ToStringStyle;
 
 import java.io.Serializable;
 import java.util.Map;
@@ -151,13 +149,17 @@ public class GenericResponse implements UnifiedResponse {
 
     @Override
     public String toString() {
-        if (this.messageType == Constants.MESSAGE_TYPE_SERVICE) {
-            return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE).append("serialize", serialize)
-                    .append("seq", seq).append("messageType", messageType).toString();
-        } else {
-            return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE).append("serialize", serialize)
-                    .append("seq", seq).append("messageType", messageType).append("return", returnVal).toString();
+        StringBuilder builder = new StringBuilder();
+
+        builder.append("DefaultResponse[").append("[serialize=").append(serialize).append(", seq=").append(seq).
+                append(", messageType=").append(messageType);
+        if (!(this.messageType == Constants.MESSAGE_TYPE_SERVICE)) {
+            builder.append(", return=").append(returnVal);
         }
+
+        builder.append("]");
+
+        return builder.toString();
     }
 
     @Override

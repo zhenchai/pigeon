@@ -7,11 +7,7 @@ package com.dianping.pigeon.remoting.common.domain;
 import java.io.Serializable;
 import java.util.Map;
 
-import org.apache.commons.lang.builder.ToStringBuilder;
-import org.apache.commons.lang.builder.ToStringStyle;
-
 import com.dianping.pigeon.config.ConfigManagerLoader;
-import com.dianping.pigeon.remoting.common.domain.InvocationRequest;
 import com.dianping.pigeon.remoting.common.util.Constants;
 import com.dianping.pigeon.remoting.common.util.InvocationUtils;
 import com.dianping.pigeon.remoting.invoker.config.InvokerConfig;
@@ -208,13 +204,18 @@ public class DefaultRequest implements InvocationRequest {
 
     @Override
     public String toString() {
-        ToStringBuilder builder = new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
-                .append("serialize", serialize).append("seq", seq).append("msgType", messageType)
-                .append("callType", callType).append("timeout", timeout).append("url", serviceName)
-                .append("method", methodName).append("app", app).append("created", createMillisTime);
+        StringBuilder builder = new StringBuilder();
+
+        builder.append("DefaultRequest[serialize=").append(serialize).append(", seq=").append(seq).append(", msgType=").
+                append(messageType).append(", callType=").append(callType).append(", timeout=").append(timeout).
+                append(", url=").append(serviceName).append(", method=").append(methodName).append(", app=").append(app).
+                append(", created=").append(createMillisTime);
+
         if (Constants.LOG_PARAMETERS) {
-            builder.append("parameters", InvocationUtils.toJsonString(parameters));
+            builder.append(", parameters=").append(InvocationUtils.toJsonString(parameters));
         }
+
+        builder.append("]");
 
         return builder.toString();
     }
