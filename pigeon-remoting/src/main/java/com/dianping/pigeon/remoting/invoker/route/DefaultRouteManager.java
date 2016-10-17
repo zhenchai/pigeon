@@ -81,7 +81,6 @@ public class DefaultRouteManager implements RouteManager, Disposable {
 
         while (!selectedClient.isActive()) {
             logger.info("[route] remove client:" + selectedClient);
-            clusterListenerManager.removeConnect(selectedClient);
             availableClients.remove(selectedClient);
             if (availableClients.isEmpty()) {
                 break;
