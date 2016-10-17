@@ -243,7 +243,7 @@ public class NettyClient extends AbstractClient {
 
     @Override
     public String toString() {
-        return "NettyClient[" + this.getAddress() + ", active:" + isActive() + ", super.active:" + super.isActive() + ", pool.Avaliable:" + channelPool.isAvaliable() + "]";
+        return "NettyClient[" + this.getAddress() + ", closed:" + isClosed() + ", active:" + isActive() + ", super.active:" + super.isActive() + ", pool.Avaliable:" + channelPool.isAvaliable() + "]";
     }
 
     public class MessageWriteListener implements ChannelFutureListener {
