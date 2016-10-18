@@ -201,6 +201,7 @@ public class ThriftMapper {
 
         TraceInfo traceInfo = header.getTraceInfo();
         request.setApp(traceInfo.getClientAppkey());
+        request.setClientIp(traceInfo.getClientIp());
 
         if (traceInfo.getRootMessageId() == null &&
                 traceInfo.getCurrentMessageId() == null &&
