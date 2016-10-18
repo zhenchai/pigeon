@@ -278,20 +278,24 @@ public class DefaultChannelPool<C extends Channel> implements ChannelPool<C> {
 
         @Override
         public void run() {
-            ChannelPool channelPool = poolRef.get();
+            try {
+                ChannelPool channelPool = poolRef.get();
 
-            if (channelPool != null && !channelPool.isClosed()) {
+                if (channelPool != null && !channelPool.isClosed()) {
 
-                List<Channel> channels = channelPool.getChannels();
+                    List<Channel> channels = channelPool.getChannels();
 
-                for (int index = 0; index < channels.size(); index++) {
-                    Channel channel = channels.get(index);
+                    for (int index = 0; index < channels.size(); index++) {
+                        Channel channel = channels.get(index);
 
-                    if (!channel.isAvaliable()) {
-                        reconnectChannel(channel, channelPool);
+                        if (!channel.isAvaliable()) {
+                            reconnectChannel(channel, channelPool);
+                        }
                     }
-                }
 
+                }
+            } catch (Throwable t) {
+                logger.warn("[run] pooledChannel check failed.", t);
             }
 
         }

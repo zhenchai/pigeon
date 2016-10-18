@@ -23,6 +23,12 @@
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-context</artifactId>
+			<exclusions>
+				<exclusion>
+					<artifactId>spring-asm</artifactId>
+					<groupId>org.springframework</groupId>
+				</exclusion>
+			</exclusions>
 			<optional>true</optional>
 		</dependency>
 		<dependency>
@@ -33,6 +39,12 @@
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-core</artifactId>
+			<exclusions>
+				<exclusion>
+					<artifactId>spring-asm</artifactId>
+					<groupId>org.springframework</groupId>
+				</exclusion>
+			</exclusions>
 			<optional>true</optional>
 		</dependency>
 		<dependency>
@@ -123,7 +135,7 @@
 						<configuration>
 							<createSourcesJar>true</createSourcesJar>
 							<promoteTransitiveDependencies>true</promoteTransitiveDependencies>
-							<createDependencyReducedPom>false</createDependencyReducedPom>
+							<createDependencyReducedPom>true</createDependencyReducedPom>
 							<artifactSet>
 								<includes>
 									<include>com.dianping:pigeon-common</include>
