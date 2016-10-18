@@ -38,7 +38,7 @@ public class TraceInfo implements org.apache.thrift.TBase<TraceInfo, TraceInfo._
   private static final org.apache.thrift.protocol.TField SERVER_MESSAGE_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("serverMessageId", org.apache.thrift.protocol.TType.STRING, (short)6);
   private static final org.apache.thrift.protocol.TField DEBUG_FIELD_DESC = new org.apache.thrift.protocol.TField("debug", org.apache.thrift.protocol.TType.BOOL, (short)7);
   private static final org.apache.thrift.protocol.TField SAMPLE_FIELD_DESC = new org.apache.thrift.protocol.TField("sample", org.apache.thrift.protocol.TType.BOOL, (short)8);
-  private static final org.apache.thrift.protocol.TField CLIENT_IP_FIELD_DESC = new org.apache.thrift.protocol.TField("clientIp", org.apache.thrift.protocol.TType.BOOL, (short)9);
+  private static final org.apache.thrift.protocol.TField CLIENT_IP_FIELD_DESC = new org.apache.thrift.protocol.TField("clientIp", org.apache.thrift.protocol.TType.STRING, (short)9);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -54,7 +54,7 @@ public class TraceInfo implements org.apache.thrift.TBase<TraceInfo, TraceInfo._
   public String serverMessageId; // optional
   public boolean debug; // optional
   public boolean sample; // optional
-  public boolean clientIp; // optional
+  public String clientIp; // optional
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -141,8 +141,7 @@ public class TraceInfo implements org.apache.thrift.TBase<TraceInfo, TraceInfo._
   // isset id assignments
   private static final int __DEBUG_ISSET_ID = 0;
   private static final int __SAMPLE_ISSET_ID = 1;
-  private static final int __CLIENTIP_ISSET_ID = 2;
-  private BitSet __isset_bit_vector = new BitSet(3);
+  private BitSet __isset_bit_vector = new BitSet(2);
   private _Fields optionals[] = {_Fields.TRACE_ID,_Fields.SPAN_ID,_Fields.ROOT_MESSAGE_ID,_Fields.CURRENT_MESSAGE_ID,_Fields.SERVER_MESSAGE_ID,_Fields.DEBUG,_Fields.SAMPLE,_Fields.CLIENT_IP};
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
@@ -164,7 +163,7 @@ public class TraceInfo implements org.apache.thrift.TBase<TraceInfo, TraceInfo._
     tmpMap.put(_Fields.SAMPLE, new org.apache.thrift.meta_data.FieldMetaData("sample", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
     tmpMap.put(_Fields.CLIENT_IP, new org.apache.thrift.meta_data.FieldMetaData("clientIp", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
-        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(TraceInfo.class, metaDataMap);
   }
@@ -205,7 +204,9 @@ public class TraceInfo implements org.apache.thrift.TBase<TraceInfo, TraceInfo._
     }
     this.debug = other.debug;
     this.sample = other.sample;
-    this.clientIp = other.clientIp;
+    if (other.isSetClientIp()) {
+      this.clientIp = other.clientIp;
+    }
   }
 
   public TraceInfo deepCopy() {
@@ -224,8 +225,7 @@ public class TraceInfo implements org.apache.thrift.TBase<TraceInfo, TraceInfo._
     this.debug = false;
     setSampleIsSet(false);
     this.sample = false;
-    setClientIpIsSet(false);
-    this.clientIp = false;
+    this.clientIp = null;
   }
 
   public String getClientAppkey() {
@@ -418,27 +418,28 @@ public class TraceInfo implements org.apache.thrift.TBase<TraceInfo, TraceInfo._
     __isset_bit_vector.set(__SAMPLE_ISSET_ID, value);
   }
 
-  public boolean isClientIp() {
+  public String getClientIp() {
     return this.clientIp;
   }
 
-  public TraceInfo setClientIp(boolean clientIp) {
+  public TraceInfo setClientIp(String clientIp) {
     this.clientIp = clientIp;
-    setClientIpIsSet(true);
     return this;
   }
 
   public void unsetClientIp() {
-    __isset_bit_vector.clear(__CLIENTIP_ISSET_ID);
+    this.clientIp = null;
   }
 
   /** Returns true if field clientIp is set (has been assigned a value) and false otherwise */
   public boolean isSetClientIp() {
-    return __isset_bit_vector.get(__CLIENTIP_ISSET_ID);
+    return this.clientIp != null;
   }
 
   public void setClientIpIsSet(boolean value) {
-    __isset_bit_vector.set(__CLIENTIP_ISSET_ID, value);
+    if (!value) {
+      this.clientIp = null;
+    }
   }
 
   public void setFieldValue(_Fields field, Object value) {
@@ -511,7 +512,7 @@ public class TraceInfo implements org.apache.thrift.TBase<TraceInfo, TraceInfo._
       if (value == null) {
         unsetClientIp();
       } else {
-        setClientIp((Boolean)value);
+        setClientIp((String)value);
       }
       break;
 
@@ -545,7 +546,7 @@ public class TraceInfo implements org.apache.thrift.TBase<TraceInfo, TraceInfo._
       return Boolean.valueOf(isSample());
 
     case CLIENT_IP:
-      return Boolean.valueOf(isClientIp());
+      return getClientIp();
 
     }
     throw new IllegalStateException();
@@ -670,7 +671,7 @@ public class TraceInfo implements org.apache.thrift.TBase<TraceInfo, TraceInfo._
     if (this_present_clientIp || that_present_clientIp) {
       if (!(this_present_clientIp && that_present_clientIp))
         return false;
-      if (this.clientIp != that.clientIp)
+      if (!this.clientIp.equals(that.clientIp))
         return false;
     }
 
@@ -872,7 +873,11 @@ public class TraceInfo implements org.apache.thrift.TBase<TraceInfo, TraceInfo._
     if (isSetClientIp()) {
       if (!first) sb.append(", ");
       sb.append("clientIp:");
-      sb.append(this.clientIp);
+      if (this.clientIp == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.clientIp);
+      }
       first = false;
     }
     sb.append(")");
@@ -987,8 +992,8 @@ public class TraceInfo implements org.apache.thrift.TBase<TraceInfo, TraceInfo._
             }
             break;
           case 9: // CLIENT_IP
-            if (schemeField.type == org.apache.thrift.protocol.TType.BOOL) {
-              struct.clientIp = iprot.readBool();
+            if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
+              struct.clientIp = iprot.readString();
               struct.setClientIpIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
@@ -1059,10 +1064,12 @@ public class TraceInfo implements org.apache.thrift.TBase<TraceInfo, TraceInfo._
         oprot.writeBool(struct.sample);
         oprot.writeFieldEnd();
       }
-      if (struct.isSetClientIp()) {
-        oprot.writeFieldBegin(CLIENT_IP_FIELD_DESC);
-        oprot.writeBool(struct.clientIp);
-        oprot.writeFieldEnd();
+      if (struct.clientIp != null) {
+        if (struct.isSetClientIp()) {
+          oprot.writeFieldBegin(CLIENT_IP_FIELD_DESC);
+          oprot.writeString(struct.clientIp);
+          oprot.writeFieldEnd();
+        }
       }
       oprot.writeFieldStop();
       oprot.writeStructEnd();
@@ -1130,7 +1137,7 @@ public class TraceInfo implements org.apache.thrift.TBase<TraceInfo, TraceInfo._
         oprot.writeBool(struct.sample);
       }
       if (struct.isSetClientIp()) {
-        oprot.writeBool(struct.clientIp);
+        oprot.writeString(struct.clientIp);
       }
     }
 
@@ -1169,7 +1176,7 @@ public class TraceInfo implements org.apache.thrift.TBase<TraceInfo, TraceInfo._
         struct.setSampleIsSet(true);
       }
       if (incoming.get(7)) {
-        struct.clientIp = iprot.readBool();
+        struct.clientIp = iprot.readString();
         struct.setClientIpIsSet(true);
       }
     }

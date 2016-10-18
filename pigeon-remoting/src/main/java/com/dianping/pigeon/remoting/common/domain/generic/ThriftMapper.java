@@ -65,6 +65,7 @@ public class ThriftMapper {
             traceInfo.setCurrentMessageId(localContext.get(MonitorConstants.CURRENT_MSG_ID));
         }
 
+        traceInfo.setClientIp(request.getClientIp());
         header.setTraceInfo(traceInfo);
 
         //globalContext
