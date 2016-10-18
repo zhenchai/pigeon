@@ -22,6 +22,7 @@ public class ProviderBeanDefinitionParserLoader implements BeanDefinitionParserL
 		Map<String, BeanDefinitionParser> parsers = new HashMap<String, BeanDefinitionParser>();
 		parsers.put("service", new ServiceBeanDefinitionParser(SingleServiceBean.class, true));
 		parsers.put("server", new ServerBeanDefinitionParser(ServerBean.class, false));
+		parsers.put("pool", new PoolBeanDefinitionParser(PoolBean.class, false));
 		return parsers;
 	}
 
