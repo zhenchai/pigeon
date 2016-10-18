@@ -19,7 +19,7 @@
 		<!-- Used common package -->
 		<pigeon.version>${project.version}</pigeon.version>
 		<guava.version>18.0</guava.version>
-		<spring.version>3.1.2.RELEASE</spring.version>
+		<spring.version>3.2.9.RELEASE</spring.version>
 		<netty.version>3.9.2.Final</netty.version>
 		<commons-httpclient.version>3.1</commons-httpclient.version>
 		<thrift.version>0.8.0</thrift.version>
@@ -43,7 +43,7 @@
 		<jetty-servlet-api.version>2.5-20081211</jetty-servlet-api.version>
 		<freemarker.version>2.3.19</freemarker.version>
 		<avatar-tracker.version>2.1.9</avatar-tracker.version>
-		<cat.version>1.5.1</cat.version>
+		<cat.version>1.5.3</cat.version>
 		<lion.version>0.6.3</lion.version>
 	</properties>
 
@@ -233,11 +233,13 @@
 				<groupId>org.springframework</groupId>
 				<artifactId>spring-aop</artifactId>
 				<version>${spring.version}</version>
+				<optional>true</optional>
 			</dependency>
 			<dependency>
 				<groupId>org.springframework</groupId>
 				<artifactId>spring-context-support</artifactId>
 				<version>${spring.version}</version>
+				<optional>true</optional>
 			</dependency>
 			<dependency>
 				<groupId>org.springframework</groupId>
