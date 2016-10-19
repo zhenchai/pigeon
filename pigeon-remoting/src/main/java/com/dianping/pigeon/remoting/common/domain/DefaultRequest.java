@@ -129,10 +129,6 @@ public class DefaultRequest implements InvocationRequest {
         return this.seq;
     }
 
-    public Object getObject() {
-        return this;
-    }
-
     public void setCallType(int callType) {
         this.callType = callType;
     }

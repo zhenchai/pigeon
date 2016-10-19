@@ -262,11 +262,6 @@ public class InvokerUtils {
         }
 
         @Override
-        public Object getObject() {
-            return null;
-        }
-
-        @Override
         public Object getContext() {
             return null;
         }
@@ -401,11 +396,6 @@ public class InvokerUtils {
         @Override
         public long getSequence() {
             return 0;
-        }
-
-        @Override
-        public Object getObject() {
-            return null;
         }
 
         @Override

@@ -20,8 +20,6 @@ public interface InvocationSerializable extends Serializable {
 
 	long getSequence();
 
-	Object getObject();
-
 	Object getContext();
 
 	void setContext(Object context);

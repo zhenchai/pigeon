@@ -1,14 +1,14 @@
 package com.dianping.pigeon.remoting.common.domain.generic;
 
 
+import java.io.Serializable;
+import java.util.Map;
+
 import com.dianping.pigeon.config.ConfigManagerLoader;
 import com.dianping.pigeon.remoting.common.util.Constants;
 import com.dianping.pigeon.remoting.common.util.InvocationUtils;
 import com.dianping.pigeon.remoting.invoker.config.InvokerConfig;
 import com.dianping.pigeon.remoting.invoker.domain.InvokerContext;
-
-import java.io.Serializable;
-import java.util.Map;
 
 /**
  * @author qi.yin
@@ -118,10 +118,6 @@ public class GenericRequest implements UnifiedRequest {
 
     public void setProtocalVersion(byte protocalVersion) {
         this.protocalVersion = protocalVersion;
-    }
-
-    public Object getObject() {
-        return this;
     }
 
     @Override

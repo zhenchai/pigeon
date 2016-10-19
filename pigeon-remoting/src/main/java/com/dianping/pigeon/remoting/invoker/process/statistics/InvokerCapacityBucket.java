@@ -6,12 +6,11 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import com.dianping.pigeon.log.Logger;
-
 import com.dianping.pigeon.config.ConfigManagerLoader;
+import com.dianping.pigeon.log.Logger;
 import com.dianping.pigeon.log.LoggerLoader;
 import com.dianping.pigeon.remoting.common.domain.InvocationRequest;
-import com.dianping.pigeon.util.ContextUtils;
+import com.dianping.pigeon.remoting.common.util.ContextUtils;
 
 public class InvokerCapacityBucket implements Serializable {
 	/**

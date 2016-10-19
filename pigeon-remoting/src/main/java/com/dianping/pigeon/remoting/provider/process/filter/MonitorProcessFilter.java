@@ -9,28 +9,30 @@ import java.util.Calendar;
 import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
-import com.dianping.pigeon.log.Logger;
 import org.springframework.util.CollectionUtils;
 
 import com.dianping.pigeon.config.ConfigManagerLoader;
+import com.dianping.pigeon.extension.ExtensionLoader;
+import com.dianping.pigeon.log.Logger;
 import com.dianping.pigeon.log.LoggerLoader;
 import com.dianping.pigeon.monitor.Monitor;
 import com.dianping.pigeon.monitor.MonitorLoader;
 import com.dianping.pigeon.monitor.MonitorTransaction;
-import com.dianping.pigeon.remoting.common.domain.InvocationRequest;
-import com.dianping.pigeon.remoting.common.domain.InvocationResponse;
 import com.dianping.pigeon.remoting.common.domain.InvocationContext.TimePhase;
 import com.dianping.pigeon.remoting.common.domain.InvocationContext.TimePoint;
+import com.dianping.pigeon.remoting.common.domain.InvocationRequest;
+import com.dianping.pigeon.remoting.common.domain.InvocationResponse;
 import com.dianping.pigeon.remoting.common.monitor.SizeMonitor;
 import com.dianping.pigeon.remoting.common.process.ServiceInvocationFilter;
 import com.dianping.pigeon.remoting.common.process.ServiceInvocationHandler;
 import com.dianping.pigeon.remoting.common.util.Constants;
+import com.dianping.pigeon.remoting.common.util.ContextUtils;
 import com.dianping.pigeon.remoting.common.util.InvocationUtils;
 import com.dianping.pigeon.remoting.provider.domain.ProviderChannel;
 import com.dianping.pigeon.remoting.provider.domain.ProviderContext;
+import com.dianping.pigeon.remoting.provider.process.ProviderContextProcessor;
 import com.dianping.pigeon.remoting.provider.service.method.ServiceMethod;
 import com.dianping.pigeon.remoting.provider.service.method.ServiceMethodFactory;
-import com.dianping.pigeon.util.ContextUtils;
 
 public class MonitorProcessFilter implements ServiceInvocationFilter<ProviderContext> {
 
@@ -40,10 +42,13 @@ public class MonitorProcessFilter implements ServiceInvocationFilter<ProviderCon
 
 	private static final Monitor monitor = MonitorLoader.getMonitor();
 
-	private static final boolean isAccessLogEnabled = ConfigManagerLoader.getConfigManager().getBooleanValue(
-			"pigeon.provider.accesslog.enable", false);
+	private static final boolean isAccessLogEnabled = ConfigManagerLoader.getConfigManager()
+			.getBooleanValue("pigeon.provider.accesslog.enable", false);
 
 	private static final String KEY_LOG_SERVICE_EXCEPTION = "pigeon.provider.logserviceexception";
+
+	private static final ProviderContextProcessor contextProcessor = ExtensionLoader
+			.getExtension(ProviderContextProcessor.class);
 
 	public MonitorProcessFilter() {
 		ConfigManagerLoader.getConfigManager().getBooleanValue(KEY_LOG_SERVICE_EXCEPTION, true);
@@ -68,8 +73,8 @@ public class MonitorProcessFilter implements ServiceInvocationFilter<ProviderCon
 			}
 			try {
 				if (StringUtils.isBlank(methodUri)) {
-					methodUri = InvocationUtils.getRemoteCallFullName(request.getServiceName(),
-							request.getMethodName(), request.getParamClassName());
+					methodUri = InvocationUtils.getRemoteCallFullName(request.getServiceName(), request.getMethodName(),
+							request.getParamClassName());
 				}
 				invocationContext.setMethodUri(methodUri);
 
@@ -172,7 +177,9 @@ public class MonitorProcessFilter implements ServiceInvocationFilter<ProviderCon
 				}
 				monitor.clearServiceTransaction();
 			}
-			ContextUtils.clearContext();
+			if (contextProcessor != null) {
+				contextProcessor.clearContext();
+			}
 			ContextUtils.clearLocalContext();
 			ContextUtils.clearRequestContext();
 			ContextUtils.clearGlobalContext();

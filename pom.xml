@@ -42,9 +42,6 @@
 		<commons-codec.version>1.9</commons-codec.version>
 		<jetty-servlet-api.version>2.5-20081211</jetty-servlet-api.version>
 		<freemarker.version>2.3.19</freemarker.version>
-		<avatar-tracker.version>2.1.9</avatar-tracker.version>
-		<cat.version>1.5.3</cat.version>
-		<lion.version>0.6.3</lion.version>
 	</properties>
 
 	<modules>
@@ -300,24 +297,6 @@
 				<version>${freemarker.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>com.dianping.lion</groupId>
-				<artifactId>lion-client</artifactId>
-				<version>${lion.version}</version>
-				<scope>provided</scope>
-			</dependency>
-			<dependency>
-				<groupId>com.dianping</groupId>
-				<artifactId>avatar-tracker</artifactId>
-				<version>${avatar-tracker.version}</version>
-				<optional>true</optional>
-			</dependency>
-			<dependency>
-				<groupId>com.dianping.cat</groupId>
-				<artifactId>cat-client</artifactId>
-				<version>${cat.version}</version>
-				<scope>provided</scope>
-			</dependency>
-			<dependency>
 				<groupId>com.dianping</groupId>
 				<artifactId>pigeon-common</artifactId>
 				<version>${pigeon.version}</version>
@@ -355,16 +334,6 @@
 			<dependency>
 				<groupId>com.dianping</groupId>
 				<artifactId>pigeon-remoting-http</artifactId>
-				<version>${pigeon.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>com.dianping</groupId>
-				<artifactId>pigeon-monitor-cat</artifactId>
-				<version>${pigeon.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>com.dianping</groupId>
-				<artifactId>pigeon-config-lion</artifactId>
 				<version>${pigeon.version}</version>
 			</dependency>
 			<dependency>
@@ -682,7 +651,7 @@
 		</plugins>
 	</reporting>
 	
-	<distributionManagement>
+	<!-- <distributionManagement>
 		<repository>
 			<id>dianping.repo</id>
 			<name>Dian Ping internal repository for released artifacts</name>
@@ -693,6 +662,6 @@
 			<name>Dian Ping internal repository for snapshots artifacts</name>
 			<url>http://mvn.dianpingoa.com/dianping-snapshots</url>
 		</snapshotRepository>
-	</distributionManagement>
+	</distributionManagement> -->
 	
 </project>
