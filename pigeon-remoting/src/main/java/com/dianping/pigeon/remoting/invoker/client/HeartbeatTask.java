@@ -98,18 +98,18 @@ public class HeartbeatTask implements Runnable {
 
             if (client.isActive()) {
                 client.setActive(false);
-
-                monitor.logEvent("PigeonCall.heartbeat", "Activate", client.getAddress());
-                heartbeatStats.resetStats();
+                logger.info("[notifyClientStateChanged]heartbeat" + client + ", inactive addresses:" + client.getAddress());
+                monitor.logEvent("PigeonCall.heartbeat", "Deactivate", client.getAddress());
             }
+            heartbeatStats.resetStats();
         } else if (heartbeatStats.getSuccessCount() >= clientThreshold) {
 
-            if (client.isActive()) {
+            if (!client.isActive()) {
                 client.setActive(true);
-
-                monitor.logEvent("PigeonCall.heartbeat", "Deactivate", client.getAddress());
-                heartbeatStats.resetStats();
+                logger.info("[notifyClientStateChanged]heartbeat" + client + ", active addresses:" + client.getAddress());
+                monitor.logEvent("PigeonCall.heartbeat", "Activate", client.getAddress());
             }
+            heartbeatStats.resetStats();
         }
     }
 

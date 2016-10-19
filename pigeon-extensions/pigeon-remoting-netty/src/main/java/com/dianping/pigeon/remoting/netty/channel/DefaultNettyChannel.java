@@ -95,7 +95,7 @@ public class DefaultNettyChannel implements NettyChannel {
         } catch (Throwable e) {
             logger.error("[disConnect] error disConnecting channel. ", e);
         } finally {
-            connectLock.lock();
+            connectLock.unlock();
         }
     }
 

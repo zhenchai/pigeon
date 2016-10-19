@@ -65,15 +65,6 @@ public class ClusterListenerManager implements Disposable {
         }
     }
 
-    public void removeConnect(Client client) {
-        String connect = client.getConnectInfo().getConnect();
-        ConnectInfo cmd = this.connectInfoMap.get(connect);
-        if (cmd != null) {
-            for (ClusterListener listener : listeners) {
-                listener.removeConnect(client);
-            }
-        }
-    }
 
     public void addListener(ClusterListener listener) {
         this.listeners.add(listener);

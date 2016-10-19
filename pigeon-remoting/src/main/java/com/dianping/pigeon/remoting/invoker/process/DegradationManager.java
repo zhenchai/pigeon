@@ -84,10 +84,6 @@ public enum DegradationManager {
 				return true;
 			}
 
-			if (configManager.getBooleanValue(KEY_DEGRADE_FAILURE, false)) {
-				return false;
-			}
-
 			if (configManager.getBooleanValue(KEY_DEGRADE_AUTO, false)) {
 				if (!CollectionUtils.isEmpty(requestCountMap)) {
 					String requestUrl = getRequestUrl(context);
@@ -108,12 +104,18 @@ public enum DegradationManager {
 					}
 				}
 			}
+
+			if (configManager.getBooleanValue(KEY_DEGRADE_FAILURE, false)) {
+				return false;
+			}
 		}
 		return false;
 	}
 
 	public boolean needFailureDegrade(InvokerContext context) {
-		return degradationIsEnable(context) && configManager.getBooleanValue(KEY_DEGRADE_FAILURE, false);
+		return degradationIsEnable(context) &&
+				(configManager.getBooleanValue(KEY_DEGRADE_AUTO, false)
+						|| configManager.getBooleanValue(KEY_DEGRADE_FAILURE, false));
 	}
 
 	private boolean degradationIsEnable(InvokerContext context) {

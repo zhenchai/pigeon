@@ -37,7 +37,7 @@ struct TraceInfo {                        // Mtrace 跟踪信息，原 MTthrift 
     6: optional string serverMessageId;   // Cat 的 serverMessageId
     7: optional bool debug;               // 是否强制采样
     8: optional bool sample;              // 是否采样
-    9: optional bool clientIp;            //invoker ip
+    9: optional string clientIp;            //invoker ip
 }
 typedef map<string, string> Context // 消息上下文，用于传递自定义数据
 

@@ -36,10 +36,6 @@ public class DefaultClusterListener implements ClusterListener {
 
     private ConcurrentHashMap<String, Client> allClients = new ConcurrentHashMap<String, Client>();
 
-//	private HeartBeatListener heartbeatListener;
-//
-//	private ReconnectListener reconnectListener;
-
     private ScheduledThreadPoolExecutor closeExecutor = new ScheduledThreadPoolExecutor(3, new DefaultThreadFactory(
             "Pigeon-Client-Cache-Close-ThreadPool"));
 
@@ -47,12 +43,7 @@ public class DefaultClusterListener implements ClusterListener {
 
     private ConfigManager configManager = ConfigManagerLoader.getConfigManager();
 
-    public DefaultClusterListener(//HeartBeatListener heartbeatListener, ReconnectListener reconnectListener,
-                                  ProviderAvailableListener providerAvailableListener) {
-//		this.heartbeatListener = heartbeatListener;
-//		this.reconnectListener = reconnectListener;
-//		this.reconnectListener.setWorkingClients(serviceClients);
-//		this.heartbeatListener.setWorkingClients(serviceClients);
+    public DefaultClusterListener(ProviderAvailableListener providerAvailableListener) {
         providerAvailableListener.setWorkingClients(serviceClients);
     }
 
@@ -115,7 +106,6 @@ public class DefaultClusterListener implements ClusterListener {
             } else {
                 logger.info("client already connected:" + client);
             }
-//			if (client.isActive()) {
 
             for (Entry<String, Integer> sw : connectInfo.getServiceNames().entrySet()) {
                 String serviceName = sw.getKey();
@@ -132,10 +122,6 @@ public class DefaultClusterListener implements ClusterListener {
                     clientList.add(client);
                 }
             }
-//			} else {
-//				logger.info("[cluster-listener] remove client:" + client);
-//				clusterListenerManager.removeConnect(client);
-//			}
         } catch (Throwable e) {
             logger.error("", e);
         }
@@ -190,27 +176,12 @@ public class DefaultClusterListener implements ClusterListener {
         // 一个client可能对应多个serviceName，仅当client不被任何serviceName使用时才关闭
         if (clientFound != null) {
             if (!isClientInUse(clientFound)) {
-                //removeClientFromReconnectTask(clientFound);
                 allClients.remove(clientFound.getAddress());
                 RequestQualityManager.INSTANCE.removeClientQualities(clientFound.getAddress());
                 closeClientInFuture(clientFound);
             }
         }
     }
-
-    // move to HeartTask?
-//	private void removeClientFromReconnectTask(Client clientToRemove) {
-//		Map<String, Client> closedClients = reconnectListener.getClosedClients();
-//		Set<String> keySet = closedClients.keySet();
-//		Iterator<String> iterator = keySet.iterator();
-//		while (iterator.hasNext()) {
-//			String connect = iterator.next();
-//			Client client = closedClients.get(connect);
-//			if (client != null && client.equals(clientToRemove)) {
-//				iterator.remove();
-//			}
-//		}
-//	}
 
     private boolean isClientInUse(Client clientToFind) {
         for (List<Client> clientList : serviceClients.values()) {

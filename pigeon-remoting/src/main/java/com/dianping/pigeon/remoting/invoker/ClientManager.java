@@ -81,8 +81,7 @@ public class ClientManager {
 
 	private ClientManager() {
 		this.providerAvailableListener = new ProviderAvailableListener();
-		this.clusterListener = new DefaultClusterListener(//heartBeatTask, reconnectTask,
-				providerAvailableListener);
+		this.clusterListener = new DefaultClusterListener(providerAvailableListener);
 		this.clusterListenerManager.addListener(this.clusterListener);
 		providerAvailableThreadPool.execute(this.providerAvailableListener);
 		RegistryEventListener.addListener(providerChangeListener);
