@@ -64,21 +64,21 @@ public class DefaultChannelPool<C extends Channel> implements ChannelPool<C> {
 
     private void init(PoolProperties properties) throws ChannelPoolException {
         if (properties.getMaxActive() < 1) {
-            logger.warn("[init] maxActive is smaller than 1, setting maxActive to " + PoolProperties.DEFAULT_MAX_ACTIVE);
+            logger.info("[init] maxActive is smaller than 1, setting maxActive to " + PoolProperties.DEFAULT_MAX_ACTIVE);
             properties.setMaxActive(PoolProperties.DEFAULT_MAX_ACTIVE);
         }
         if (properties.getInitialSize() > properties.getMaxActive()) {
-            logger.warn("[init] initialSize is larger than maxActive, setting initialSize to" + properties.getMaxActive());
+            logger.info("[init] initialSize is larger than maxActive, setting initialSize to" + properties.getMaxActive());
             properties.setInitialSize(properties.getMaxActive());
         }
 
         if (properties.getNormalSize() > properties.getMaxActive()) {
-            logger.warn("[init] normalSize is larger than maxActive, setting normalSize to" + properties.getMaxActive());
+            logger.info("[init] normalSize is larger than maxActive, setting normalSize to" + properties.getMaxActive());
             properties.setNormalSize(properties.getMaxActive());
         }
 
         if (properties.getNormalSize() < properties.getInitialSize()) {
-            logger.warn("[init] normalSize is smaller than initialSize, setting normalSize to" + properties.getInitialSize());
+            logger.info("[init] normalSize is smaller than initialSize, setting normalSize to" + properties.getInitialSize());
             properties.setNormalSize(properties.getInitialSize());
         }
 
@@ -89,7 +89,7 @@ public class DefaultChannelPool<C extends Channel> implements ChannelPool<C> {
             }
 
         } catch (ChannelPoolException e) {
-            logger.warn("[init] unable to create initial connections of pool.", e);
+            logger.info("[init] unable to create initial connections of pool.", e);
         }
 
         initCheckScheduler();
@@ -258,7 +258,7 @@ public class DefaultChannelPool<C extends Channel> implements ChannelPool<C> {
                     try {
                         channel.connect();
                     } catch (NetworkException e) {
-                        logger.warn("[run] pooledChannel connnet failed.", e);
+                        logger.info("[run] pooledChannel connnet failed.", e);
                     }
 
                 }
@@ -295,7 +295,7 @@ public class DefaultChannelPool<C extends Channel> implements ChannelPool<C> {
 
                 }
             } catch (Throwable t) {
-                logger.warn("[run] pooledChannel check failed.", t);
+                logger.info("[run] pooledChannel check failed.", t);
             }
 
         }

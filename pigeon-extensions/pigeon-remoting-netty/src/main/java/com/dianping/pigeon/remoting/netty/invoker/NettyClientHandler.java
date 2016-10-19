@@ -38,7 +38,7 @@ public class NettyClientHandler extends SimpleChannelUpstreamHandler {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e) {
-        logger.error("[exceptionCaught] channel exception, will be close. ", e.getCause());
+        logger.info("[exceptionCaught] channel exception, will be close. ", e.getCause());
         e.getChannel().close();
     }
 
