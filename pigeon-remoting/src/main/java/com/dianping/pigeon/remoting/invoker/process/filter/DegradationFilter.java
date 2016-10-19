@@ -410,7 +410,7 @@ public class DegradationFilter extends InvocationInvokeFilter {
 	}
 
 
-	private static Object getGroovyMockProxy(String key, InvokerContext context, DegradeAction action) throws Throwable {
+	private static Object getGroovyMockProxy(String key, InvokerContext context, DegradeAction action) {
 		Object interfaceProxy = groovyMocks.get(key);
 
 		if (interfaceProxy == null) {

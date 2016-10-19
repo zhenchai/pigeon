@@ -79,6 +79,23 @@ public class ServiceFutureImpl extends CallbackFuture implements Future {
                     invocationContext.getTimeline().add(new TimePoint(TimePhase.F, System.currentTimeMillis()));
                 }
             } catch (RuntimeException e) {
+                // failure degrade condition
+                InvocationResponse degradedResponse = null;
+                if (DegradationManager.INSTANCE.needFailureDegrade(invocationContext)) {
+                    try {
+                        degradedResponse = DegradationFilter.degradeCall(invocationContext);
+                    } catch (Throwable t) {
+                        // won't happen
+                        logger.warn("failure degrade in future call type error: " + t.toString());
+                    }
+                }
+                if (degradedResponse != null) {//返回同步调用模式的失败降级结果
+                    Future future = FutureFactory.getFuture();
+                    if (future != null) {
+                        return future.get();
+                    }
+                }
+                // not failure degrade
                 DegradationManager.INSTANCE.addFailedRequest(invocationContext, e);
                 ExceptionManager.INSTANCE.logRpcException(addr, invocationContext.getInvokerConfig().getUrl(),
                         invocationContext.getMethodName(), "error with future call", e, request, response, transaction);
