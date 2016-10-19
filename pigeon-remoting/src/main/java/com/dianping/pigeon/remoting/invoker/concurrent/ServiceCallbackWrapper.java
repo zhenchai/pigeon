@@ -87,13 +87,13 @@ public class ServiceCallbackWrapper implements Callback {
 				msg.append("request callback timeout:").append(request);
 				Exception e = InvocationUtils.newTimeoutException(msg.toString());
 				e.setStackTrace(new StackTraceElement[] {});
-				/*if (DegradationManager.INSTANCE.needFailureDegrade()) {
+				if (DegradationManager.INSTANCE.needFailureDegrade(invocationContext)) {
 					try {
 						DegradationFilter.degradeCall(invocationContext);
 					} catch (Throwable t) {
-						logger.warn("callback failure timeout exception degrade failed.", t);
+						logger.warn("failure degrade in callback call type error: " + t.toString());
 					}
-				}*/
+				}
 				DegradationManager.INSTANCE.addFailedRequest(invocationContext, e);
 				ExceptionManager.INSTANCE.logRpcException(addr, invocationContext.getInvokerConfig().getUrl(),
 						invocationContext.getMethodName(), "request callback timeout", e, request, response,
@@ -103,15 +103,18 @@ public class ServiceCallbackWrapper implements Callback {
 			try {
 				if (response.getMessageType() == Constants.MESSAGE_TYPE_SERVICE) {
 					completeTransaction(transaction);
-
 					this.callback.onSuccess(response.getReturn());
 				} else if (response.getMessageType() == Constants.MESSAGE_TYPE_EXCEPTION) {
 					RpcException e = ExceptionManager.INSTANCE.logRemoteCallException(addr,
 							invocationContext.getInvokerConfig().getUrl(), invocationContext.getMethodName(),
 							"remote call error with callback", request, response, transaction);
-					/*if (DegradationManager.INSTANCE.needFailureDegrade()) {
-						DegradationFilter.degradeCall(invocationContext);
-					}*/
+					if (DegradationManager.INSTANCE.needFailureDegrade(invocationContext)) {
+						try {
+							DegradationFilter.degradeCall(invocationContext);
+						} catch (Throwable t) {
+							logger.warn("failure degrade in callback call type error: " + t.toString());
+						}
+					}
 					DegradationManager.INSTANCE.addFailedRequest(invocationContext, e);
 					completeTransaction(transaction);
 
