@@ -81,10 +81,6 @@ public class GenericResponse implements UnifiedResponse {
         this.protocalVersion = protocalVersion;
     }
 
-    public Object getObject() {
-        return this;
-    }
-
     public void setMessageType(int messageType) {
         this.messageType = messageType;
     }

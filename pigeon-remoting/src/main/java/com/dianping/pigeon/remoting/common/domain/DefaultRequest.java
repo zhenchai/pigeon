@@ -11,7 +11,6 @@ import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
 
 import com.dianping.pigeon.config.ConfigManagerLoader;
-import com.dianping.pigeon.remoting.common.domain.InvocationRequest;
 import com.dianping.pigeon.remoting.common.util.Constants;
 import com.dianping.pigeon.remoting.common.util.InvocationUtils;
 import com.dianping.pigeon.remoting.invoker.config.InvokerConfig;
@@ -131,10 +130,6 @@ public class DefaultRequest implements InvocationRequest {
 
     public long getSequence() {
         return this.seq;
-    }
-
-    public Object getObject() {
-        return this;
     }
 
     public void setCallType(int callType) {

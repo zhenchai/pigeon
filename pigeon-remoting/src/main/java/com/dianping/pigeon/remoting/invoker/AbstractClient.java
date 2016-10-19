@@ -41,7 +41,7 @@ public abstract class AbstractClient implements Client {
     private ScheduledFuture<?> heatbeatTimer;
 
     private static final ScheduledThreadPoolExecutor scheduled = new ScheduledThreadPoolExecutor(
-            4, new NamedThreadFactory("Pigeon-Client-HeartBeat-ThreadPool"));
+            4, new NamedThreadFactory("Pigeon-Client-HeartBeat-ThreadPool", true));
 
     public AbstractClient(ResponseProcessor responseProcessor,
                           boolean heartbeated,

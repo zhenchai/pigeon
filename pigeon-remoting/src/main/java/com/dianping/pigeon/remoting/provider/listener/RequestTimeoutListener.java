@@ -9,17 +9,14 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 
-import com.dianping.pigeon.remoting.common.domain.generic.UnifiedRequest;
-import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
-import com.dianping.pigeon.log.Logger;
 import org.springframework.util.CollectionUtils;
 
 import com.dianping.pigeon.config.ConfigManager;
 import com.dianping.pigeon.config.ConfigManagerLoader;
+import com.dianping.pigeon.log.Logger;
 import com.dianping.pigeon.log.LoggerLoader;
 import com.dianping.pigeon.monitor.Monitor;
 import com.dianping.pigeon.monitor.MonitorLoader;
@@ -31,7 +28,7 @@ import com.dianping.pigeon.remoting.provider.domain.ProviderContext;
 import com.dianping.pigeon.remoting.provider.exception.ProcessTimeoutException;
 import com.dianping.pigeon.remoting.provider.exception.RequestAbortedException;
 import com.dianping.pigeon.remoting.provider.process.RequestProcessor;
-import com.dianping.pigeon.util.ContextUtils;
+import com.google.common.collect.Maps;
 
 public class RequestTimeoutListener implements Runnable {
 
@@ -166,9 +163,6 @@ public class RequestTimeoutListener implements Runnable {
 										} else {
 											te = new ProcessTimeoutException(msg.toString());
 											te.setStackTrace(t.getStackTrace());
-										}
-										if (!(request instanceof UnifiedRequest)) {
-											ContextUtils.setContext(request.getContext());
 										}
 										if (configManager.getBooleanValue(KEY_TIMEOUT_LOG_ENABLE, true)) {
 											logger.error(te.getMessage(), te);

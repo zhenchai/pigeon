@@ -96,15 +96,6 @@ public class DefaultResponse implements InvocationResponse {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see com.dianping.dpsf.net.component.DPSFSerializable#getObject()
-	 */
-	public Object getObject() {
-		return this;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
 	 * @see com.dianping.dpsf.net.component.DPSFResponse#setMessageType(int)
 	 */
 	public void setMessageType(int messageType) {

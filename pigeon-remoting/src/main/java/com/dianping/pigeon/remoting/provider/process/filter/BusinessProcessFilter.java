@@ -17,6 +17,7 @@ import com.dianping.pigeon.remoting.common.exception.BadRequestException;
 import com.dianping.pigeon.remoting.common.process.ServiceInvocationFilter;
 import com.dianping.pigeon.remoting.common.process.ServiceInvocationHandler;
 import com.dianping.pigeon.remoting.common.util.Constants;
+import com.dianping.pigeon.remoting.common.util.ContextUtils;
 import com.dianping.pigeon.remoting.provider.domain.ProviderContext;
 import com.dianping.pigeon.remoting.provider.exception.RequestAbortedException;
 import com.dianping.pigeon.remoting.provider.process.ProviderInterceptor;
@@ -27,7 +28,6 @@ import com.dianping.pigeon.remoting.provider.service.method.ServiceMethod;
 import com.dianping.pigeon.remoting.provider.service.method.ServiceMethodFactory;
 import com.dianping.pigeon.remoting.provider.util.ProviderHelper;
 import com.dianping.pigeon.remoting.provider.util.ProviderUtils;
-import com.dianping.pigeon.util.ContextUtils;
 
 public class BusinessProcessFilter implements ServiceInvocationFilter<ProviderContext> {
 
