@@ -107,10 +107,28 @@ public class ServiceFutureImpl extends CallbackFuture implements Future {
             if (response.getMessageType() == Constants.MESSAGE_TYPE_SERVICE) {
                 return response.getReturn();
             } else if (response.getMessageType() == Constants.MESSAGE_TYPE_EXCEPTION) {
+                // failure degrade condition
+                InvocationResponse degradedResponse = null;
+                if (DegradationManager.INSTANCE.needFailureDegrade(invocationContext)) {
+                    try {
+                        degradedResponse = DegradationFilter.degradeCall(invocationContext);
+                    } catch (Throwable t) {
+                        // won't happen
+                        logger.warn("failure degrade in future call type error: " + t.toString());
+                    }
+                }
+                if (degradedResponse != null) {//返回同步调用模式的失败降级结果
+                    Future future = FutureFactory.getFuture();
+                    if (future != null) {
+                        return future.get();
+                    }
+                }
+                // not failure degrade
                 RpcException e = ExceptionManager.INSTANCE.logRemoteCallException(addr,
                         invocationContext.getInvokerConfig().getUrl(), invocationContext.getMethodName(),
                         "remote call error with future call", request, response, transaction);
                 if (e != null) {
+                    DegradationManager.INSTANCE.addFailedRequest(invocationContext, e);
                     throw e;
                 }
             } else if (response.getMessageType() == Constants.MESSAGE_TYPE_SERVICE_EXCEPTION) {
