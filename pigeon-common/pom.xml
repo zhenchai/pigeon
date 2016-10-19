@@ -51,10 +51,6 @@
             <optional>true</optional>
         </dependency>
         <dependency>
-            <groupId>com.dianping</groupId>
-            <artifactId>avatar-tracker</artifactId>
-        </dependency>
-        <dependency>
             <groupId>com.facebook.swift</groupId>
             <artifactId>swift-annotations</artifactId>
         </dependency>

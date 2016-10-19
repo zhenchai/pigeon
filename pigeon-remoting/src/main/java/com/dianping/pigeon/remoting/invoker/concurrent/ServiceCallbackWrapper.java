@@ -21,6 +21,7 @@ import com.dianping.pigeon.remoting.common.exception.BadResponseException;
 import com.dianping.pigeon.remoting.common.exception.RpcException;
 import com.dianping.pigeon.remoting.common.monitor.SizeMonitor;
 import com.dianping.pigeon.remoting.common.util.Constants;
+import com.dianping.pigeon.remoting.common.util.ContextUtils;
 import com.dianping.pigeon.remoting.common.util.InvocationUtils;
 import com.dianping.pigeon.remoting.invoker.Client;
 import com.dianping.pigeon.remoting.invoker.config.InvokerConfig;
@@ -28,7 +29,6 @@ import com.dianping.pigeon.remoting.invoker.domain.InvokerContext;
 import com.dianping.pigeon.remoting.invoker.process.DegradationManager;
 import com.dianping.pigeon.remoting.invoker.process.ExceptionManager;
 import com.dianping.pigeon.remoting.invoker.process.filter.DegradationFilter;
-import com.dianping.pigeon.util.ContextUtils;
 
 public class ServiceCallbackWrapper implements Callback {
 
