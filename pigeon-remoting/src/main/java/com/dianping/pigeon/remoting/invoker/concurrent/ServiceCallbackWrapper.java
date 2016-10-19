@@ -28,6 +28,7 @@ import com.dianping.pigeon.remoting.invoker.config.InvokerConfig;
 import com.dianping.pigeon.remoting.invoker.domain.InvokerContext;
 import com.dianping.pigeon.remoting.invoker.process.DegradationManager;
 import com.dianping.pigeon.remoting.invoker.process.ExceptionManager;
+import com.dianping.pigeon.remoting.invoker.process.filter.DegradationFilter;
 
 public class ServiceCallbackWrapper implements Callback {
 
