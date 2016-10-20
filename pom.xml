@@ -651,7 +651,7 @@
 		</plugins>
 	</reporting>
 	
-	<!-- <distributionManagement>
+	 <distributionManagement>
 		<repository>
 			<id>dianping.repo</id>
 			<name>Dian Ping internal repository for released artifacts</name>
@@ -662,6 +662,6 @@
 			<name>Dian Ping internal repository for snapshots artifacts</name>
 			<url>http://mvn.dianpingoa.com/dianping-snapshots</url>
 		</snapshotRepository>
-	</distributionManagement> -->
+	</distributionManagement>
 	
 </project>
