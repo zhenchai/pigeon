@@ -12,6 +12,8 @@ import com.dianping.pigeon.monitor.Monitor;
 import com.dianping.pigeon.monitor.MonitorLoader;
 import com.dianping.pigeon.monitor.MonitorTransaction;
 import com.dianping.pigeon.registry.RegistryManager;
+import com.dianping.pigeon.remoting.common.codec.SerializerFactory;
+import com.dianping.pigeon.remoting.common.domain.InvocationContext;
 import com.dianping.pigeon.remoting.common.domain.InvocationContext.TimePhase;
 import com.dianping.pigeon.remoting.common.domain.InvocationContext.TimePoint;
 import com.dianping.pigeon.remoting.common.domain.InvocationRequest;
@@ -127,6 +129,7 @@ public class RemoteCallMonitorInvokeFilter extends InvocationInvokeFilter {
                         if (_request.getSerialize() != config.getSerialize()) {
                             transaction.addData("CurrentSerialize", _request.getSerialize());
                         }
+                        monitorProtocal(invocationContext, _request, targetApp);
                     }
                     invocationContext.getTimeline().add(new TimePoint(TimePhase.E, System.currentTimeMillis()));
                     transaction.complete();
@@ -137,6 +140,17 @@ public class RemoteCallMonitorInvokeFilter extends InvocationInvokeFilter {
                     monitor.clearCallTransaction();
                 }
             }
+        }
+    }
+
+    private void monitorProtocal(InvokerContext invokerContext, InvocationRequest request, String targetApp) {
+        if (request.getSerialize() == SerializerFactory.SERIALIZE_THRIFT) {
+            Client client = invokerContext.getClient();
+            String address = "NULL";
+            if (client != null) {
+                address = client.getAddress();
+            }
+            monitor.logEvent("PigeonCall.protocal", targetApp, address);
         }
     }
 }
