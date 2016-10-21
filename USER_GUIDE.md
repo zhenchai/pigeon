@@ -1084,9 +1084,12 @@ com.dianping.pigeon.governor.service.RegistrationInfoService
 
 
 ### 泳道
-泳道用于机器级别的隔离，泳道配置在机器的/data/webapps/appenv里，例如：
+泳道是lion提供的支持，用于机器级别的隔离，泳道配置在机器的/data/webapps/appenv里，例如：
+
 deployenv=alpha
+
 zkserver=alpha.lion.dp:2182
+
 swimlane=tg
 
 swimlane代表tg这个泳道，对于pigeon来说，如果一个service的机器定义了swimlane为tg，那么这个机器只能是客户端同样为tg泳道的机器能够调用
