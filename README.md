@@ -9,11 +9,17 @@
 
 ### Comitters
 苗向彬，saber.miao
+
 吴湘，xiang.wu@dianping.com（wu-xiang）
+
 陈华，enlight.chen@dianping.com（fv3386）
+
 陈充泽，chongze.chen@dianping.com（wps886）
+
 殷琦，qi.yin@dianping.com（andyyin）
+
 石华珅，shihuashen@meituan.com
+
 
 ### Copyright and license
 
