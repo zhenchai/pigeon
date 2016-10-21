@@ -48,6 +48,12 @@ public class PoolBeanDefinitionParser implements BeanDefinitionParser {
 
         MutablePropertyValues properties = beanDefinition.getPropertyValues();
 
+        if (element.hasAttribute("poolName")) {
+            properties.addPropertyValue("poolName", resolveReference(element, "poolName"));
+        } else {
+            properties.addPropertyValue("poolName", id);
+        }
+
         if (element.hasAttribute("corePoolSize")) {
             properties.addPropertyValue("corePoolSize", resolveReference(element, "corePoolSize"));
             String value = element.getAttribute("corePoolSize");
