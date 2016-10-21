@@ -7,6 +7,8 @@ import com.dianping.pigeon.remoting.provider.ProviderBootStrap;
 import com.dianping.pigeon.remoting.provider.Server;
 import com.dianping.pigeon.remoting.provider.process.RequestProcessor;
 import com.dianping.pigeon.remoting.provider.publish.ServicePublisher;
+import com.dianping.pigeon.threadpool.DefaultThreadFactory;
+import com.dianping.pigeon.threadpool.DefaultThreadPool;
 import com.google.common.collect.Maps;
 import com.dianping.pigeon.log.Logger;
 import org.apache.thrift.TEnum;
@@ -42,7 +44,7 @@ public enum ProviderSystemInfoCollector {
                 doTask();
             }
         };
-        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(r, 10, 10, TimeUnit.SECONDS);
+        Executors.newSingleThreadScheduledExecutor(new DefaultThreadFactory("Pigeon-Provider-SystemInfo-Thread")).scheduleAtFixedRate(r, 10, 10, TimeUnit.SECONDS);
     }
 
     private void doTask() {
@@ -101,8 +103,8 @@ public enum ProviderSystemInfoCollector {
         return 0;
     }
 
-    public Map<String,Double> getQpsMap() {
-        Map<String,Double> methodQpsMap = Maps.newHashMap();
+    public Map<String, Double> getQpsMap() {
+        Map<String, Double> methodQpsMap = Maps.newHashMap();
 
         // total
         int totalQps = 0;

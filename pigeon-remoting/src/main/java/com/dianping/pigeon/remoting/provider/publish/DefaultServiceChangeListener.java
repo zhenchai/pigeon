@@ -8,6 +8,8 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
+import com.dianping.pigeon.remoting.ServiceFactory;
+import com.dianping.pigeon.remoting.provider.ProviderBootStrap;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpConnectionManager;
 import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
@@ -84,6 +86,9 @@ public class DefaultServiceChangeListener implements ServiceChangeListener {
 		url.append("&group=").append(group);
 		url.append("&ip=").append(ip);
 		url.append("&port=").append(providerConfig.getServerConfig().getActualPort());
+		if (ProviderBootStrap.getHttpServer() != null) {
+			url.append("&httpPort=").append(ProviderBootStrap.getHttpServer().getPort());
+		}
 		if (StringUtils.isNotBlank(configManager.getAppName())) {
 			url.append("&app=").append(configManager.getAppName());
 		}
