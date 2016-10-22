@@ -4,21 +4,6 @@
  */
 package com.dianping.pigeon.remoting.provider.process.threadpool;
 
-import java.util.*;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Future;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.RejectedExecutionException;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-
-import com.dianping.pigeon.remoting.common.codec.json.JacksonSerializer;
-import com.dianping.pigeon.remoting.provider.config.spring.PoolBean;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import org.apache.commons.lang.StringUtils;
-
 import com.dianping.pigeon.config.ConfigChangeListener;
 import com.dianping.pigeon.config.ConfigManagerLoader;
 import com.dianping.pigeon.log.Logger;
@@ -41,10 +26,17 @@ import com.dianping.pigeon.remoting.provider.service.method.ServiceMethodFactory
 import com.dianping.pigeon.threadpool.DefaultThreadPool;
 import com.dianping.pigeon.threadpool.ThreadPool;
 import com.dianping.pigeon.util.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 
-public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.*;
 
-    private static final Logger logger = LoggerLoader.getLogger(RequestThreadPoolProcessor.class);
+public class RequestThreadPoolProcessor_ extends AbstractRequestProcessor {
+
+    private static final Logger logger = LoggerLoader.getLogger(RequestThreadPoolProcessor_.class);
 
     private static final String poolStrategy = ConfigManagerLoader.getConfigManager().getStringValue(
             "pigeon.provider.pool.strategy", "shared");
@@ -90,26 +82,7 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
     private static boolean enableSlowPool = ConfigManagerLoader.getConfigManager().getBooleanValue(
             "pigeon.provider.pool.slow.enable", true);
 
-    private static final JacksonSerializer jacksonSerializer = new JacksonSerializer();
-    private static final String KEY_PROVIDER_POOL_CONFIG = "pigeon.provider.pool.config";
-    private static final String KEY_PROVIDER_POOL_SERVICE_CONFIG = "pigeon.provider.pool.service.config";
-    private static final String KEY_PROVIDER_POOL_METHOD_CONFIG = "pigeon.provider.pool.method.config";
-    // poolName --> poolBean
-    private volatile static Map<String, PoolBean> poolNameMapping = Maps.newConcurrentMap();
-    // url --> poolName
-    private volatile static Map<String, String> servicePoolConfigMapping = Maps.newConcurrentMap();
-    // url#api --> poolName
-    private volatile static Map<String, String> methodPoolConfigMapping = Maps.newConcurrentMap();
-
-    static {
-        try {
-            init();
-        } catch (Throwable t) {
-            throw new RuntimeException("failed to init pool config! please check!", t);
-        }
-    }
-
-    public RequestThreadPoolProcessor(ServerConfig serverConfig) {
+    public RequestThreadPoolProcessor_(ServerConfig serverConfig) {
         ConfigManagerLoader.getConfigManager().registerConfigChangeListener(new InnerConfigChangeListener());
         if ("server".equals(poolStrategy)) {
             requestProcessThreadPool = new DefaultThreadPool("Pigeon-Server-Request-Processor-"
@@ -120,67 +93,6 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
                     serverConfig.getCorePoolSize(), serverConfig.getMaxPoolSize(), new LinkedBlockingQueue<Runnable>(
                     serverConfig.getWorkQueueSize()));
             requestProcessThreadPool = sharedRequestProcessThreadPool;
-        }
-    }
-
-    private static void init() throws Throwable {
-        String poolConfig = ConfigManagerLoader.getConfigManager().getStringValue(KEY_PROVIDER_POOL_CONFIG, "");
-        refreshPoolConfig(poolConfig);
-
-        String servicePoolConfig = ConfigManagerLoader.getConfigManager().getStringValue(KEY_PROVIDER_POOL_SERVICE_CONFIG, "");
-        refreshServicePoolConfig(servicePoolConfig);
-
-        String methodPoolConfig = ConfigManagerLoader.getConfigManager().getStringValue(KEY_PROVIDER_POOL_METHOD_CONFIG, "");
-        refreshMethodPoolConfig(methodPoolConfig);
-    }
-
-    private static void refreshPoolConfig(String poolConfig) throws Throwable {
-        if (StringUtils.isNotBlank(poolConfig)) {
-            PoolBean[] poolBeen = (PoolBean[])jacksonSerializer.toObject(PoolBean[].class, poolConfig);
-            Map<String, PoolBean> _poolNameMapping = Maps.newConcurrentMap();
-
-            for (PoolBean poolBean : poolBeen) {
-                if(poolBean.checkNotNull()) {
-                    _poolNameMapping.put(poolBean.getPoolName(), poolBean);
-                } else {//报异常,保持原状
-                    throw new RuntimeException("pool config error! please check: " + poolBean);
-                }
-            }
-
-            if(_poolNameMapping.size() != poolBeen.length) {//报异常,保持原状
-                throw new RuntimeException("conflict pool name exists, please check!");
-            } else {
-                List<PoolBean> poolBeenToClose = Lists.newLinkedList();
-                for (Map.Entry<String, PoolBean> oldPoolBeanEntry : poolNameMapping.entrySet()) {
-                    String oldPoolName = oldPoolBeanEntry.getKey();
-                    PoolBean oldPoolBean = oldPoolBeanEntry.getValue();
-                    PoolBean _poolBean = _poolNameMapping.get(oldPoolName);
-                    if (oldPoolBean.equals(_poolBean)) {
-                        _poolNameMapping.remove(oldPoolName);
-                        _poolNameMapping.put(oldPoolName, oldPoolBean);
-                    } else {
-                        poolBeenToClose.add(oldPoolBean);
-                    }
-                }
-                poolNameMapping = _poolNameMapping;
-                for (PoolBean poolBeanToClose : poolBeenToClose) {
-                    poolBeanToClose.closeThreadPool();
-                }
-            }
-        }
-    }
-
-    private static void refreshServicePoolConfig(String servicePoolConfig) throws Throwable {
-        if (StringUtils.isNotBlank(servicePoolConfig)) {
-            Map<String, String> _servicePoolConfigMapping = (Map) jacksonSerializer.toObject(Map.class, servicePoolConfig);
-            servicePoolConfigMapping = new ConcurrentHashMap<>(_servicePoolConfigMapping);
-        }
-    }
-
-    private static void refreshMethodPoolConfig(String methodPoolConfig) throws Throwable {
-        if (StringUtils.isNotBlank(methodPoolConfig)) {
-            Map<String, String> _methodPoolConfigMapping = (Map) jacksonSerializer.toObject(Map.class, methodPoolConfig);
-            methodPoolConfigMapping = new ConcurrentHashMap<>(_methodPoolConfigMapping);
         }
     }
 
@@ -235,36 +147,12 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
 
     private ThreadPool selectThreadPool(final InvocationRequest request) {
         ThreadPool pool = null;
-
-        // 配置中心方式
-        if (!CollectionUtils.isEmpty(methodPoolConfigMapping)) {
-            String poolName = methodPoolConfigMapping.get(request.getServiceName() + "#" + request.getMethodName());
-            if (StringUtils.isNotBlank(poolName)) {
-                PoolBean poolBean = poolNameMapping.get(poolName);
-                if(poolBean != null) {
-                    pool = poolBean.getThreadPool();
-                }
-            }
-        }
-        if (pool == null && !CollectionUtils.isEmpty(servicePoolConfigMapping)) {
-            String poolName = servicePoolConfigMapping.get(request.getServiceName());
-            if (StringUtils.isNotBlank(poolName)) {
-                PoolBean poolBean = poolNameMapping.get(poolName);
-                if(poolBean != null) {
-                    pool = poolBean.getThreadPool();
-                }
-            }
-        }
-
-        // spring配置方式
-        if (pool == null && !CollectionUtils.isEmpty(methodThreadPools)) {
+        if (!CollectionUtils.isEmpty(methodThreadPools)) {
             pool = methodThreadPools.get(request.getServiceName() + "#" + request.getMethodName());
         }
-        if (pool == null && !CollectionUtils.isEmpty(serviceThreadPools)) {
+        if (!CollectionUtils.isEmpty(serviceThreadPools)) {
             pool = serviceThreadPools.get(request.getServiceName());
         }
-
-        // 默认方式
         if (pool == null) {
             if (enableSlowPool && requestTimeoutListener.isSlowRequest(request)) {
                 pool = slowRequestProcessThreadPool;
@@ -276,16 +164,12 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
                 }
             }
         }
-
         return pool;
     }
 
     @Override
     public String getProcessorStatistics() {
         StringBuilder stats = new StringBuilder();
-
-        //todo 增加lion配置方式的统计信息
-
         if ("server".equals(poolStrategy)) {
             stats.append("[server=").append(getThreadPoolStatistics(requestProcessThreadPool)).append("]");
         } else {
@@ -433,40 +317,22 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
     }
 
     public static void setSharedPoolQueueSizeKey(String sharedPoolQueueSizeKey) {
-        RequestThreadPoolProcessor.sharedPoolQueueSizeKey = sharedPoolQueueSizeKey;
+        RequestThreadPoolProcessor_.sharedPoolQueueSizeKey = sharedPoolQueueSizeKey;
     }
 
     public static void setSharedPoolMaxSizeKey(String sharedPoolMaxSizeKey) {
-        RequestThreadPoolProcessor.sharedPoolMaxSizeKey = sharedPoolMaxSizeKey;
+        RequestThreadPoolProcessor_.sharedPoolMaxSizeKey = sharedPoolMaxSizeKey;
     }
 
     public static void setSharedPoolCoreSizeKey(String sharedPoolCoreSizeKey) {
-        RequestThreadPoolProcessor.sharedPoolCoreSizeKey = sharedPoolCoreSizeKey;
+        RequestThreadPoolProcessor_.sharedPoolCoreSizeKey = sharedPoolCoreSizeKey;
     }
 
     private class InnerConfigChangeListener implements ConfigChangeListener {
 
         @Override
         public void onKeyUpdated(String key, String value) {
-            if (key.endsWith(KEY_PROVIDER_POOL_CONFIG)) {
-                try {
-                    refreshPoolConfig(value);
-                } catch (Throwable t) {
-                    logger.warn("failed to refresh pool config, fallback to previous settings, please check...", t);
-                }
-            } else if (key.endsWith(KEY_PROVIDER_POOL_SERVICE_CONFIG)) {
-                try {
-                    refreshServicePoolConfig(value);
-                } catch (Throwable t) {
-                    logger.warn("failed to refresh service pool config, fallback to previous settings, please check...", t);
-                }
-            } else if (key.endsWith(KEY_PROVIDER_POOL_METHOD_CONFIG)) {
-                try {
-                    refreshMethodPoolConfig(value);
-                } catch (Throwable t) {
-                    logger.warn("failed to refresh method pool config, fallback to previous settings, please check...", t);
-                }
-            } else if (key.endsWith("pigeon.provider.pool.slow.enable")) {
+            if (key.endsWith("pigeon.provider.pool.slow.enable")) {
                 enableSlowPool = Boolean.valueOf(value);
             } else if (key.endsWith("pigeon.timeout.cancelratio")) {
                 cancelRatio = Float.valueOf(value);
