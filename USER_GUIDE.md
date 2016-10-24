@@ -445,8 +445,8 @@ Invoker.java
 		throws RpcException
 		public static <T> T getService(String url, Class<T> serviceInterface) throws RpcException
 		public static <T> T getService(String url, Class<T> serviceInterface, int timeout) throws RpcException
-		public static <T> T getService(String url, Class<T> serviceInterface, ServiceCallback callback) throws RpcException
-		public static <T> T getService(String url, Class<T> serviceInterface, ServiceCallback callback, int timeout)
+		public static <T> T getService(String url, Class<T> serviceInterface, InvocationCallback callback) throws RpcException
+		public static <T> T getService(String url, Class<T> serviceInterface, InvocationCallback callback, int timeout)
 		throws RpcException
 		/**
 		* add the service to pigeon and publish the service to registry
@@ -748,18 +748,21 @@ b、oneway
 
 c、future
 客户端将请求提交给pigeon后立即返回，不等待返回结果，由pigeon负责等待返回结果，客户端可以自行决定何时何地来取返回结果，代码示例：
+import java.util.concurrent.Future;
+import com.dianping.pigeon.remoting.invoker.concurrent.FutureFactory;
+
 //调用ServiceA的method1
 serviceA.method1("aaa");
 //获取ServiceA的method1调用future状态
-Future future1OfServiceA = ServiceFutureFactory.getFuture();
+Future future1OfServiceA = FutureFactory.getFuture();
 //调用ServiceA的method2
 serviceA.method2("bbb");
 //获取ServiceA的method2调用future状态
-Future future2OfServiceA = ServiceFutureFactory.getFuture();
+Future future2OfServiceA = FutureFactory.getFuture();
 //调用ServiceB的method1
 serviceB.method1("ccc");
 //获取ServiceB的method1调用future状态
-Future future1OfServiceB = ServiceFutureFactory.getFuture();
+Future future1OfServiceB = FutureFactory.getFuture();
 //获取ServiceA的method2调用结果
 Object result2OfServiceA = future2OfServiceA.get();
 //获取ServiceA的method1调用结果
@@ -767,10 +770,10 @@ Object result1OfServiceA = future1OfServiceA.get();
 //获取ServiceB的method1调用结果
 Object result1OfServiceB = future1OfServiceB.get();
 最后的get()调用顺序由业务自行决定，操作总共花费的时间，大致等于耗时最长的服务方法执行时间。
-除了get();接口也可以使用get(timeout);指定超时时间。
+除了get();接口也可以使用get(1000, TimeUnit.MILLISECONDS);指定超时时间。
 
 d、callback
-回调方式，客户端将请求提交给pigeon后立即返回，也不等待返回结果，它与future方式的区别是，callback必须提供一个实现了pigeon提供的ServiceCallback接口的回调对象给pigeon，pigeon负责接收返回结果并传递回给这个回调对象，代码示例：
+回调方式，客户端将请求提交给pigeon后立即返回，也不等待返回结果，它与future方式的区别是，callback必须提供一个实现了pigeon提供的InvocationCallback接口的回调对象给pigeon，pigeon负责接收返回结果并传递回给这个回调对象，代码示例：
 spring配置文件：
 
 		<bean id="echoServiceWithCallback" class="com.dianping.pigeon.remoting.invoker.config.spring.ReferenceBean"
@@ -800,7 +803,9 @@ spring配置文件：
 		
 Callback类：
 
-		public class EchoServiceCallback implements ServiceCallback {
+        import com.dianping.pigeon.remoting.invoker.concurrent.InvocationCallback;
+
+		public class EchoServiceCallback implements InvocationCallback {
 			private static final Logger logger = LoggerLoader.getLogger(EchoServiceCallback.class);
 			@Override
 			public void onSuccess(Object result) {
@@ -814,7 +819,7 @@ Callback类：
 		
 
 如果需要动态设置callback，比如在一个线程里发起多次服务调用请求，每次使用不同的callback，可以按照以下代码：
-InvokerHelper.setCallback(new ServiceCallback(){...});
+InvokerHelper.setCallback(new InvocationCallback(){...});
 
 ### 配置客户端集群策略模式
 
@@ -1013,7 +1018,7 @@ com.dianping.pigeon.governor.service.RegistrationInfoService
 
 		<groupId>com.dianping</groupId>
 		<artifactId>pigeon-governor-api</artifactId>
-		<version>2.6.0-SNAPSHOT</version>
+		<version>${最新版本}</version>
 
 
 接口说明：
