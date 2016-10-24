@@ -60,10 +60,6 @@ public abstract class AbstractConfigManager implements ConfigManager {
 	public abstract void doDeleteKey(String key) throws Exception;
 
 	public AbstractConfigManager() {
-		if (StringUtils.isBlank(getAppName())) {
-			throw new RuntimeException("app name can't be null, please check!");
-		}
-
 		Map<String, Object> properties = LocalConfigLoader.load(this);
 		localCache.putAll(properties);
 	}
