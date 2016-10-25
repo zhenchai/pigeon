@@ -53,8 +53,10 @@ public class HeartbeatTask implements Runnable {
 
     @Override
     public void run() {
-        boolean allFailed = heartbeatChannel();
-        notifyClientStateChanged(allFailed);
+        if (isSend(client.getAddress())) {
+            boolean allFailed = heartbeatChannel();
+            notifyClientStateChanged(allFailed);
+        }
     }
 
     private boolean heartbeatChannel() {
