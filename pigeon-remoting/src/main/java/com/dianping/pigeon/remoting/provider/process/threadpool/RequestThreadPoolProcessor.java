@@ -343,8 +343,8 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
                 enableSlowPool = Boolean.valueOf(value);
             } else if (key.endsWith("pigeon.timeout.cancelratio")) {
                 cancelRatio = Float.valueOf(value);
-            } else if (key.endsWith("pigeon.provider.pool.ratio.core")) {
-                DEFAULT_POOL_RATIO_CORE = Integer.valueOf(value);
+            } else if (key.endsWith("pigeon.provider.pool.ratio.coresize")) {
+                DEFAULT_POOL_RATIO_CORE = Float.valueOf(value);
             } else if (StringUtils.isNotBlank(sharedPoolCoreSizeKey) && key.endsWith(sharedPoolCoreSizeKey)) {
                 int size = Integer.valueOf(value);
                 if (size != sharedRequestProcessThreadPool.getExecutor().getCorePoolSize() && size >= 0) {

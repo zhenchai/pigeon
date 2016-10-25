@@ -15,11 +15,11 @@ public class NamedThreadFactory implements ThreadFactory {
 	private final ThreadGroup mGroup;
 
 	public NamedThreadFactory() {
-		this("Pigeon-" + POOL_SEQ.getAndIncrement(), false);
+		this("Pigeon-" + POOL_SEQ.getAndIncrement(), true);
 	}
 
 	public NamedThreadFactory(String prefix) {
-		this(prefix, false);
+		this(prefix, true);
 	}
 
 	public NamedThreadFactory(String prefix, boolean daemo) {
