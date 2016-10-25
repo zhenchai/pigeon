@@ -21,6 +21,7 @@ import com.dianping.pigeon.remoting.common.process.ServiceInvocationFilter;
 import com.dianping.pigeon.remoting.common.process.ServiceInvocationHandler;
 import com.dianping.pigeon.remoting.common.util.Constants;
 import com.dianping.pigeon.remoting.common.util.ContextUtils;
+import com.dianping.pigeon.remoting.provider.domain.DefaultProviderContext;
 import com.dianping.pigeon.remoting.provider.domain.ProviderContext;
 import com.dianping.pigeon.remoting.provider.process.ProviderContextProcessor;
 
@@ -42,6 +43,7 @@ public class ContextTransferProcessFilter implements ServiceInvocationFilter<Pro
 			return response;
 		} finally {
 			if (response != null) {
+				((DefaultProviderContext) invocationContext).setResponse(response);
 				try {
 					transferContextValueToResponse(invocationContext, response);
 				} catch (Throwable e) {
