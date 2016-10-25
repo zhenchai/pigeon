@@ -157,7 +157,7 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
         if (!CollectionUtils.isEmpty(methodThreadPools)) {
             pool = methodThreadPools.get(request.getServiceName() + "#" + request.getMethodName());
         }
-        if (!CollectionUtils.isEmpty(serviceThreadPools)) {
+        if (pool == null && !CollectionUtils.isEmpty(serviceThreadPools)) {
             pool = serviceThreadPools.get(request.getServiceName());
         }
         if (pool == null) {

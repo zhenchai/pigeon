@@ -7,264 +7,257 @@ package com.dianping.pigeon.remoting.netty.invoker;
 import java.util.List;
 import java.util.concurrent.Executors;
 
-import com.dianping.pigeon.remoting.common.channel.ChannelFactory;
-import com.dianping.pigeon.remoting.common.domain.generic.UnifiedRequest;
-import com.dianping.pigeon.remoting.common.pool.ChannelPool;
-import com.dianping.pigeon.remoting.common.pool.ChannelPoolException;
-import com.dianping.pigeon.remoting.common.pool.DefaultChannelPool;
-import com.dianping.pigeon.remoting.common.pool.PoolProperties;
-import com.dianping.pigeon.remoting.invoker.process.ResponseProcessor;
-import com.dianping.pigeon.remoting.netty.channel.NettyChannel;
-import com.dianping.pigeon.remoting.netty.channel.NettyChannelFactory;
-import com.dianping.pigeon.util.NetUtils;
 import org.jboss.netty.bootstrap.ClientBootstrap;
 import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.channel.ChannelFutureListener;
 import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
+import org.jboss.netty.channel.socket.nio.NioWorkerPool;
+import org.jboss.netty.util.HashedWheelTimer;
 
+import com.dianping.pigeon.config.ConfigManagerLoader;
+import com.dianping.pigeon.remoting.common.channel.ChannelFactory;
 import com.dianping.pigeon.remoting.common.domain.InvocationRequest;
 import com.dianping.pigeon.remoting.common.domain.InvocationResponse;
+import com.dianping.pigeon.remoting.common.domain.generic.UnifiedRequest;
 import com.dianping.pigeon.remoting.common.exception.NetworkException;
+import com.dianping.pigeon.remoting.common.pool.ChannelPool;
+import com.dianping.pigeon.remoting.common.pool.ChannelPoolException;
+import com.dianping.pigeon.remoting.common.pool.DefaultChannelPool;
+import com.dianping.pigeon.remoting.common.pool.PoolProperties;
 import com.dianping.pigeon.remoting.common.util.Constants;
 import com.dianping.pigeon.remoting.invoker.AbstractClient;
 import com.dianping.pigeon.remoting.invoker.domain.ConnectInfo;
+import com.dianping.pigeon.remoting.invoker.process.ResponseProcessor;
+import com.dianping.pigeon.remoting.netty.channel.NettyChannel;
+import com.dianping.pigeon.remoting.netty.channel.NettyChannelFactory;
 import com.dianping.pigeon.remoting.provider.util.ProviderUtils;
 import com.dianping.pigeon.threadpool.DefaultThreadFactory;
+import com.dianping.pigeon.util.NetUtils;
 
 public class NettyClient extends AbstractClient {
 
-    private String protocol = Constants.PROTOCOL_DEFAULT;
+	private String protocol = Constants.PROTOCOL_DEFAULT;
 
-    private ConnectInfo connectInfo;
+	private ConnectInfo connectInfo;
 
-    private String remoteHost;
+	private String remoteHost;
 
-    private int remotePort;
+	private int remotePort;
 
-    private int timeout;
+	private int timeout;
 
-    private int writeBufferHighWaterMark;
+	private int writeBufferHighWaterMark;
 
-    private int writeBufferLowWaterMark;
+	private int writeBufferLowWaterMark;
 
-    private ClientBootstrap bootstrap;
+	private ClientBootstrap bootstrap;
 
-    private String remoteAddressString;
+	private String remoteAddressString;
 
-    private ChannelPool<NettyChannel> channelPool;
+	private ChannelPool<NettyChannel> channelPool;
 
-    private PoolProperties poolProperties;
+	private PoolProperties poolProperties;
 
-    private static org.jboss.netty.channel.ChannelFactory channelFactory = new NioClientSocketChannelFactory(
-            Executors.newCachedThreadPool(new DefaultThreadFactory("Pigeon-Netty-Client-Boss")),
-            Executors.newCachedThreadPool(new DefaultThreadFactory("Pigeon-Netty-Client-Worker")),
-            Constants.INVOKER_NETTY_BOSSCOUNT,
-            Constants.INVOKER_NETTY_WORKERCOUNT);
+	public static final int bossCount = ConfigManagerLoader.getConfigManager()
+			.getIntValue("pigeon.invoker.netty.bosscount", 1);
 
-    public NettyClient(ConnectInfo connectInfo,
-                       int timeout,
-                       int highWaterMark,
-                       int lowWaterMark,
-                       int initialSize,
-                       int normalSize,
-                       int maxActive,
-                       int maxWait,
-                       int timeBetweenCheckerMillis,
-                       ResponseProcessor responseProcessor,
-                       boolean heartbeated,
-                       int heartbeatTimeout,
-                       int clientThreshold,
-                       int heartbeatInterval) {
-        super(responseProcessor,
-                heartbeated,
-                heartbeatTimeout,
-                clientThreshold,
-                heartbeatInterval);
+	public static final int workerCount = ConfigManagerLoader.getConfigManager()
+			.getIntValue("pigeon.invoker.netty.workercount", Runtime.getRuntime().availableProcessors() * 2);
 
-        this.timeout = timeout;
-        this.connectInfo = connectInfo;
-        this.remoteHost = connectInfo.getHost();
-        this.remotePort = connectInfo.getPort();
-        this.remoteAddressString = NetUtils.toAddress(remoteHost, remotePort);
-        this.writeBufferHighWaterMark = highWaterMark;
-        this.writeBufferLowWaterMark = lowWaterMark;
+	private static org.jboss.netty.channel.ChannelFactory channelFactory = new NioClientSocketChannelFactory(
+			Executors.newCachedThreadPool(new DefaultThreadFactory("Pigeon-Netty-Client-Boss")), bossCount,
+			new NioWorkerPool(Executors.newCachedThreadPool(new DefaultThreadFactory("Pigeon-Netty-Client-Worker")),
+					workerCount),
+			new HashedWheelTimer(new DefaultThreadFactory("Pigeon-Netty-Client-Timer")));
 
-        poolProperties = new PoolProperties(
-                initialSize,
-                normalSize,
-                maxActive,
-                maxWait, timeBetweenCheckerMillis);
-    }
+	public NettyClient(ConnectInfo connectInfo, int timeout, int highWaterMark, int lowWaterMark, int initialSize,
+			int normalSize, int maxActive, int maxWait, int timeBetweenCheckerMillis,
+			ResponseProcessor responseProcessor, boolean heartbeated, int heartbeatTimeout, int clientThreshold,
+			int heartbeatInterval) {
+		super(responseProcessor, heartbeated, heartbeatTimeout, clientThreshold, heartbeatInterval);
 
-    @Override
-    public void doOpen() {
-        try {
-            initBootstrap();
+		this.timeout = timeout;
+		this.connectInfo = connectInfo;
+		this.remoteHost = connectInfo.getHost();
+		this.remotePort = connectInfo.getPort();
+		this.remoteAddressString = NetUtils.toAddress(remoteHost, remotePort);
+		this.writeBufferHighWaterMark = highWaterMark;
+		this.writeBufferLowWaterMark = lowWaterMark;
 
-            initChannelPool();
-            logger.info("[open] client is open success. remoteAddress: " + remoteAddressString);
-        } catch (Exception e) {
-            logger.info("[open] client is open failed. remoteAddress: " + remoteAddressString);
-            //close();
-        }
-    }
+		poolProperties = new PoolProperties(initialSize, normalSize, maxActive, maxWait, timeBetweenCheckerMillis);
+	}
 
-    private void initBootstrap() {
-        this.bootstrap = new ClientBootstrap(channelFactory);
-        this.bootstrap.setPipelineFactory(new NettyClientPipelineFactory(this));
-        this.bootstrap.setOption("tcpNoDelay", true);
-        this.bootstrap.setOption("keepAlive", true);
-        this.bootstrap.setOption("reuseAddress", true);
-        this.bootstrap.setOption("connectTimeoutMillis", timeout);
-        this.bootstrap.setOption("writeBufferHighWaterMark", getWriteBufferHighWaterMark());
-        this.bootstrap.setOption("writeBufferLowWaterMark", getWriteBufferLowWaterMark());
-    }
+	@Override
+	public void doOpen() {
+		try {
+			initBootstrap();
 
-    private void initChannelPool() throws ChannelPoolException {
-        channelPool = new DefaultChannelPool<NettyChannel>(poolProperties, createChannelFactory());
-    }
+			initChannelPool();
+			logger.info("[open] client is open success. remoteAddress: " + remoteAddressString);
+		} catch (Exception e) {
+			logger.info("[open] client is open failed. remoteAddress: " + remoteAddressString);
+			// close();
+		}
+	}
 
-    public ClientBootstrap getBootstrap() {
-        return bootstrap;
-    }
+	private void initBootstrap() {
+		this.bootstrap = new ClientBootstrap(channelFactory);
+		this.bootstrap.setPipelineFactory(new NettyClientPipelineFactory(this));
+		this.bootstrap.setOption("tcpNoDelay", true);
+		this.bootstrap.setOption("keepAlive", true);
+		this.bootstrap.setOption("reuseAddress", true);
+		this.bootstrap.setOption("connectTimeoutMillis", timeout);
+		this.bootstrap.setOption("writeBufferHighWaterMark", getWriteBufferHighWaterMark());
+		this.bootstrap.setOption("writeBufferLowWaterMark", getWriteBufferLowWaterMark());
+	}
 
-    public ChannelFactory createChannelFactory() {
-        return new NettyChannelFactory(this);
-    }
+	private void initChannelPool() throws ChannelPoolException {
+		channelPool = new DefaultChannelPool<NettyChannel>(poolProperties, createChannelFactory());
+	}
 
-    protected int getWriteBufferHighWaterMark() {
-        return writeBufferHighWaterMark;
-    }
+	public ClientBootstrap getBootstrap() {
+		return bootstrap;
+	}
 
-    protected int getWriteBufferLowWaterMark() {
-        return writeBufferLowWaterMark;
-    }
+	public ChannelFactory createChannelFactory() {
+		return new NettyChannelFactory(this);
+	}
 
-    @Override
-    public InvocationResponse doWrite(InvocationRequest request) throws NetworkException {
-        NettyChannel channel = null;
+	protected int getWriteBufferHighWaterMark() {
+		return writeBufferHighWaterMark;
+	}
 
-        try {
+	protected int getWriteBufferLowWaterMark() {
+		return writeBufferLowWaterMark;
+	}
 
-            channel = channelPool.selectChannel();
+	@Override
+	public InvocationResponse doWrite(InvocationRequest request) throws NetworkException {
+		NettyChannel channel = null;
 
-            ChannelFuture future = channel.write0(request);
+		try {
 
-            afterWrite(request, channel);
+			channel = channelPool.selectChannel();
 
-            if (request.getMessageType() == Constants.MESSAGE_TYPE_SERVICE
-                    || request.getMessageType() == Constants.MESSAGE_TYPE_HEART) {
-                future.addListener(new MessageWriteListener(request, channel));
-            }
+			ChannelFuture future = channel.write0(request);
 
-        } catch (Exception e) {
-            throw new NetworkException("[doRequest] remote call failed:" + request, e);
-        }
-        return null;
-    }
+			afterWrite(request, channel);
 
-    private void afterWrite(InvocationRequest request, NettyChannel channel) {
-        if (request instanceof UnifiedRequest) {
+			if (request.getMessageType() == Constants.MESSAGE_TYPE_SERVICE
+					|| request.getMessageType() == Constants.MESSAGE_TYPE_HEART) {
+				future.addListener(new MessageWriteListener(request, channel));
+			}
 
-            UnifiedRequest _request = (UnifiedRequest) request;
+		} catch (Exception e) {
+			throw new NetworkException("[doRequest] remote call failed:" + request, e);
+		}
+		return null;
+	}
 
-            _request.setClientIp(channel.getLocalAddress().getAddress().getHostAddress());
-        }
-    }
+	private void afterWrite(InvocationRequest request, NettyChannel channel) {
+		if (request instanceof UnifiedRequest) {
 
-    @Override
-    public void doClose() {
-        try {
-            channelPool.close();
-            logger.info("[close] client is close success. remoteAddress: " + remoteAddressString);
-        } catch (Exception e) {
-            logger.info("[close] client is close failed. remoteAddress: " + remoteAddressString);
-        }
-    }
+			UnifiedRequest _request = (UnifiedRequest) request;
 
-    @Override
-    public List<NettyChannel> getChannels() {
-        return channelPool.getChannels();
-    }
+			_request.setClientIp(channel.getLocalAddress().getAddress().getHostAddress());
+		}
+	}
 
-    @Override
-    public boolean isActive() {
-        return super.isActive() && channelPool.isAvaliable();
-    }
+	@Override
+	public void doClose() {
+		try {
+			channelPool.close();
+			logger.info("[close] client is close success. remoteAddress: " + remoteAddressString);
+		} catch (Exception e) {
+			logger.info("[close] client is close failed. remoteAddress: " + remoteAddressString);
+		}
+	}
 
-    @Override
-    public String getProtocol() {
-        return protocol;
-    }
+	@Override
+	public List<NettyChannel> getChannels() {
+		return channelPool.getChannels();
+	}
 
-    public int getTimeout() {
-        return timeout;
-    }
+	@Override
+	public boolean isActive() {
+		return super.isActive() && channelPool.isAvaliable();
+	}
 
-    @Override
-    public String getHost() {
-        return remoteHost;
-    }
+	@Override
+	public String getProtocol() {
+		return protocol;
+	}
 
-    @Override
-    public int getPort() {
-        return remotePort;
-    }
+	public int getTimeout() {
+		return timeout;
+	}
 
+	@Override
+	public String getHost() {
+		return remoteHost;
+	}
 
-    @Override
-    public String getAddress() {
-        return remoteAddressString;
-    }
+	@Override
+	public int getPort() {
+		return remotePort;
+	}
 
-    @Override
-    public ConnectInfo getConnectInfo() {
-        return connectInfo;
-    }
+	@Override
+	public String getAddress() {
+		return remoteAddressString;
+	}
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+	@Override
+	public ConnectInfo getConnectInfo() {
+		return connectInfo;
+	}
 
-        NettyClient that = (NettyClient) o;
+	@Override
+	public boolean equals(Object o) {
+		if (this == o)
+			return true;
+		if (o == null || getClass() != o.getClass())
+			return false;
 
-        if (remotePort != that.remotePort) return false;
-        return !(remoteHost != null ? !remoteHost.equals(that.remoteHost) : that.remoteHost != null);
+		NettyClient that = (NettyClient) o;
 
-    }
+		if (remotePort != that.remotePort)
+			return false;
+		return !(remoteHost != null ? !remoteHost.equals(that.remoteHost) : that.remoteHost != null);
 
-    @Override
-    public int hashCode() {
-        int result = remoteHost != null ? remoteHost.hashCode() : 0;
-        result = 31 * result + remotePort;
-        return result;
-    }
+	}
+
+	@Override
+	public int hashCode() {
+		int result = remoteHost != null ? remoteHost.hashCode() : 0;
+		result = 31 * result + remotePort;
+		return result;
+	}
 
     @Override
     public String toString() {
         return "NettyClient[" + this.getAddress() + ", closed:" + isClosed() + ", active:" + isActive() + ", pool.Avaliable:" + channelPool.isAvaliable() + "]";
     }
 
-    public class MessageWriteListener implements ChannelFutureListener {
+	public class MessageWriteListener implements ChannelFutureListener {
 
-        private InvocationRequest request;
+		private InvocationRequest request;
 
-        private NettyChannel channel;
+		private NettyChannel channel;
 
-        public MessageWriteListener(InvocationRequest request, NettyChannel channel) {
-            this.request = request;
-            this.channel = channel;
-        }
+		public MessageWriteListener(InvocationRequest request, NettyChannel channel) {
+			this.request = request;
+			this.channel = channel;
+		}
 
-        @Override
-        public void operationComplete(ChannelFuture future) throws Exception {
-            if (future.isSuccess()) {
-                return;
-            }
+		@Override
+		public void operationComplete(ChannelFuture future) throws Exception {
+			if (future.isSuccess()) {
+				return;
+			}
 
-            InvocationResponse response = ProviderUtils.createFailResponse(request, future.getCause());
-            processResponse(response);
-        }
-    }
+			InvocationResponse response = ProviderUtils.createFailResponse(request, future.getCause());
+			processResponse(response);
+		}
+	}
 }
