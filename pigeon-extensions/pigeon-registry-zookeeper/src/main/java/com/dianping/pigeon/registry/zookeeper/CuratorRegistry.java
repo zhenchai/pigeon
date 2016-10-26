@@ -141,7 +141,7 @@ public class CuratorRegistry implements Registry {
 				}
 				registerPersistentNode(serviceName, group, serviceAddress, weight);
 			} else {
-				logger.error("failed to register service to " + servicePath, e);
+				logger.info("failed to register service to " + servicePath, e);
 				throw new RegistryException(e);
 			}
 
@@ -209,7 +209,7 @@ public class CuratorRegistry implements Registry {
 				}
 				unregisterPersistentNode(serviceName, group, serviceAddress);
 			} else {
-				logger.error("failed to unregister service from " + servicePath, e);
+				logger.info("failed to unregister service from " + servicePath, e);
 				throw new RegistryException(e);
 			}
 		}
@@ -231,7 +231,7 @@ public class CuratorRegistry implements Registry {
 			}
 			return result;
 		} catch (Throwable e) {
-			logger.error("failed to get weight for " + serverAddress);
+			logger.info("failed to get weight for " + serverAddress);
 			throw new RegistryException(e);
 		}
 	}
@@ -242,7 +242,7 @@ public class CuratorRegistry implements Registry {
 		try {
 			client.set(path, weight);
 		} catch (Throwable e) {
-			logger.error("failed to set weight of " + serverAddress + " to " + weight);
+			logger.info("failed to set weight of " + serverAddress + " to " + weight);
 			throw new RegistryException(e);
 		}
 	}
@@ -253,7 +253,7 @@ public class CuratorRegistry implements Registry {
 			List<String> children = client.getChildren(path);
 			return children;
 		} catch (Throwable e) {
-			logger.error("failed to get children of node: " + path, e);
+			logger.info("failed to get children of node: " + path, e);
 			throw new RegistryException(e);
 		}
 	}
@@ -272,7 +272,7 @@ public class CuratorRegistry implements Registry {
 		try {
 			return client.get(path);
 		} catch (Throwable e) {
-			logger.error("failed to get app for " + serverAddress);
+			logger.info("failed to get app for " + serverAddress);
 			throw new RegistryException(e);
 		}
 	}
@@ -284,7 +284,7 @@ public class CuratorRegistry implements Registry {
 			try {
 				client.set(path, app);
 			} catch (Throwable e) {
-				logger.error("failed to set app of " + serverAddress + " to " + app);
+				logger.info("failed to set app of " + serverAddress + " to " + app);
 			}
 		}
 	}
@@ -296,7 +296,7 @@ public class CuratorRegistry implements Registry {
 				client.delete(path);
 			}
 		} catch (Throwable e) {
-			logger.error("failed to delete app:" + path + ", caused by:" + e.getMessage());
+			logger.info("failed to delete app:" + path + ", caused by:" + e.getMessage());
 		}
 	}
 
@@ -307,7 +307,7 @@ public class CuratorRegistry implements Registry {
 			try {
 				client.set(path, version);
 			} catch (Throwable e) {
-				logger.error("failed to set version of " + serverAddress + " to " + version);
+				logger.info("failed to set version of " + serverAddress + " to " + version);
 			}
 		}
 	}
@@ -318,7 +318,7 @@ public class CuratorRegistry implements Registry {
 		try {
 			return client.get(path);
 		} catch (Throwable e) {
-			logger.error("failed to get version for " + serverAddress);
+			logger.info("failed to get version for " + serverAddress);
 			throw new RegistryException(e);
 		}
 	}
@@ -330,7 +330,7 @@ public class CuratorRegistry implements Registry {
 				client.delete(path);
 			}
 		} catch (Throwable e) {
-			logger.error("failed to delete version:" + path + ", caused by:" + e.getMessage());
+			logger.info("failed to delete version:" + path + ", caused by:" + e.getMessage());
 		}
 	}
 
@@ -355,7 +355,7 @@ public class CuratorRegistry implements Registry {
 		try {
 			client.set(servicePath, hosts);
 		} catch (Throwable e) {
-			logger.error("failed to set service hosts of " + serviceName + " to " + hosts);
+			logger.info("failed to set service hosts of " + serviceName + " to " + hosts);
 			throw new RegistryException(e);
 		}
 	}
@@ -373,7 +373,7 @@ public class CuratorRegistry implements Registry {
 				client.delete(servicePath);
 			}
 		} catch (Throwable e) {
-			logger.error("failed to delete service hosts of " + serviceName);
+			logger.info("failed to delete service hosts of " + serviceName);
 			throw new RegistryException(e);
 		}
 	}
@@ -435,7 +435,7 @@ public class CuratorRegistry implements Registry {
 			}
 			return address;
 		} catch (Exception e) {
-			logger.error("failed to get service address for " + serviceName + "/" + group, e);
+			logger.info("failed to get service address for " + serviceName + "/" + group, e);
 			throw new RegistryException(e);
 		}
 	}
@@ -446,7 +446,7 @@ public class CuratorRegistry implements Registry {
 			String heartBeatPath = Utils.getHeartBeatPath(serviceAddress);
 			client.set(heartBeatPath, heartBeatTimeMillis);
 		} catch (Throwable e) {
-			logger.fatal("failed to update heartbeat", e);
+			logger.info("failed to update heartbeat", e);
 		}
 	}
 
@@ -456,7 +456,7 @@ public class CuratorRegistry implements Registry {
 			String heartBeatPath = Utils.getHeartBeatPath(serviceAddress);
 			client.delete(heartBeatPath);
 		} catch (Throwable e) {
-			logger.fatal("failed to delete heartbeat", e);
+			logger.info("failed to delete heartbeat", e);
 		}
 	}
 
@@ -489,7 +489,7 @@ public class CuratorRegistry implements Registry {
 			return false;
 
 		} catch (Throwable e) {
-			logger.error("failed to get protocol:" + serviceName
+			logger.info("failed to get protocol:" + serviceName
 					+ "of host:" + serviceAddress + ", caused by:" + e.getMessage());
 			throw new RegistryException(e);
 		}
@@ -521,7 +521,7 @@ public class CuratorRegistry implements Registry {
 				}
 				setSupportNewProtocol(serviceAddress, serviceName, support);
 			} else {
-				logger.error("failed to set protocol:" + serviceName
+				logger.info("failed to set protocol:" + serviceName
 						+ "of host:" + serviceAddress + " to:" + support
 						+ ", caused by:" + e.getMessage());
 				throw new RegistryException(e);
@@ -559,7 +559,7 @@ public class CuratorRegistry implements Registry {
 				}
 				unregisterSupportNewProtocol(serviceAddress, serviceName, support);
 			} else {
-				logger.error("failed to del protocol:" + serviceName
+				logger.info("failed to del protocol:" + serviceName
 						+ "of host:" + serviceAddress + ", caused by:" + e.getMessage());
 				throw new RegistryException(e);
 			}
