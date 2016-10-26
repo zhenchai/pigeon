@@ -1,5 +1,6 @@
 package com.dianping.pigeon.registry.zookeeper;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -196,7 +197,7 @@ public class CuratorClient {
 			if (logger.isDebugEnabled()) {
 				logger.debug("node " + path + " does not exist");
 			}
-			return null;
+			throw new KeeperException.NodeExistsException("node " + path + " does not exist");
 		}
 	}
 
@@ -212,7 +213,7 @@ public class CuratorClient {
 			if (logger.isDebugEnabled()) {
 				logger.debug("node " + path + " does not exist");
 			}
-			return null;
+			throw new KeeperException.NodeExistsException("node " + path + " does not exist");
 		}
 	}
 
@@ -302,7 +303,7 @@ public class CuratorClient {
 			return children;
 		} catch (KeeperException.NoNodeException e) {
 			logger.debug("node " + path + " does not exist");
-			return null;
+			return new ArrayList<>();
 		}
 	}
 

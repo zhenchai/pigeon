@@ -269,13 +269,8 @@ public class CuratorRegistry implements Registry {
 	@Override
 	public String getServerApp(String serverAddress) throws RegistryException {
 		String path = Utils.getAppPath(serverAddress);
-		String strApp;
 		try {
-			strApp = client.get(path);
-			if (strApp == null) {
-				return "";
-			}
-			return strApp;
+			return client.get(path);
 		} catch (Throwable e) {
 			logger.error("failed to get app for " + serverAddress);
 			throw new RegistryException(e);
@@ -401,7 +396,12 @@ public class CuratorRegistry implements Registry {
 	public String getServiceAddress(String serviceName, String group, boolean fallbackDefaultGroup, boolean needListener) throws RegistryException {
 		try {
 			String path = Utils.getServicePath(serviceName, group);
-			String address = client.get(path, needListener);
+			String address = "";
+			try {
+				address = client.get(path, needListener);
+			} catch (Exception e) {
+				logger.debug("failed to get service address for " + serviceName + "/" + group, e);
+			}
 			if (!StringUtils.isBlank(group)) {
 				boolean needFallback = false;
 				if (StringUtils.isBlank(address)) {
@@ -426,7 +426,11 @@ public class CuratorRegistry implements Registry {
 				if (fallbackDefaultGroup && needFallback) {
 					logger.info("node " + path + " does not exist, fallback to default group");
 					path = Utils.getServicePath(serviceName, Constants.DEFAULT_GROUP);
-					address = client.get(path, needListener);
+					try {
+						address = client.get(path, needListener);
+					} catch (Exception e) {
+						logger.debug("failed to get service address for " + serviceName + "/" + group, e);
+					}
 				}
 			}
 			return address;
