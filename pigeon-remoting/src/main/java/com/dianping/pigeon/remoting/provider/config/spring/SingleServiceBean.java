@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.sun.jndi.ldap.pool.Pool;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
@@ -32,6 +33,7 @@ public class SingleServiceBean {
 	private String version;
 	private String interfaceName;
 	private ServerBean serverBean;
+	private PoolBean poolBean;
 	private boolean cancelTimeout = Constants.DEFAULT_TIMEOUT_CANCEL;
 	private ConfigManager configManager = ConfigManagerLoader.getConfigManager();
 	private boolean useSharedPool = configManager.getBooleanValue(Constants.KEY_SERVICE_SHARED,
@@ -39,6 +41,14 @@ public class SingleServiceBean {
 	private List<ProviderMethodConfig> methods;
 	private ClassLoader classLoader;
 	private int actives;
+
+	public PoolBean getPoolBean() {
+		return poolBean;
+	}
+
+	public void setPoolBean(PoolBean poolBean) {
+		this.poolBean = poolBean;
+	}
 
 	public int getActives() {
 		return actives;
@@ -146,6 +156,11 @@ public class SingleServiceBean {
 		if (serverBean != null) {
 			providerConfig.setServerConfig(serverBean.init());
 		}
+
+		if (poolBean != null) {
+
+		}
+
 		ServiceFactory.addService(providerConfig);
 	}
 

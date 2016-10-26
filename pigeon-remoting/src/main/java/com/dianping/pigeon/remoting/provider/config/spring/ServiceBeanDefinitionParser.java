@@ -101,9 +101,17 @@ public class ServiceBeanDefinitionParser implements BeanDefinitionParser {
 		if (element.hasAttribute("useSharedPool")) {
 			properties.addPropertyValue("useSharedPool", resolveReference(element, "useSharedPool"));
 		}
-		if (element.hasAttribute("actives")) {
+
+		if (element.hasAttribute("pool")) {
+			String pool = element.getAttribute("pool");
+			if (!parserContext.getRegistry().containsBeanDefinition(pool)) {
+				throw new IllegalStateException("service must have a reference to bean:" + pool);
+			}
+			properties.addPropertyValue("poolBean", new RuntimeBeanReference(pool));
+		} else if (element.hasAttribute("actives")) {
 			properties.addPropertyValue("actives", resolveReference(element, "actives"));
 		}
+
 		if (element.hasChildNodes()) {
 			parseMethods(url, id, element.getChildNodes(), beanDefinition, parserContext);
 		}
@@ -125,7 +133,14 @@ public class ServiceBeanDefinitionParser implements BeanDefinitionParser {
 		if (element.hasAttribute("name")) {
 			properties.addPropertyValue("name", resolveReference(element, "name"));
 		}
-		if (element.hasAttribute("actives")) {
+
+		if (element.hasAttribute("pool")) {
+			String pool = element.getAttribute("pool");
+			if (!parserContext.getRegistry().containsBeanDefinition(pool)) {
+				throw new IllegalStateException("service must have a reference to bean:" + pool);
+			}
+			properties.addPropertyValue("poolBean", new RuntimeBeanReference(pool));
+		} else if (element.hasAttribute("actives")) {
 			properties.addPropertyValue("actives", resolveReference(element, "actives"));
 			String value = element.getAttribute("actives");
 			if (value.startsWith(DEFAULT_PLACEHOLDER_PREFIX) && value.endsWith(DEFAULT_PLACEHOLDER_SUFFIX)) {
