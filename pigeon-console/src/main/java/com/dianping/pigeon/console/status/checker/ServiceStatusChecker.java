@@ -28,7 +28,8 @@ public class ServiceStatusChecker implements StatusChecker {
 						String serviceName = entry.getKey();
 						ProviderConfig<?> providerConfig = entry.getValue();
 						Class<?> beanClass = providerConfig.getService().getClass();
-						int idxCglib = beanClass.getName().indexOf("$$EnhancerByCGLIB");
+						int idxCglib = beanClass.getName().contains("$$EnhancerByCGLIB") ?
+								beanClass.getName().indexOf("$$EnhancerByCGLIB") : beanClass.getName().indexOf("$$EnhancerBySpringCGLIB");
 						if (idxCglib != -1) {
 							try {
 								beanClass = Class.forName(beanClass.getName().substring(0, idxCglib));
