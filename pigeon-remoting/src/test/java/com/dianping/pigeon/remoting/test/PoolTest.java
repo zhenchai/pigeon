@@ -121,6 +121,9 @@ public class PoolTest {
         poolBean2.setMaxPoolSize(2);
         poolBean2.setWorkQueueSize(3);
 
+        poolBean1.getThreadPool();
+        poolBean2.getThreadPool();
+
         Map<String, PoolBean> map1 = Maps.newConcurrentMap();
         Map<String, PoolBean> map2 = Maps.newConcurrentMap();
         map1.put("aaa", poolBean1);

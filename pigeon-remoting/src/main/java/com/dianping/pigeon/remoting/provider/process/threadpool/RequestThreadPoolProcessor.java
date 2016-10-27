@@ -311,9 +311,12 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
             if (serviceThreadPools == null) {
                 serviceThreadPools = new ConcurrentHashMap<String, ThreadPool>();
             }
-            if (providerConfig.getActives() > 0 && CollectionUtils.isEmpty(methodConfigs)) {
-                String key = url;
-                ThreadPool pool = serviceThreadPools.get(key);
+
+            if (providerConfig.getPoolBean() != null && CollectionUtils.isEmpty(methodConfigs)) {
+                serviceThreadPools.putIfAbsent(url, providerConfig.getPoolBean().getThreadPool());
+
+            } else if (providerConfig.getActives() > 0 && CollectionUtils.isEmpty(methodConfigs)) {
+                ThreadPool pool = serviceThreadPools.get(url);
                 if (pool == null) {
                     int actives = providerConfig.getActives();
                     int coreSize = (int) (actives / DEFAULT_POOL_RATIO_CORE) > 0 ? (int) (actives / DEFAULT_POOL_RATIO_CORE)
@@ -322,8 +325,9 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
                     int queueSize = actives;
                     pool = new DefaultThreadPool("Pigeon-Server-Request-Processor-service", coreSize, maxSize,
                             new LinkedBlockingQueue<Runnable>(queueSize));
-                    serviceThreadPools.putIfAbsent(key, pool);
+                    serviceThreadPools.putIfAbsent(url, pool);
                 }
+
             } else if (!CollectionUtils.isEmpty(methodConfigs)) {
                 for (String name : methodNames) {
                     if (!methodConfigs.containsKey(name)) {
@@ -332,18 +336,27 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
                     String key = url + "#" + name;
                     ThreadPool pool = methodThreadPools.get(key);
                     if (pool == null) {
-                        int actives = DEFAULT_POOL_ACTIVES;
+
                         ProviderMethodConfig methodConfig = methodConfigs.get(name);
-                        if (methodConfig != null && methodConfig.getActives() > 0) {
-                            actives = methodConfig.getActives();
+                        if(methodConfig != null) {
+                            if (methodConfig.getPoolBean() != null) {
+                                methodThreadPools.putIfAbsent(key, methodConfig.getPoolBean().getThreadPool());
+
+                            } else {
+                                int actives = DEFAULT_POOL_ACTIVES;
+                                if (methodConfig.getActives() > 0) {
+                                    actives = methodConfig.getActives();
+                                }
+                                int coreSize = (int) (actives / DEFAULT_POOL_RATIO_CORE) > 0 ? (int) (actives / DEFAULT_POOL_RATIO_CORE)
+                                        : actives;
+                                int maxSize = actives;
+                                int queueSize = actives;
+                                pool = new DefaultThreadPool("Pigeon-Server-Request-Processor-method", coreSize, maxSize,
+                                        new LinkedBlockingQueue<Runnable>(queueSize));
+                                methodThreadPools.putIfAbsent(key, pool);
+                            }
                         }
-                        int coreSize = (int) (actives / DEFAULT_POOL_RATIO_CORE) > 0 ? (int) (actives / DEFAULT_POOL_RATIO_CORE)
-                                : actives;
-                        int maxSize = actives;
-                        int queueSize = actives;
-                        pool = new DefaultThreadPool("Pigeon-Server-Request-Processor-method", coreSize, maxSize,
-                                new LinkedBlockingQueue<Runnable>(queueSize));
-                        methodThreadPools.putIfAbsent(key, pool);
+
                     }
                 }
             }
@@ -362,9 +375,9 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
         }
         ThreadPoolExecutor e = pool.getExecutor();
         String stats = String.format(
-                "request pool size:%d(active:%d,core:%d,max:%d,largest:%d),task count:%d(completed:%d),queue size:%d",
-                e.getPoolSize(), e.getActiveCount(), e.getCorePoolSize(), e.getMaximumPoolSize(),
-                e.getLargestPoolSize(), e.getTaskCount(), e.getCompletedTaskCount(), e.getQueue().size());
+                "request pool size:%d(active:%d,core:%d,max:%d,largest:%d),task count:%d(completed:%d),queue size:%d,queue remaining:%d",
+                e.getPoolSize(), e.getActiveCount(), e.getCorePoolSize(), e.getMaximumPoolSize(), e.getLargestPoolSize(),
+                e.getTaskCount(), e.getCompletedTaskCount(), e.getQueue().size(), e.getQueue().remainingCapacity());
         return stats;
     }
 

@@ -137,7 +137,7 @@ public class ServiceBeanDefinitionParser implements BeanDefinitionParser {
 		if (element.hasAttribute("pool")) {
 			String pool = element.getAttribute("pool");
 			if (!parserContext.getRegistry().containsBeanDefinition(pool)) {
-				throw new IllegalStateException("service must have a reference to bean:" + pool);
+				throw new IllegalStateException("method must have a reference to bean:" + pool);
 			}
 			properties.addPropertyValue("poolBean", new RuntimeBeanReference(pool));
 		} else if (element.hasAttribute("actives")) {

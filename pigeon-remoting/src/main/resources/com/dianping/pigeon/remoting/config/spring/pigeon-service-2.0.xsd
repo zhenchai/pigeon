@@ -127,16 +127,13 @@
 
 	<xsd:element name="pool">
 		<xsd:complexType>
-			<xsd:complexContent>
-				<xsd:extension base="beans:identifiedType">
-					<xsd:attribute name="corePoolSize" type="xsd:string"
-								   default="150" />
-					<xsd:attribute name="maxPoolSize" type="xsd:string"
-								   default="300" />
-					<xsd:attribute name="workQueueSize" type="xsd:string"
-								   default="300" />
-				</xsd:extension>
-			</xsd:complexContent>
+			<xsd:attribute name="id" type="xsd:ID" use="required" />
+			<xsd:attribute name="corePoolSize" type="xsd:string"
+						   use="required" />
+			<xsd:attribute name="maxPoolSize" type="xsd:string"
+						   use="required" />
+			<xsd:attribute name="workQueueSize" type="xsd:string"
+						   use="required" />
 		</xsd:complexType>
 	</xsd:element>
 

@@ -23,7 +23,6 @@ public class PoolBeanDefinitionParser implements BeanDefinitionParser {
     public static final String DEFAULT_PLACEHOLDER_SUFFIX = "}";
     private final Class<?> beanClass;
     private final boolean required;
-    private static AtomicInteger idCounter = new AtomicInteger();
     private static ConfigManager configManager = ConfigManagerLoader.getConfigManager();
 
     public PoolBeanDefinitionParser(Class<?> beanClass, boolean required) {
@@ -39,41 +38,25 @@ public class PoolBeanDefinitionParser implements BeanDefinitionParser {
     private BeanDefinition parse(Element element, ParserContext parserContext, Class<?> beanClass, boolean required) {
         RootBeanDefinition beanDefinition = new RootBeanDefinition();
         beanDefinition.setLazyInit(false);
-        String id = element.getAttribute("id");
-        if (StringUtils.isBlank(id)) {
-            id = "pigeonPool_" + idCounter.incrementAndGet();
-        }
         beanDefinition.setBeanClass(PoolBean.class);
-        beanDefinition.setInitMethodName("init");
-
         MutablePropertyValues properties = beanDefinition.getPropertyValues();
 
-        if (element.hasAttribute("poolName")) {
-            properties.addPropertyValue("poolName", resolveReference(element, "poolName"));
-        } else {
-            properties.addPropertyValue("poolName", id);
-        }
+        String id = element.getAttribute("id");
+        properties.addPropertyValue("poolName", id);
 
         if (element.hasAttribute("corePoolSize")) {
-            properties.addPropertyValue("corePoolSize", resolveReference(element, "corePoolSize"));
-            String value = element.getAttribute("corePoolSize");
-            if (value.startsWith(DEFAULT_PLACEHOLDER_PREFIX) && value.endsWith(DEFAULT_PLACEHOLDER_SUFFIX)) {
-                //
-            }
+            Integer corePoolSize = Integer.parseInt(resolveReference(element, "corePoolSize"));
+            properties.addPropertyValue("corePoolSize", corePoolSize);
         }
+
         if (element.hasAttribute("maxPoolSize")) {
-            properties.addPropertyValue("maxPoolSize", resolveReference(element, "maxPoolSize"));
-            String value = element.getAttribute("maxPoolSize");
-            if (value.startsWith(DEFAULT_PLACEHOLDER_PREFIX) && value.endsWith(DEFAULT_PLACEHOLDER_SUFFIX)) {
-                //
-            }
+            Integer maxPoolSize = Integer.parseInt(resolveReference(element, "maxPoolSize"));
+            properties.addPropertyValue("maxPoolSize", maxPoolSize);
         }
+
         if (element.hasAttribute("workQueueSize")) {
-            properties.addPropertyValue("workQueueSize", resolveReference(element, "workQueueSize"));
-            String value = element.getAttribute("workQueueSize");
-            if (value.startsWith(DEFAULT_PLACEHOLDER_PREFIX) && value.endsWith(DEFAULT_PLACEHOLDER_SUFFIX)) {
-                //
-            }
+            Integer workQueueSize = Integer.parseInt(resolveReference(element, "workQueueSize"));
+            properties.addPropertyValue("workQueueSize", workQueueSize);
         }
 
         parserContext.getRegistry().registerBeanDefinition(id, beanDefinition);

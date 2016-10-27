@@ -153,12 +153,9 @@ public class SingleServiceBean {
 			}
 		}
 		providerConfig.setActives(actives);
+		providerConfig.setPoolBean(poolBean);
 		if (serverBean != null) {
 			providerConfig.setServerConfig(serverBean.init());
-		}
-
-		if (poolBean != null) {
-
 		}
 
 		ServiceFactory.addService(providerConfig);
