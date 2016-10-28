@@ -7,6 +7,7 @@ import com.dianping.pigeon.util.ClassUtils;
 import groovy.lang.*;
 import org.codehaus.groovy.control.CompilerConfiguration;
 import org.junit.Test;
+import org.springframework.aop.support.AopUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -50,7 +51,11 @@ public class GroovyTest {
             Script groovyScript = getGroovyScript(script);
             EchoService echoService = (EchoService)Proxy.newProxyInstance(ClassUtils.getCurrentClassLoader(null),
                     new Class[]{EchoService.class}, new GroovyScriptInvocationProxy(groovyScript));
-            //System.out.println(echoService.echo("ddd"));
+
+            if (AopUtils.isAopProxy(echoService)) {
+                System.out.println(echoService.getClass().getSuperclass());
+            }
+            //System.out.println(echoService);
             MockProxyWrapper mockProxyWrapper = new MockProxyWrapper(echoService);
             System.out.println(mockProxyWrapper.invoke("echo", new Class[]{String.class}, new Object[]{"ddd"}));
             //System.out.println("cache script");
