@@ -109,7 +109,7 @@ public class CuratorRegistry implements Registry {
 		try {
 			if (client.exists(servicePath, false)) {
 				Stat stat = new Stat();
-				String addressValue = client.get(servicePath, stat);
+				String addressValue = client.getWithNodeExistsEx(servicePath, stat);
 				String[] addressArray = addressValue.split(",");
 				List<String> addressList = new ArrayList<String>();
 				for (String addr : addressArray) {
@@ -164,7 +164,7 @@ public class CuratorRegistry implements Registry {
 		try {
 			if (client.exists(servicePath, false)) {
 				Stat stat = new Stat();
-				String addressValue = client.get(servicePath, stat);
+				String addressValue = client.getWithNodeExistsEx(servicePath, stat);
 				String[] addressArray = addressValue.split(",");
 				List<String> addressList = new ArrayList<String>();
 				for (String addr : addressArray) {
@@ -396,12 +396,7 @@ public class CuratorRegistry implements Registry {
 	public String getServiceAddress(String serviceName, String group, boolean fallbackDefaultGroup, boolean needListener) throws RegistryException {
 		try {
 			String path = Utils.getServicePath(serviceName, group);
-			String address = "";
-			try {
-				address = client.get(path, needListener);
-			} catch (Exception e) {
-				logger.debug("failed to get service address for " + serviceName + "/" + group, e);
-			}
+			String address = client.get(path, needListener);
 			if (!StringUtils.isBlank(group)) {
 				boolean needFallback = false;
 				if (StringUtils.isBlank(address)) {
@@ -426,11 +421,7 @@ public class CuratorRegistry implements Registry {
 				if (fallbackDefaultGroup && needFallback) {
 					logger.info("node " + path + " does not exist, fallback to default group");
 					path = Utils.getServicePath(serviceName, Constants.DEFAULT_GROUP);
-					try {
-						address = client.get(path, needListener);
-					} catch (Exception e) {
-						logger.debug("failed to get service address for " + serviceName + "/" + group, e);
-					}
+					address = client.get(path, needListener);
 				}
 			}
 			return address;
@@ -479,15 +470,13 @@ public class CuratorRegistry implements Registry {
 
 			if (info != null) {
 				Map<String, Boolean> infoMap = Utils.getProtocolInfoMap(info);
-
-				if(infoMap.containsKey(serviceName)) {
-					return infoMap.get(serviceName);
+				Boolean support = infoMap.get(serviceName);
+				if(support != null) {
+					return support;
 				}
-
 			}
 
 			return false;
-
 		} catch (Throwable e) {
 			logger.info("failed to get protocol:" + serviceName
 					+ "of host:" + serviceAddress + ", caused by:" + e.getMessage());
@@ -502,7 +491,7 @@ public class CuratorRegistry implements Registry {
 			String protocolPath = Utils.getProtocolPath(serviceAddress);
 			if (client.exists(protocolPath, false)) {
 				Stat stat = new Stat();
-				String info = client.get(protocolPath, stat);
+				String info = client.getWithNodeExistsEx(protocolPath, stat);
 				Map<String, Boolean> infoMap = Utils.getProtocolInfoMap(info);
 				infoMap.put(serviceName, support);
 				client.set(protocolPath, Utils.getProtocolInfo(infoMap), stat.getVersion());
@@ -536,7 +525,7 @@ public class CuratorRegistry implements Registry {
 			String protocolPath = Utils.getProtocolPath(serviceAddress);
 			if(client.exists(protocolPath, false)) {
 				Stat stat = new Stat();
-				String info = client.get(protocolPath, stat);
+				String info = client.getWithNodeExistsEx(protocolPath, stat);
 				Map<String, Boolean> infoMap = Utils.getProtocolInfoMap(info);
 				infoMap.remove(serviceName);
 

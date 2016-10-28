@@ -185,7 +185,7 @@ public class CuratorClient {
 		return get(path, true);
 	}
 
-	public String get(String path, Stat stat) throws Exception {
+	public String getWithNodeExistsEx(String path, Stat stat) throws Exception {
 		if (exists(path, false)) {
 			byte[] bytes = client.getData().storingStatIn(stat).forPath(path);
 			String value = new String(bytes, CHARSET);
@@ -213,7 +213,7 @@ public class CuratorClient {
 			if (logger.isDebugEnabled()) {
 				logger.debug("node " + path + " does not exist");
 			}
-			throw new KeeperException.NodeExistsException("node " + path + " does not exist");
+			return null;
 		}
 	}
 
