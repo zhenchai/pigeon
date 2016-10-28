@@ -2,15 +2,12 @@ package com.dianping.pigeon.remoting.provider.config.spring;
 
 import com.dianping.pigeon.config.ConfigManager;
 import com.dianping.pigeon.config.ConfigManagerLoader;
-import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.MutablePropertyValues;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.BeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.w3c.dom.Element;
-
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by chenchongze on 16/10/15.
@@ -44,20 +41,20 @@ public class PoolBeanDefinitionParser implements BeanDefinitionParser {
         String id = element.getAttribute("id");
         properties.addPropertyValue("poolName", id);
 
-        if (element.hasAttribute("corePoolSize")) {
-            Integer corePoolSize = Integer.parseInt(resolveReference(element, "corePoolSize"));
-            properties.addPropertyValue("corePoolSize", corePoolSize);
-        }
+        Integer corePoolSize = Integer.parseInt(resolveReference(element, "corePoolSize"));
+        properties.addPropertyValue("corePoolSize", corePoolSize);
 
-        if (element.hasAttribute("maxPoolSize")) {
-            Integer maxPoolSize = Integer.parseInt(resolveReference(element, "maxPoolSize"));
-            properties.addPropertyValue("maxPoolSize", maxPoolSize);
-        }
+        Integer maxPoolSize = Integer.parseInt(resolveReference(element, "maxPoolSize"));
+        properties.addPropertyValue("maxPoolSize", maxPoolSize);
 
-        if (element.hasAttribute("workQueueSize")) {
-            Integer workQueueSize = Integer.parseInt(resolveReference(element, "workQueueSize"));
-            properties.addPropertyValue("workQueueSize", workQueueSize);
-        }
+        Integer workQueueSize = Integer.parseInt(resolveReference(element, "workQueueSize"));
+        properties.addPropertyValue("workQueueSize", workQueueSize);
+
+        if (corePoolSize < 0 ||
+                maxPoolSize <= 0 ||
+                maxPoolSize < corePoolSize ||
+                workQueueSize < 0)
+            throw new IllegalArgumentException("please check pool config: " + id);
 
         parserContext.getRegistry().registerBeanDefinition(id, beanDefinition);
         return beanDefinition;

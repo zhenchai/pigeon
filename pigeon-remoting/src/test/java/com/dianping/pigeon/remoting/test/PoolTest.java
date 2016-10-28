@@ -10,6 +10,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by chenchongze on 16/10/21.
@@ -150,5 +153,39 @@ public class PoolTest {
             System.out.println(poolBean);
         }
 
+    }
+
+    @Test
+    public void test00() {
+        System.out.println();
+        String config = "core=100,max=200,queue=200";
+        Map<String, Integer> map = Maps.newHashMap();
+
+        for (String arg : config.split(",")) {
+            String[] kv = arg.split("=");
+            if (kv.length == 2) {
+                map.put(kv[0], Integer.parseInt(kv[1]));
+            }
+        }
+
+        for (Map.Entry<String, Integer> entry : map.entrySet()) {
+            System.out.println(entry.getKey() + "=" + entry.getValue());
+        }
+    }
+
+    @Test
+    public void test000() {
+        ThreadPoolExecutor e = new ThreadPoolExecutor(1,1,-1, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(40));
+        String stats = String.format(
+                "request pool size:%d(active:%d,core:%d,max:%d,largest:%d),task count:%d(completed:%d),queue size:%d,queue remaining:%d",
+                e.getPoolSize(), e.getActiveCount(), e.getCorePoolSize(), e.getMaximumPoolSize(), e.getLargestPoolSize(),
+                e.getTaskCount(), e.getCompletedTaskCount(), e.getQueue().size(), e.getQueue().remainingCapacity());
+        System.out.println(stats);
+        e.setCorePoolSize(5);
+        e.setMaximumPoolSize(30);
+        System.out.println(String.format(
+                "request pool size:%d(active:%d,core:%d,max:%d,largest:%d),task count:%d(completed:%d),queue size:%d,queue remaining:%d",
+                e.getPoolSize(), e.getActiveCount(), e.getCorePoolSize(), e.getMaximumPoolSize(), e.getLargestPoolSize(),
+                e.getTaskCount(), e.getCompletedTaskCount(), e.getQueue().size(), e.getQueue().remainingCapacity()));
     }
 }

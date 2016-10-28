@@ -24,18 +24,6 @@ public class PoolBean {
     private int maxPoolSize;
     private int workQueueSize;
 
-    public ThreadPool getThreadPool() {
-        if (threadPool == null) {
-            synchronized (this) {
-                if (threadPool == null) {
-                    threadPool = new DefaultThreadPool(
-                            "Pigeon-Server-Request-Processor-" + poolName, corePoolSize, maxPoolSize,
-                            new LinkedBlockingQueue<Runnable>(workQueueSize));
-                }
-            }
-        }
-        return threadPool;
-    }
 
     public String getPoolName() {
         return poolName;
@@ -118,10 +106,51 @@ public class PoolBean {
                         threadPool.getExecutor().awaitTermination(5, TimeUnit.SECONDS);
                         threadPool = null;
                     } catch (Throwable t) {
-                        logger.warn("error when shutting down old method pool", t);
+                        logger.warn("error when shutting down old pool", t);
                     }
                 }
             }
         }
+    }
+
+    public ThreadPool getThreadPool() {
+        if (threadPool == null) {
+            synchronized (this) {
+                if (threadPool == null) {
+                    threadPool = new DefaultThreadPool(
+                            "Pigeon-Server-Request-Processor-" + poolName, corePoolSize, maxPoolSize,
+                            new LinkedBlockingQueue<Runnable>(workQueueSize));
+                }
+            }
+        } else if ((corePoolSize != threadPool.getExecutor().getCorePoolSize())
+                || (maxPoolSize != threadPool.getExecutor().getMaximumPoolSize())) {
+            synchronized (this) {
+                if(threadPool != null && (corePoolSize != threadPool.getExecutor().getCorePoolSize())
+                        || (maxPoolSize != threadPool.getExecutor().getMaximumPoolSize())
+                        && corePoolSize >= 0 && maxPoolSize > 0 && maxPoolSize >= corePoolSize) {
+                    threadPool.getExecutor().setCorePoolSize(corePoolSize);
+                    threadPool.getExecutor().setMaximumPoolSize(maxPoolSize);
+                }
+            }
+        } else if (workQueueSize
+                != (threadPool.getExecutor().getQueue().size()
+                + threadPool.getExecutor().getQueue().remainingCapacity())) {
+            synchronized (this) {
+                if (threadPool != null && workQueueSize >=0 && workQueueSize
+                        != (threadPool.getExecutor().getQueue().size()
+                        + threadPool.getExecutor().getQueue().remainingCapacity())) {
+                    try {
+                        threadPool.getExecutor().shutdown();
+                        threadPool.getExecutor().awaitTermination(5, TimeUnit.SECONDS);
+                        threadPool = new DefaultThreadPool(
+                                "Pigeon-Server-Request-Processor-" + poolName, corePoolSize, maxPoolSize,
+                                new LinkedBlockingQueue<Runnable>(workQueueSize));
+                    } catch (Throwable t) {
+                        logger.warn("error when shutting down old pool", t);
+                    }
+                }
+            }
+        }
+        return threadPool;
     }
 }
