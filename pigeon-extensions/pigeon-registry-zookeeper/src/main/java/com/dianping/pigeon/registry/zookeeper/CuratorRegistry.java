@@ -500,10 +500,9 @@ public class CuratorRegistry implements Registry {
 			throws RegistryException {
 		try {
 			String protocolPath = Utils.getProtocolPath(serviceAddress);
-			Stat stat = new Stat();
-			String info = client.get(protocolPath, stat);
-
-			if(info != null) {
+			if (client.exists(protocolPath, false)) {
+				Stat stat = new Stat();
+				String info = client.get(protocolPath, stat);
 				Map<String, Boolean> infoMap = Utils.getProtocolInfoMap(info);
 				infoMap.put(serviceName, support);
 				client.set(protocolPath, Utils.getProtocolInfo(infoMap), stat.getVersion());
