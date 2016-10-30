@@ -31,7 +31,7 @@ public class NettyChannelFactory implements ChannelFactory<NettyChannel> {
         try {
             channel.connect();
         } catch (NetworkException e) {
-            logger.warn("[createChannel] failed.", e);
+            logger.info("[createChannel] failed.", e);
         }
 
         return channel;
