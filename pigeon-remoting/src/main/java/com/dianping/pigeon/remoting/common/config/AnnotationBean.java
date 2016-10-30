@@ -4,22 +4,6 @@
  */
 package com.dianping.pigeon.remoting.common.config;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-
-import org.apache.commons.lang.StringUtils;
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
-import org.springframework.beans.factory.config.BeanPostProcessor;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.beans.factory.support.BeanDefinitionRegistry;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
-
 import com.dianping.pigeon.config.ConfigManagerLoader;
 import com.dianping.pigeon.log.Logger;
 import com.dianping.pigeon.log.LoggerLoader;
@@ -34,6 +18,22 @@ import com.dianping.pigeon.remoting.provider.config.ServerConfig;
 import com.dianping.pigeon.remoting.provider.config.annotation.Service;
 import com.dianping.pigeon.util.ClassUtils;
 import com.dianping.pigeon.util.LangUtils;
+import org.apache.commons.lang.StringUtils;
+import org.springframework.aop.support.AopUtils;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
+import org.springframework.beans.factory.config.BeanPostProcessor;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 public class AnnotationBean implements DisposableBean, BeanFactoryPostProcessor, BeanPostProcessor,
 		ApplicationContextAware {
@@ -106,18 +106,9 @@ public class AnnotationBean implements DisposableBean, BeanFactoryPostProcessor,
 	}
 
 	public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
-		if (!isMatchPackage(bean)) {
+		Class<?> beanClass = AopUtils.getTargetClass(bean);
+		if (!isMatchPackage(beanClass.getName())) {
 			return bean;
-		}
-		Class<?> beanClass = bean.getClass();
-		int idxCglib = beanClass.getName().contains("$$EnhancerByCGLIB") ?
-				beanClass.getName().indexOf("$$EnhancerByCGLIB") : beanClass.getName().indexOf("$$EnhancerBySpringCGLIB");
-		if (idxCglib != -1) {
-			try {
-				beanClass = ClassUtils.loadClass(beanClass.getName().substring(0, idxCglib));
-			} catch (ClassNotFoundException e) {
-				throw new IllegalStateException("Failed to export remote service class " + beanClass.getName(), e);
-			}
 		}
 		Service service = beanClass.getAnnotation(Service.class);
 		if (service != null) {
@@ -147,7 +138,7 @@ public class AnnotationBean implements DisposableBean, BeanFactoryPostProcessor,
 	}
 
 	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
-		if (!isMatchPackage(bean)) {
+		if (!isMatchPackage(bean.getClass().getName())) {
 			return bean;
 		}
 		Method[] methods = bean.getClass().getMethods();
@@ -250,11 +241,10 @@ public class AnnotationBean implements DisposableBean, BeanFactoryPostProcessor,
 		return ServiceFactory.getService(invokerConfig);
 	}
 
-	private boolean isMatchPackage(Object bean) {
+	private boolean isMatchPackage(String beanClassName) {
 		if (annotationPackages == null || annotationPackages.length == 0) {
 			return true;
 		}
-		String beanClassName = bean.getClass().getName();
 		for (String pkg : annotationPackages) {
 			if (beanClassName.startsWith(pkg)) {
 				return true;
