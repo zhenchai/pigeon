@@ -66,9 +66,9 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
 
     private ThreadPool requestProcessThreadPool = null;
 
-    private ConcurrentHashMap<String, ThreadPool> methodThreadPools = null;
+    private static ConcurrentHashMap<String, ThreadPool> methodThreadPools = new ConcurrentHashMap<String, ThreadPool>();
 
-    private ConcurrentHashMap<String, ThreadPool> serviceThreadPools = null;
+    private static ConcurrentHashMap<String, ThreadPool> serviceThreadPools = new ConcurrentHashMap<String, ThreadPool>();
 
     private static int DEFAULT_POOL_ACTIVES = ConfigManagerLoader.getConfigManager().getIntValue(
             "pigeon.provider.pool.actives", 60);
@@ -290,8 +290,6 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
     public String getProcessorStatistics() {
         StringBuilder stats = new StringBuilder();
 
-        //todo 增加lion配置方式的统计信息
-
         if ("server".equals(poolStrategy)) {
             stats.append("[server=").append(getThreadPoolStatistics(requestProcessThreadPool)).append("]");
         } else {
@@ -299,7 +297,7 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
         }
         stats.append("[slow=").append(getThreadPoolStatistics(slowRequestProcessThreadPool)).append("]");
 
-        if(!CollectionUtils.isEmpty(springApiPoolBeanMapping)) {
+        if (!CollectionUtils.isEmpty(springApiPoolBeanMapping)) {
             for (String key : springApiPoolBeanMapping.keySet()) {
                 stats.append(",[").append(key).append("=")
                         .append(getThreadPoolStatistics(springApiPoolBeanMapping.get(key).getRefreshedThreadPool()))
@@ -319,6 +317,19 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
                         .append("]");
             }
         }
+
+        if (!CollectionUtils.isEmpty(apiPoolConfigMapping)) {
+            for (Map.Entry<String, String> entry : apiPoolConfigMapping.entrySet()) {
+                String api = entry.getKey();
+                String poolName = entry.getValue();
+                PoolBean poolBean = poolNameMapping.get(poolName);
+                if (poolBean != null) {
+                    stats.append(",[").append(api).append("=")
+                            .append(getThreadPoolStatistics(poolBean.getRefreshedThreadPool())).append("]");
+                }
+            }
+        }
+
         stats.append(GatewayProcessFilter.getStatistics());
         return stats.toString();
     }
@@ -334,17 +345,10 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
         ServiceMethodCache methodCache = ServiceMethodFactory.getServiceMethodCache(url);
         Set<String> methodNames = methodCache.getMethodMap().keySet();
         if (needStandalonePool(providerConfig)) {
-            if (methodThreadPools == null) {
-                methodThreadPools = new ConcurrentHashMap<String, ThreadPool>();
-            }
-            if (serviceThreadPools == null) {
-                serviceThreadPools = new ConcurrentHashMap<String, ThreadPool>();
-            }
-
-            if (providerConfig.getPoolBean() != null && CollectionUtils.isEmpty(methodConfigs)) { // 服务的poolBean方式
+            if (providerConfig.getPoolBean() != null) { // 服务的poolBean方式,支持方法的fallback
                 springApiPoolBeanMapping.putIfAbsent(url, providerConfig.getPoolBean());
                 springPoolNameMapping.putIfAbsent(providerConfig.getPoolBean().getPoolName(), providerConfig.getPoolBean());
-            } else if (providerConfig.getActives() > 0 && CollectionUtils.isEmpty(methodConfigs)) { // 服务的actives方式
+            } else if (providerConfig.getActives() > 0 && CollectionUtils.isEmpty(methodConfigs)) { // 服务的actives方式,不支持方法的fallback,不支持动态修改
                 ThreadPool pool = serviceThreadPools.get(url);
                 if (pool == null) {
                     int actives = providerConfig.getActives();
@@ -405,7 +409,18 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
     @Override
     public synchronized <T> void removeService(ProviderConfig<T> providerConfig) {
         if (needStandalonePool(providerConfig)) {
+
             Set<String> toRemoveKeys = new HashSet<String>();
+            for (String key : springApiPoolBeanMapping.keySet()) {
+                if (key.startsWith(providerConfig.getUrl() + "#") || key.equals(providerConfig.getUrl())) {
+                    toRemoveKeys.add(key);
+                }
+            }
+            for (String key : toRemoveKeys) {
+                springApiPoolBeanMapping.remove(key);
+            }
+
+            toRemoveKeys = new HashSet<String>();
             for (String key : methodThreadPools.keySet()) {
                 if (key.startsWith(providerConfig.getUrl() + "#")) {
                     toRemoveKeys.add(key);

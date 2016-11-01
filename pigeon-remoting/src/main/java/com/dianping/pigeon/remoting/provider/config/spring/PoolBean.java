@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class PoolBean {
 
-    private static final Logger logger = LoggerLoader.getLogger(PoolBean.class);
+    private static Logger logger = LoggerLoader.getLogger(PoolBean.class);
 
     private ThreadPool threadPool = null;
 
@@ -132,7 +132,7 @@ public class PoolBean {
                     threadPool.getExecutor().setMaximumPoolSize(maxPoolSize);
                 }
             }
-        } else if (workQueueSize
+        } else if (threadPool != null && workQueueSize
                 != (threadPool.getExecutor().getQueue().size()
                 + threadPool.getExecutor().getQueue().remainingCapacity())) {
             synchronized (this) {
