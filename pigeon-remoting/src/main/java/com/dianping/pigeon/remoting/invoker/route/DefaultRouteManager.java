@@ -50,9 +50,6 @@ public class DefaultRouteManager implements RouteManager, Disposable {
     private static boolean enablePreferAddresses = ConfigManagerLoader.getConfigManager().getBooleanValue(
             "pigeon.route.preferaddresses.enable", false);
 
-    private static boolean isWriteBufferLimit = ConfigManagerLoader.getConfigManager().getBooleanValue(
-            Constants.KEY_DEFAULT_WRITE_BUFF_LIMIT, Constants.DEFAULT_WRITE_BUFF_LIMIT);
-
     private DefaultRouteManager() {
         RegistryEventListener.addListener(providerChangeListener);
         if (enablePreferAddresses) {
@@ -124,19 +121,13 @@ public class DefaultRouteManager implements RouteManager, Disposable {
 
         }
 
-        boolean isWriteLimit = isWriteBufferLimit && request.getCallType() == Constants.CALLTYPE_NOREPLY;
         List<Client> filteredClients = new ArrayList<Client>(clientList.size());
-        boolean existClientBuffToLimit = false;
         for (Client client : clientList) {
             if (client != null) {
                 String address = client.getAddress();
                 int weight = RegistryManager.getInstance().getServiceWeightFromCache(address);
                 if (client.isActive() && weight > 0) {
-                    if (!isWriteLimit) {// || client.isWritable()) {
-                        filteredClients.add(client);
-                    } else {
-                        existClientBuffToLimit = true;
-                    }
+                    filteredClients.add(client);
                 } else if (logger.isDebugEnabled()) {
                     logger.debug("provider status:" + client.isActive() + "," + weight);
                 }
@@ -144,8 +135,7 @@ public class DefaultRouteManager implements RouteManager, Disposable {
         }
         if (filteredClients.isEmpty()) {
             throw new ServiceUnavailableException("no available server exists for service[" + invokerConfig.getUrl()
-                    + "] and group[" + invokerConfig.getGroup() + "]"
-                    + (existClientBuffToLimit ? ", and exists some server's write buffer reach limit" : "") + ".");
+                    + "] and group[" + invokerConfig.getGroup() + "].");
         }
         return filteredClients;
     }
