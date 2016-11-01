@@ -2,12 +2,9 @@ package com.dianping.pigeon.remoting.test;
 
 import com.dianping.pigeon.remoting.common.codec.json.JacksonSerializer;
 import com.dianping.pigeon.remoting.provider.config.spring.PoolBean;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.junit.Test;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -104,7 +101,7 @@ public class PoolTest {
         PoolBean poolBean = null;
         try {
             poolBean = (PoolBean)serializer.toObject(PoolBean.class, json);
-            poolBean.getThreadPool();
+            poolBean.getRefreshedThreadPool();
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
@@ -124,8 +121,8 @@ public class PoolTest {
         poolBean2.setMaxPoolSize(2);
         poolBean2.setWorkQueueSize(3);
 
-        poolBean1.getThreadPool();
-        poolBean2.getThreadPool();
+        poolBean1.getRefreshedThreadPool();
+        poolBean2.getRefreshedThreadPool();
 
         Map<String, PoolBean> map1 = Maps.newConcurrentMap();
         Map<String, PoolBean> map2 = Maps.newConcurrentMap();

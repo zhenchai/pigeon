@@ -113,7 +113,7 @@ public class PoolBean {
         }
     }
 
-    public ThreadPool getThreadPool() {
+    public ThreadPool getRefreshedThreadPool() {
         if (threadPool == null) {
             synchronized (this) {
                 if (threadPool == null) {

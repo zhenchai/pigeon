@@ -98,6 +98,13 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
     // url or url#method --> poolName
     private volatile static Map<String, String> apiPoolConfigMapping = Maps.newConcurrentMap();
 
+    // spring url or url#method --> poolBean
+    private static ConcurrentHashMap<String, PoolBean> springApiPoolBeanMapping = new ConcurrentHashMap<>();
+    private static ConcurrentHashMap<String, PoolBean> springPoolNameMapping = new ConcurrentHashMap<>();
+    private static Map<String, String> springPoolBeanCoreSizeKeys = Maps.newHashMap();
+    private static Map<String, String> springPoolBeanMaxSizeKeys = Maps.newHashMap();
+    private static Map<String, String> springPoolBeanQueueSizeKeys = Maps.newHashMap();
+
     static {
         try {
             init();
@@ -222,29 +229,42 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
 
     private ThreadPool selectThreadPool(final InvocationRequest request) {
         ThreadPool pool = null;
+        PoolBean poolBean = null;
+        String serviceKey = request.getServiceName();
+        String methodKey = serviceKey + "#" + request.getMethodName();
 
         // spring配置方式
-        if (!CollectionUtils.isEmpty(methodThreadPools)) {
-            pool = methodThreadPools.get(request.getServiceName() + "#" + request.getMethodName());
+        poolBean = springApiPoolBeanMapping.get(methodKey);
+        if (poolBean != null) {
+            pool = poolBean.getRefreshedThreadPool();
+        } else {
+            poolBean = springApiPoolBeanMapping.get(serviceKey);
+            if (poolBean != null) {
+                pool = poolBean.getRefreshedThreadPool();
+            }
+        }
+
+        if (pool == null && !CollectionUtils.isEmpty(methodThreadPools)) {
+            pool = methodThreadPools.get(methodKey);
         }
         if (pool == null && !CollectionUtils.isEmpty(serviceThreadPools)) {
-            pool = serviceThreadPools.get(request.getServiceName());
+            pool = serviceThreadPools.get(serviceKey);
         }
 
         // 配置中心方式
         if (pool == null && !CollectionUtils.isEmpty(apiPoolConfigMapping)) {
-            String poolName = apiPoolConfigMapping.get(request.getServiceName() + "#" + request.getMethodName());
+            String poolName = apiPoolConfigMapping.get(methodKey);
             if (StringUtils.isNotBlank(poolName)) { // 方法级别
-                PoolBean poolBean = poolNameMapping.get(poolName);
+                poolBean = poolNameMapping.get(poolName);
                 if(poolBean != null) {
-                    pool = poolBean.getThreadPool();
+                    pool = poolBean.getRefreshedThreadPool();
                 }
             } else { // 服务级别
-                poolName = apiPoolConfigMapping.get(request.getServiceName());
+                poolName = apiPoolConfigMapping.get(serviceKey);
                 if (StringUtils.isNotBlank(poolName)) {
-                    PoolBean poolBean = poolNameMapping.get(poolName);
+                    poolBean = poolNameMapping.get(poolName);
                     if(poolBean != null) {
-                        pool = poolBean.getThreadPool();
+                        pool = poolBean.getRefreshedThreadPool();
                     }
                 }
             }
@@ -278,6 +298,15 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
             stats.append("[shared=").append(getThreadPoolStatistics(sharedRequestProcessThreadPool)).append("]");
         }
         stats.append("[slow=").append(getThreadPoolStatistics(slowRequestProcessThreadPool)).append("]");
+
+        if(!CollectionUtils.isEmpty(springApiPoolBeanMapping)) {
+            for (String key : springApiPoolBeanMapping.keySet()) {
+                stats.append(",[").append(key).append("=")
+                        .append(getThreadPoolStatistics(springApiPoolBeanMapping.get(key).getRefreshedThreadPool()))
+                        .append("]");
+            }
+        }
+
         if (!CollectionUtils.isEmpty(serviceThreadPools)) {
             for (String key : serviceThreadPools.keySet()) {
                 stats.append(",[").append(key).append("=").append(getThreadPoolStatistics(serviceThreadPools.get(key)))
@@ -312,10 +341,10 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
                 serviceThreadPools = new ConcurrentHashMap<String, ThreadPool>();
             }
 
-            if (providerConfig.getPoolBean() != null && CollectionUtils.isEmpty(methodConfigs)) {
-                serviceThreadPools.putIfAbsent(url, providerConfig.getPoolBean().getThreadPool());
-
-            } else if (providerConfig.getActives() > 0 && CollectionUtils.isEmpty(methodConfigs)) {
+            if (providerConfig.getPoolBean() != null && CollectionUtils.isEmpty(methodConfigs)) { // 服务的poolBean方式
+                springApiPoolBeanMapping.putIfAbsent(url, providerConfig.getPoolBean());
+                springPoolNameMapping.putIfAbsent(providerConfig.getPoolBean().getPoolName(), providerConfig.getPoolBean());
+            } else if (providerConfig.getActives() > 0 && CollectionUtils.isEmpty(methodConfigs)) { // 服务的actives方式
                 ThreadPool pool = serviceThreadPools.get(url);
                 if (pool == null) {
                     int actives = providerConfig.getActives();
@@ -327,36 +356,28 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
                             new LinkedBlockingQueue<Runnable>(queueSize));
                     serviceThreadPools.putIfAbsent(url, pool);
                 }
-
-            } else if (!CollectionUtils.isEmpty(methodConfigs)) {
+            } else if (!CollectionUtils.isEmpty(methodConfigs)) { // 方法级设置方式
                 for (String name : methodNames) {
-                    if (!methodConfigs.containsKey(name)) {
-                        continue;
-                    }
                     String key = url + "#" + name;
+                    ProviderMethodConfig methodConfig = methodConfigs.get(name);
                     ThreadPool pool = methodThreadPools.get(key);
-                    if (pool == null) {
-
-                        ProviderMethodConfig methodConfig = methodConfigs.get(name);
-                        if(methodConfig != null) {
-                            if (methodConfig.getPoolBean() != null) {
-                                methodThreadPools.putIfAbsent(key, methodConfig.getPoolBean().getThreadPool());
-
-                            } else {
-                                int actives = DEFAULT_POOL_ACTIVES;
-                                if (methodConfig.getActives() > 0) {
-                                    actives = methodConfig.getActives();
-                                }
-                                int coreSize = (int) (actives / DEFAULT_POOL_RATIO_CORE) > 0 ? (int) (actives / DEFAULT_POOL_RATIO_CORE)
-                                        : actives;
-                                int maxSize = actives;
-                                int queueSize = actives;
-                                pool = new DefaultThreadPool("Pigeon-Server-Request-Processor-method", coreSize, maxSize,
-                                        new LinkedBlockingQueue<Runnable>(queueSize));
-                                methodThreadPools.putIfAbsent(key, pool);
+                    if (methodConfig != null) {
+                        if (methodConfig.getPoolBean() != null) { // 方法poolBean方式
+                            springApiPoolBeanMapping.putIfAbsent(key, methodConfig.getPoolBean());
+                            springPoolNameMapping.putIfAbsent(methodConfig.getPoolBean().getPoolName(), methodConfig.getPoolBean());
+                        } else if (pool == null) { // 方法actives方式
+                            int actives = DEFAULT_POOL_ACTIVES;
+                            if (methodConfig.getActives() > 0) {
+                                actives = methodConfig.getActives();
                             }
+                            int coreSize = (int) (actives / DEFAULT_POOL_RATIO_CORE) > 0 ? (int) (actives / DEFAULT_POOL_RATIO_CORE)
+                                    : actives;
+                            int maxSize = actives;
+                            int queueSize = actives;
+                            pool = new DefaultThreadPool("Pigeon-Server-Request-Processor-method", coreSize, maxSize,
+                                    new LinkedBlockingQueue<Runnable>(queueSize));
+                            methodThreadPools.putIfAbsent(key, pool);
                         }
-
                     }
                 }
             }
@@ -429,6 +450,18 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
 
     public static Map<String, String> getMethodPoolConfigKeys() {
         return methodPoolConfigKeys;
+    }
+
+    public static Map<String, String> getSpringPoolBeanCoreSizeKeys() {
+        return springPoolBeanCoreSizeKeys;
+    }
+
+    public static Map<String, String> getSpringPoolBeanMaxSizeKeys() {
+        return springPoolBeanMaxSizeKeys;
+    }
+
+    public static Map<String, String> getSpringPoolBeanQueueSizeKeys() {
+        return springPoolBeanQueueSizeKeys;
     }
 
     public static void setSharedPoolQueueSizeKey(String sharedPoolQueueSizeKey) {
@@ -541,6 +574,63 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
                     }
                 }
             } else {
+                for (Map.Entry<String, String> entry : springPoolBeanCoreSizeKeys.entrySet()) {
+                    String poolBeanName = entry.getKey();
+                    String poolBeanCoreSizeKey = entry.getValue();
+                    if (key.endsWith(poolBeanCoreSizeKey)) {
+                        try {
+                            Integer coreSize = Integer.parseInt(value);
+                            PoolBean poolBean = springPoolNameMapping.get(poolBeanName);
+                            if (poolBean != null) {
+                                if (coreSize < 0 || coreSize > poolBean.getMaxPoolSize()) {
+                                    throw new IllegalArgumentException("core size is illegal, please check: " + coreSize);
+                                }
+                                poolBean.setCorePoolSize(coreSize);
+                            }
+                        } catch (RuntimeException e) {
+                            logger.error("error while changing spring poolBean, key:" + key + ", value:" + value, e);
+                        }
+                    }
+                }
+
+                for (Map.Entry<String, String> entry : springPoolBeanMaxSizeKeys.entrySet()) {
+                    String poolBeanName = entry.getKey();
+                    String poolBeanMaxSizeKey = entry.getValue();
+                    if (key.endsWith(poolBeanMaxSizeKey)) {
+                        try {
+                            Integer maxSize = Integer.parseInt(value);
+                            PoolBean poolBean = springPoolNameMapping.get(poolBeanName);
+                            if (poolBean != null) {
+                                if (maxSize < poolBean.getCorePoolSize() || maxSize <= 0) {
+                                    throw new IllegalArgumentException("max size is illegal, please check: " + maxSize);
+                                }
+                                poolBean.setMaxPoolSize(maxSize);
+                            }
+                        } catch (RuntimeException e) {
+                            logger.error("error while changing spring poolBean, key:" + key + ", value:" + value, e);
+                        }
+                    }
+                }
+
+                for (Map.Entry<String, String> entry : springPoolBeanQueueSizeKeys.entrySet()) {
+                    String poolBeanName = entry.getKey();
+                    String poolBeanQueueSizeKey = entry.getValue();
+                    if (key.endsWith(poolBeanQueueSizeKey)) {
+                        try {
+                            Integer queueSize = Integer.parseInt(value);
+                            PoolBean poolBean = springPoolNameMapping.get(poolBeanName);
+                            if (poolBean != null) {
+                                if (queueSize < 0) {
+                                    throw new IllegalArgumentException("queue size is illegal, please check: " + queueSize);
+                                }
+                                poolBean.setWorkQueueSize(queueSize);
+                            }
+                        } catch (RuntimeException e) {
+                            logger.error("error while changing spring poolBean, key:" + key + ", value:" + value, e);
+                        }
+                    }
+                }
+
                 for (String k : methodPoolConfigKeys.keySet()) {
                     String v = methodPoolConfigKeys.get(k);
                     if (key.endsWith(v)) {

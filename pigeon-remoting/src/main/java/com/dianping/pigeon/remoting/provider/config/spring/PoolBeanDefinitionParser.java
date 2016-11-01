@@ -2,6 +2,7 @@ package com.dianping.pigeon.remoting.provider.config.spring;
 
 import com.dianping.pigeon.config.ConfigManager;
 import com.dianping.pigeon.config.ConfigManagerLoader;
+import com.dianping.pigeon.remoting.provider.process.threadpool.RequestThreadPoolProcessor;
 import org.springframework.beans.MutablePropertyValues;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.RootBeanDefinition;
@@ -43,12 +44,24 @@ public class PoolBeanDefinitionParser implements BeanDefinitionParser {
 
         Integer corePoolSize = Integer.parseInt(resolveReference(element, "corePoolSize"));
         properties.addPropertyValue("corePoolSize", corePoolSize);
+        String value = element.getAttribute("corePoolSize");
+        if (value.startsWith(DEFAULT_PLACEHOLDER_PREFIX) && value.endsWith(DEFAULT_PLACEHOLDER_SUFFIX)) {
+            RequestThreadPoolProcessor.getSpringPoolBeanCoreSizeKeys().put(id, value.substring(2, value.length() - 1));
+        }
 
         Integer maxPoolSize = Integer.parseInt(resolveReference(element, "maxPoolSize"));
         properties.addPropertyValue("maxPoolSize", maxPoolSize);
+        value = element.getAttribute("maxPoolSize");
+        if (value.startsWith(DEFAULT_PLACEHOLDER_PREFIX) && value.endsWith(DEFAULT_PLACEHOLDER_SUFFIX)) {
+            RequestThreadPoolProcessor.getSpringPoolBeanMaxSizeKeys().put(id, value.substring(2, value.length() - 1));
+        }
 
         Integer workQueueSize = Integer.parseInt(resolveReference(element, "workQueueSize"));
         properties.addPropertyValue("workQueueSize", workQueueSize);
+        value = element.getAttribute("workQueueSize");
+        if (value.startsWith(DEFAULT_PLACEHOLDER_PREFIX) && value.endsWith(DEFAULT_PLACEHOLDER_SUFFIX)) {
+            RequestThreadPoolProcessor.getSpringPoolBeanQueueSizeKeys().put(id, value.substring(2, value.length() - 1));
+        }
 
         if (corePoolSize < 0 ||
                 maxPoolSize <= 0 ||

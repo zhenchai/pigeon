@@ -52,6 +52,8 @@ public class GroovyTest {
             EchoService echoService = (EchoService)Proxy.newProxyInstance(ClassUtils.getCurrentClassLoader(null),
                     new Class[]{EchoService.class}, new GroovyScriptInvocationProxy(groovyScript));
 
+            System.out.println(AopUtils.isJdkDynamicProxy(echoService));
+            System.out.println(echoService.getClass().getSuperclass());
             if (AopUtils.isAopProxy(echoService)) {
                 System.out.println(echoService.getClass().getSuperclass());
             }
