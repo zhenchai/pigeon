@@ -91,7 +91,7 @@ public class PoolBean {
     }
 
     public boolean checkNotNull() {
-        if (StringUtils.isNotBlank(poolName) && corePoolSize > 0 && maxPoolSize > 0 && workQueueSize > 0) {
+        if (StringUtils.isNotBlank(poolName) && corePoolSize >= 0 && maxPoolSize > 0 && workQueueSize > 0) {
             return true;
         }
         return false;
@@ -136,7 +136,7 @@ public class PoolBean {
                 != (threadPool.getExecutor().getQueue().size()
                 + threadPool.getExecutor().getQueue().remainingCapacity())) {
             synchronized (this) {
-                if (threadPool != null && workQueueSize >=0 && workQueueSize
+                if (threadPool != null && workQueueSize > 0 && workQueueSize
                         != (threadPool.getExecutor().getQueue().size()
                         + threadPool.getExecutor().getQueue().remainingCapacity())) {
                     try {

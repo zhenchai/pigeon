@@ -66,7 +66,7 @@ public class PoolBeanDefinitionParser implements BeanDefinitionParser {
         if (corePoolSize < 0 ||
                 maxPoolSize <= 0 ||
                 maxPoolSize < corePoolSize ||
-                workQueueSize < 0)
+                workQueueSize <= 0)
             throw new IllegalArgumentException("please check pool config: " + id);
 
         parserContext.getRegistry().registerBeanDefinition(id, beanDefinition);
