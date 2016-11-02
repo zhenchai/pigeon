@@ -7,6 +7,7 @@ package com.dianping.pigeon.remoting.http.invoker;
 import java.net.ConnectException;
 
 import com.dianping.pigeon.remoting.common.channel.Channel;
+import com.dianping.pigeon.remoting.invoker.client.ClientConfig;
 import com.dianping.pigeon.remoting.invoker.process.ResponseProcessor;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpConnectionManager;
@@ -33,17 +34,10 @@ public class HttpInvokerClient extends AbstractClient {
     private boolean isConnected = false;
     public static final String CONTENT_TYPE_SERIALIZED_OBJECT = "application/x-java-serialized-object";
 
-    public HttpInvokerClient(ConnectInfo connectInfo,
-                             ResponseProcessor responseProcessor,
-                             boolean heartbeated,
-                             int heartbeatTimeout,
-                             int clientThreshold,
-                             int heartbeatInterval) {
-        super(responseProcessor,
-                heartbeated,
-                heartbeatTimeout,
-                clientThreshold,
-                heartbeatInterval);
+    public HttpInvokerClient(ClientConfig clientConfig,
+                             ConnectInfo connectInfo,
+                             ResponseProcessor responseProcessor) {
+        super(clientConfig, responseProcessor);
 
         this.connectInfo = connectInfo;
         if (logger.isInfoEnabled()) {

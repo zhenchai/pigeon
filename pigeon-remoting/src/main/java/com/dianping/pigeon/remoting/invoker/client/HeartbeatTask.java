@@ -1,7 +1,5 @@
 package com.dianping.pigeon.remoting.invoker.client;
 
-import com.dianping.pigeon.config.ConfigManager;
-import com.dianping.pigeon.config.ConfigManagerLoader;
 import com.dianping.pigeon.log.Logger;
 import com.dianping.pigeon.log.LoggerLoader;
 import com.dianping.pigeon.monitor.Monitor;
@@ -32,23 +30,15 @@ public class HeartbeatTask implements Runnable {
 
     private static AtomicLong heartBeatSeq = new AtomicLong();
 
-    private static ConfigManager configManager = ConfigManagerLoader.getConfigManager();
-
     private static final Monitor monitor = MonitorLoader.getMonitor();
 
-    private Client client;
+    private final Client client;
+    private final ClientConfig clientConfig;
+    private final HeartbeatStats heartbeatStats = new HeartbeatStats();
 
-    private int timeout;
-
-
-    private int clientThreshold;
-
-    private HeartbeatStats heartbeatStats = new HeartbeatStats();
-
-    public HeartbeatTask(Client client, int timeout, int clientThreshold) {
+    public HeartbeatTask(ClientConfig clientConfig, Client client) {
+        this.clientConfig = clientConfig;
         this.client = client;
-        this.timeout = timeout;
-        this.clientThreshold = clientThreshold;
     }
 
     @Override
@@ -96,15 +86,16 @@ public class HeartbeatTask implements Runnable {
             heartbeatStats.incSuccessCount();
         }
 
-        if (heartbeatStats.getFailedCount() >= clientThreshold) {
-
-            if (client.isActive()) {
-                client.setActive(false);
-                logger.info("[notifyClientStateChanged]heartbeat" + client + ", inactive addresses:" + client.getAddress());
-                monitor.logEvent("PigeonCall.heartbeat", "Deactivate", client.getAddress());
+        if (heartbeatStats.getFailedCount() >= clientConfig.getDeadThreshold()) {
+            if (clientConfig.isHeartbeatAutoPickOff()) {
+                if (client.isActive()) {
+                    client.setActive(false);
+                    logger.info("[notifyClientStateChanged]heartbeat" + client + ", inactive addresses:" + client.getAddress());
+                    monitor.logEvent("PigeonCall.heartbeat", "Deactivate", client.getAddress());
+                }
             }
             heartbeatStats.resetStats();
-        } else if (heartbeatStats.getSuccessCount() >= clientThreshold) {
+        } else if (heartbeatStats.getSuccessCount() >= clientConfig.getHealthThreshold()) {
 
             if (!client.isActive()) {
                 client.setActive(true);
@@ -128,7 +119,7 @@ public class HeartbeatTask implements Runnable {
 
             InvokerUtils.sendRequest(client, channel, request, future);
 
-            response = future.getResponse(timeout);
+            response = future.getResponse(clientConfig.getHeartbeatTimeout());
 
             if (response != null && !(response.getReturn() instanceof Exception)) {
                 isSuccess = true;
@@ -169,7 +160,7 @@ public class HeartbeatTask implements Runnable {
         try {
             supported = RegistryManager.getInstance().isSupportNewProtocol(address);
         } catch (Throwable t) {
-            supported = configManager.getBooleanValue("pigeon.mns.host.support.new.protocol", true);
+            supported = Constants.isSupportedNewProtocal();
             logger.warn("get protocol support failed, set support to: " + supported);
         }
 
@@ -178,7 +169,7 @@ public class HeartbeatTask implements Runnable {
 
     private InvocationRequest createHeartRequest0(String address) {
         InvocationRequest request = InvocationUtils.newRequest(Constants.HEART_TASK_SERVICE + address, Constants.HEART_TASK_METHOD,
-                null, SerializerFactory.SERIALIZE_HESSIAN, Constants.MESSAGE_TYPE_HEART, timeout, null);
+                null, SerializerFactory.SERIALIZE_HESSIAN, Constants.MESSAGE_TYPE_HEART, clientConfig.getHeartbeatTimeout(), null);
         request.setSequence(generateHeartSeq());
         request.setCreateMillisTime(System.currentTimeMillis());
         request.setCallType(Constants.CALLTYPE_REPLY);
@@ -187,7 +178,7 @@ public class HeartbeatTask implements Runnable {
 
     private InvocationRequest createHeartRequest_(String address) {
         InvocationRequest request = new GenericRequest(Constants.HEART_TASK_SERVICE + address, Constants.HEART_TASK_METHOD,
-                null, SerializerFactory.SERIALIZE_THRIFT, Constants.MESSAGE_TYPE_HEART, timeout);
+                null, SerializerFactory.SERIALIZE_THRIFT, Constants.MESSAGE_TYPE_HEART, clientConfig.getHeartbeatTimeout());
         request.setSequence(generateHeartSeq());
         request.setCreateMillisTime(System.currentTimeMillis());
         request.setCallType(Constants.CALLTYPE_REPLY);
@@ -253,6 +244,6 @@ public class HeartbeatTask implements Runnable {
             resetFailedCount();
         }
 
-
     }
+
 }
