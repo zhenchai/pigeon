@@ -60,11 +60,11 @@ public class ServiceFutureImpl extends CallbackFuture implements Future {
 		transaction = monitor.createTransaction("PigeonFuture", callInterface, invocationContext);
 		if (transaction != null) {
 			transaction.setStatusOk();
-			transaction.logEvent("PigeonCall.CallType", invocationContext.getInvokerConfig().getCallType(), "");
-			transaction.logEvent("PigeonCall.Serialize", ""
+			transaction.logEvent("PigeonCall.callType", invocationContext.getInvokerConfig().getCallType(), "");
+			transaction.logEvent("PigeonCall.serialize", ""
 					+ (request == null ? invocationContext.getInvokerConfig().getSerialize() : request.getSerialize()),
 					"");
-			transaction.logEvent("PigeonCall.Timeout", timeoutMillis + "",
+			transaction.logEvent("PigeonCall.timeout", timeoutMillis + "",
 					invocationContext.getInvokerConfig().getTimeout() + "");
 			invocationContext.getTimeline().add(new TimePoint(TimePhase.F, System.currentTimeMillis()));
 		}

@@ -53,10 +53,10 @@ public class RemoteCallMonitorInvokeFilter extends InvocationInvokeFilter {
 				if (transaction != null) {
 					monitor.setCurrentCallTransaction(transaction);
 					transaction.setStatusOk();
-					transaction.logEvent("PigeonCall.CallType",
+					transaction.logEvent("PigeonCall.callType",
 							invokerConfig.getCallType(invocationContext.getMethodName()), "");
-					transaction.logEvent("PigeonCall.Serialize", invokerConfig.getSerialize() + "", "");
-					transaction.logEvent("PigeonCall.Timeout",
+					transaction.logEvent("PigeonCall.serialize", invokerConfig.getSerialize() + "", "");
+					transaction.logEvent("PigeonCall.timeout",
 							invokerConfig.getTimeout(invocationContext.getMethodName()) + "", "");
 					transaction.logEvent("PigeonCall.QPS", "S" + Calendar.getInstance().get(Calendar.SECOND), "");
 				}

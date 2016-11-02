@@ -69,9 +69,9 @@ public class ServiceCallbackWrapper implements Callback {
 			}
 			if (transaction != null) {
 				transaction.setStatusOk();
-				transaction.logEvent("PigeonCall.CallType", invokerConfig.getCallType(), "");
-				transaction.logEvent("PigeonCall.Serialize", request.getSerialize() + "", "");
-				transaction.logEvent("PigeonCall.Timeout", invokerConfig.getTimeout() + "", "");
+				transaction.logEvent("PigeonCall.callType", invokerConfig.getCallType(), "");
+				transaction.logEvent("PigeonCall.serialize", request.getSerialize() + "", "");
+				transaction.logEvent("PigeonCall.timeout", invokerConfig.getTimeout() + "", "");
 
 				if (response != null && response.getSize() > 0) {
 					String respSize = SizeMonitor.getInstance().getLogSize(response.getSize());
