@@ -360,7 +360,9 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
                             new LinkedBlockingQueue<Runnable>(queueSize));
                     serviceThreadPools.putIfAbsent(url, pool);
                 }
-            } else if (!CollectionUtils.isEmpty(methodConfigs)) { // 方法级设置方式
+            }
+
+            if (!CollectionUtils.isEmpty(methodConfigs)) { // 方法级设置方式
                 for (String name : methodNames) {
                     String key = url + "#" + name;
                     ProviderMethodConfig methodConfig = methodConfigs.get(name);
