@@ -7,7 +7,8 @@ package com.dianping.pigeon.remoting;
 import java.util.List;
 import java.util.Map;
 
-import com.dianping.pigeon.config.ConfigManagerLoader;
+import com.dianping.pigeon.remoting.provider.publish.PublishPolicy;
+import com.dianping.pigeon.remoting.provider.publish.PublishPolicyLoader;
 import org.apache.commons.lang.StringUtils;
 
 import com.dianping.pigeon.log.Logger;
@@ -32,8 +33,9 @@ import com.dianping.pigeon.remoting.provider.publish.ServicePublisher;
  */
 public class ServiceFactory {
 
-	static Logger logger = LoggerLoader.getLogger(ServiceFactory.class);
-	static ServiceProxy serviceProxy = ServiceProxyLoader.getServiceProxy();
+	private static Logger logger = LoggerLoader.getLogger(ServiceFactory.class);
+	private static ServiceProxy serviceProxy = ServiceProxyLoader.getServiceProxy();
+	private static PublishPolicy publishPolicy = PublishPolicyLoader.getPublishPolicy();
 
 	static {
 		try {
@@ -173,17 +175,7 @@ public class ServiceFactory {
 	 * @throws RpcException
 	 */
 	public static <T> void addService(ProviderConfig<T> providerConfig) throws RpcException {
-		try {
-			checkServiceName(providerConfig);
-			ServicePublisher.addService(providerConfig);
-			ServerConfig serverConfig = ProviderBootStrap.startup(providerConfig);
-			providerConfig.setServerConfig(serverConfig);
-			ServicePublisher.publishService(providerConfig, false);
-		} catch (RegistryException t) {
-			throw new RpcException("error while adding service:" + providerConfig, t);
-		} catch (Throwable t) {
-			throw new RpcException("error while adding service:" + providerConfig, t);
-		}
+		publishPolicy.doAddService(providerConfig);
 	}
 
 	/**
@@ -364,17 +356,4 @@ public class ServiceFactory {
 		return ServicePublisher.isAutoPublish();
 	}
 
-	private static void checkServiceName(ProviderConfig providerConfig) {
-		if (StringUtils.isBlank(providerConfig.getUrl())) {
-			providerConfig.setUrl(getServiceUrl(providerConfig));
-		} else if (providerConfig.getUrl().contains("#")) {
-			throw new IllegalArgumentException("service name cannot contains '#' symbol: " + providerConfig.getUrl());
-		} else if (providerConfig.isSupported() && !getServiceUrl(providerConfig).equals(providerConfig.getUrl())) {
-			logger.warn("customized [serviceName] cannot provide service to OCTO invoker "
-					+ "unless set the [serviceName] to canonical name of the interface class "
-					+ "or just keep [serviceName] config to blank. more help refer to: "
-					+ ConfigManagerLoader.getConfigManager().getStringValue("pigeon.help.provider.octo.url"
-					, "http://wiki.sankuai.com/pages/viewpage.action?pageId=606809899"));
-		}
-	}
 }
