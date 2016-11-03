@@ -175,7 +175,9 @@ public class ServiceFactory {
 	public static <T> void addService(ProviderConfig<T> providerConfig) throws RpcException {
 		if (StringUtils.isBlank(providerConfig.getUrl())) {
 			providerConfig.setUrl(getServiceUrl(providerConfig));
-		} else if(providerConfig.isSupported() && !getServiceUrl(providerConfig).equals(providerConfig.getUrl())) {
+		} else if (providerConfig.getUrl().contains("#")) {
+			throw new IllegalArgumentException("service name cannot contains '#' symbol: " + providerConfig.getUrl());
+		} else if (providerConfig.isSupported() && !getServiceUrl(providerConfig).equals(providerConfig.getUrl())) {
 			logger.warn("customized [serviceName] cannot provide service to OCTO invoker "
 					+ "unless set the [serviceName] to canonical name of the interface class "
 					+ "or just keep [serviceName] config to blank. more help refer to: "

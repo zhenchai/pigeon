@@ -61,18 +61,13 @@ public class DefaultNettyChannel implements NettyChannel {
                         this.channel = future.getChannel();
                         localAddress = (InetSocketAddress) this.channel.getLocalAddress();
                     } else {
-                        logger.info("[connect] connected to remote " + remoteAddress + " failed.");
                         throw new NetworkException("connected to remote " + remoteAddress + " failed.");
                     }
-
                 } else {
-                    logger.info("[connect] timeout connecting to remote " + remoteAddress + ".");
                     throw new NetworkException("timeout connecting to remote " + remoteAddress + ".");
                 }
 
             } catch (Throwable e) {
-                logger.info("[connect] error connecting to remote " + remoteAddress + ".", e);
-
                 throw new NetworkException("error connecting to remote " + remoteAddress + ".", e);
             } finally {
                 if (!isConnected()) {

@@ -97,10 +97,9 @@ public final class Constants {
 
     public static final String KEY_LOADBALANCE = "pigeon.loadbalance.defaulttype";
     public static final String KEY_RECONNECT_INTERVAL = "pigeon.reconnect.interval";
-    private static final String KEY_INVOKER_HEARTBEAT_ENABLE = "pigeon.invoker.heartbeat.enable";
+    public static final String KEY_INVOKER_HEARTBEAT_ENABLE = "pigeon.invoker.heartbeat.enable";
     public static final String KEY_HEARTBEAT_INTERVAL = "pigeon.heartbeat.interval";
     public static final String KEY_HEARTBEAT_TIMEOUT = "pigeon.heartbeat.timeout";
-    public static final String KEY_INVOKER_CHANNEL_DEADTHRESHOLD = "pigeon.heartbeat.channel.dead.threshold";
     public static final String KEY_HEARTBEAT_DEADTHRESHOLD = "pigeon.heartbeat.dead.threshold";
     public static final String KEY_HEARTBEAT_HEALTHTHRESHOLD = "pigeon.heartbeat.health.threshold";
     public static final String KEY_HEARTBEAT_AUTOPICKOFF = "pigeon.heartbeat.autopickoff";
@@ -113,11 +112,14 @@ public final class Constants {
     public static final String KEY_RESPONSE_MAXPOOLSIZE = "pigeon.response.pool.maxsize";
     public static final String KEY_RESPONSE_WORKQUEUESIZE = "pigeon.response.pool.queuesize";
     public static final String KEY_INVOKER_TIMEOUT = "pigeon.invoker.timeout";
-    public static final String KEY_WRITE_BUFFER_HIGH_WATER = "pigeon.channel.writebuff.high";
-    public static final String KEY_WRITE_BUFFER_LOW_WATER = "pigeon.channel.writebuff.low";
     public static final String KEY_DEFAULT_WRITE_BUFF_LIMIT = "pigeon.channel.writebuff.defaultlimit";
-    public static final String KEY_INVOKER_NETTY_BOSSCOUNT = "pigeon.invoker.netty.bosscount";
-    public static final String KEY_INVOKER_NETTY_WORKERCOUNT = "pigeon.invoker.netty.workercount";
+    public static final String KEY_NETTY_CONNECTTIMEOUT = "pigeon.netty.connecttimeout";
+    public static final String KEY_CHANNEL_WRITEBUFFHIGH = "pigeon.channel.writebuff.high";
+    public static final String KEY_CHANNEL_WRITEBUFFLOW = "pigeon.channel.writebuff.low";
+    public static final String KEY_INVOKER_NETTYBOSSCOUNT = "pigeon.invoker.netty.bosscount";
+    public static final String KEY_INVOKER_NETTYWORKERCOUNT = "pigeon.invoker.netty.workercount";
+
+
     public static final String KEY_CHANNEL_POOL_INITIAL_SIZE = "pigeon.channel.pool.initial.size";
     public static final String KEY_CHANNEL_POOL_NORMAL_SIZE = "pigeon.channel.pool.normal.size";
     public static final String KEY_CHANNEL_POOL_MAX_ACTIVE = "pigeon.channel.pool.max.active";
@@ -127,7 +129,6 @@ public final class Constants {
     public static final String KEY_NOTIFY_ENABLE = "pigeon.notify.enable";
     public static final String KEY_HEARTBEAT_ENABLE = "pigeon.heartbeat.enable";
     public static final String KEY_TEST_ENABLE = "pigeon.test.enable";
-    public static final String KEY_CONNECT_TIMEOUT = "pigeon.netty.connecttimeout";
     public static final String KEY_PROVIDER_HEARTBEAT_INTERNAL = "pigeon.provider.heartbeat.internal";
     public static final String KEY_REGIONPOLICY = "pigeon.regionpolicy.defaulttype";
 
@@ -139,19 +140,20 @@ public final class Constants {
     public static final int DEFAULT_RESPONSE_MAXPOOLSIZE = 100;
     public static final int DEFAULT_RESPONSE_WORKQUEUESIZE = 800;
     public static final boolean DEFAULT_INVOKER_HEARTBEAT_ENABLE = true;
-    public static final int DEFAULT_INVOKER_CHANNEL_DEADTHRESHOLD = 5;
     public static final int DEFAULT_RECONNECT_INTERVAL = 5000;
     public static final int DEFAULT_HEARTBEAT_INTERVAL = 3000;
 
     public static final int DEFAULT_HEARTBEAT_TIMEOUT = 3000;
     public static final int DEFAULT_HEARTBEAT_DEADTHRESHOLD = 5;
-    public static final int DEFAULT_HEARTBEAT_HEALTHCOUNT = 5;
+    public static final int DEFAULT_HEARTBEAT_HEALTHTHRESHOLD = 5;
     public static final boolean DEFAULT_HEARTBEAT_AUTOPICKOFF = true;
-    public static final int DEFAULT_WRITE_BUFFER_HIGH_WATER = 35 * 1024 * 1024;
-    public static final int DEFAULT_WRITE_BUFFER_LOW_WATER = 25 * 1024 * 1024;
+    public static final int DEFAULT_NETTY_CONNECTTIMEOUT = 2000;
+    public static final int DEFAULT_CHANNEL_WRITEBUFFHIGH = 35 * 1024 * 1024;
+    public static final int DEFAULT_CHANNEL_WRITEBUFFLOW = 25 * 1024 * 1024;
+    public static final int DEFAULT_INVOKER_NETTYBOSSCOUNT = 1;
+    public static final int DEFAULT_INVOKER_NETTYWORKERCOUNT = Runtime.getRuntime().availableProcessors() * 2;
     public static final boolean DEFAULT_WRITE_BUFF_LIMIT = false;
-    public static final int DEFAULT_INVOKER_NETTY_BOSSCOUNT = 1;
-    public static final int DEFAULT_INVOKER_NETTY_WORKERCOUNT = Runtime.getRuntime().availableProcessors() * 2;
+
     public static final int DEFAULT_CHANNEL_POOL_INITIAL_SIZE = 1;
     public static final int DEFAULT_CHANNEL_POOL_NORMAL_SIZE = 1;
     public static final int DEFAULT_CHANNEL_POOL_MAX_ACTIVE = 5;
@@ -160,7 +162,6 @@ public final class Constants {
     public static final String DEFAULT_PROCESS_TYPE = "threadpool";
     public static final boolean DEFAULT_NOTIFY_ENABLE = true;
     public static final boolean DEFAULT_TEST_ENABLE = true;
-    public static final int DEFAULT_CONNECT_TIMEOUT = 2000;
     public static final int DEFAULT_WEIGHT_STARTDELAY = 30000;
     public static final int DEFAULT_PROVIDER_HEARTBEAT_INTERNAL = 60000;
 
@@ -198,8 +199,8 @@ public final class Constants {
     public static final boolean LOG_PARAMETERS = ConfigManagerLoader.getConfigManager()
             .getBooleanValue(KEY_LOG_PARAMETER, false);
 
-    public static boolean REPLY_MANUAL = ConfigManagerLoader.getConfigManager()
-            .getBooleanValue(Key_REPLY_MANUAL, false);
+    public static boolean REPLY_MANUAL = ConfigManagerLoader.getConfigManager().getBooleanValue(Key_REPLY_MANUAL,
+            false);
 
     public static final boolean MONITOR_ENABLE = ConfigManagerLoader.getConfigManager()
             .getBooleanValue(KEY_MONITOR_ENABLE, true);
@@ -213,21 +214,6 @@ public final class Constants {
     public static final int PROVIDER_POOL_QUEUE_SIZE = ConfigManagerLoader.getConfigManager()
             .getIntValue(Constants.KEY_PROVIDER_WORKQUEUESIZE, Constants.DEFAULT_PROVIDER_WORKQUEUESIZE);
 
-    public static final int CONNECT_TIMEOUT = ConfigManagerLoader.getConfigManager().getIntValue(
-            KEY_CONNECT_TIMEOUT, DEFAULT_CONNECT_TIMEOUT);
-
-    public static final int INVOKER_NETTY_BOSSCOUNT = ConfigManagerLoader.getConfigManager().getIntValue(
-            KEY_INVOKER_NETTY_BOSSCOUNT, DEFAULT_INVOKER_NETTY_BOSSCOUNT);
-
-    public static final int INVOKER_NETTY_WORKERCOUNT = ConfigManagerLoader.getConfigManager().getIntValue(
-            KEY_INVOKER_NETTY_WORKERCOUNT, DEFAULT_INVOKER_NETTY_WORKERCOUNT);
-
-    public static final int WRITE_BUFFER_HIGH_WATER = ConfigManagerLoader.getConfigManager().getIntValue(
-            KEY_WRITE_BUFFER_HIGH_WATER, DEFAULT_WRITE_BUFFER_HIGH_WATER);
-
-    public static final int WRITE_BUFFER_LOW_WATER = ConfigManagerLoader.getConfigManager().getIntValue(
-            KEY_WRITE_BUFFER_LOW_WATER, DEFAULT_WRITE_BUFFER_LOW_WATER);
-
     public static final String KEY_SERVICE_SHARED = "pigeon.provider.service.shared";
     public static final boolean DEFAULT_SERVICE_SHARED = true;
 
@@ -236,57 +222,9 @@ public final class Constants {
     public static final String CONTEXT_KEY_SOURCE_IP = "SOURCE_IP";
     public static final String CONTEXT_KEY_SOURCE_APP = "SOURCE_APP";
 
-    public static final int getChannelPoolInitialSize() {
-        return ConfigManagerLoader.getConfigManager().getIntValue(
-                KEY_CHANNEL_POOL_INITIAL_SIZE, DEFAULT_CHANNEL_POOL_INITIAL_SIZE);
+    public static final boolean isSupportedNewProtocal() {
+        return ConfigManagerLoader.getConfigManager().getBooleanValue("pigeon.mns.host.support.new.protocol", true);
     }
-
-    public static final int getChannelPoolNormalSize() {
-        return ConfigManagerLoader.getConfigManager().getIntValue(
-                KEY_CHANNEL_POOL_NORMAL_SIZE, DEFAULT_CHANNEL_POOL_NORMAL_SIZE);
-    }
-
-    public static final int getChannelPoolMaxActive() {
-        return ConfigManagerLoader.getConfigManager().getIntValue(
-                KEY_CHANNEL_POOL_MAX_ACTIVE, DEFAULT_CHANNEL_POOL_MAX_ACTIVE);
-    }
-
-    public static final int getChannelPoolMaxWait() {
-        return ConfigManagerLoader.getConfigManager().getIntValue(
-                KEY_CHANNEL_POOL_MAX_WAIT, DEFAULT_CHANNEL_POOL_MAX_WAIT);
-    }
-
-    public static final int getChannelPoolTimeBetweenCheckerMillis() {
-        return ConfigManagerLoader.getConfigManager().getIntValue(
-                KEY_CHANNEL_POOL_TIME_BETWEEN_CHECKER_MILLIS, DEFAULT_CHANNEL_POOL_TIME_BETWEEN_CHECKER_MILLIS);
-    }
-
-
-    public static final boolean getInvokerHeartbeatEnable() {
-        return ConfigManagerLoader.getConfigManager().getBooleanValue(
-                KEY_INVOKER_HEARTBEAT_ENABLE, DEFAULT_INVOKER_HEARTBEAT_ENABLE);
-    }
-
-    public static final int getDefaultInvokerChannelDeadthreshold() {
-        return ConfigManagerLoader.getConfigManager().getIntValue(
-                KEY_INVOKER_CHANNEL_DEADTHRESHOLD, DEFAULT_INVOKER_CHANNEL_DEADTHRESHOLD);
-    }
-
-    public static final int getDefaultInvokerClientDeadthreshold() {
-        return ConfigManagerLoader.getConfigManager().getIntValue(
-                KEY_HEARTBEAT_DEADTHRESHOLD, DEFAULT_HEARTBEAT_DEADTHRESHOLD);
-    }
-
-    public static final int getInvokerHeartbeatTimeout() {
-        return ConfigManagerLoader.getConfigManager().getIntValue(
-                KEY_HEARTBEAT_TIMEOUT, DEFAULT_HEARTBEAT_TIMEOUT);
-    }
-
-    public static final int getInvokerHeartbeatInterval() {
-        return ConfigManagerLoader.getConfigManager().getIntValue(
-                KEY_HEARTBEAT_INTERVAL, DEFAULT_HEARTBEAT_INTERVAL);
-    }
-
 
     static {
         ConfigManagerLoader.getConfigManager().registerConfigChangeListener(new InnerConfigChangeListener());

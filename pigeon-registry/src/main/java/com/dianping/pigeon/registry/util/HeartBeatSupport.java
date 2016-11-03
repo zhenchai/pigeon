@@ -31,7 +31,7 @@ public enum HeartBeatSupport {
             case 3:
                 return BOTH;
             default:
-                return null;
+                return BOTH;
         }
     }
 }
