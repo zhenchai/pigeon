@@ -173,19 +173,8 @@ public class ServiceFactory {
 	 * @throws RpcException
 	 */
 	public static <T> void addService(ProviderConfig<T> providerConfig) throws RpcException {
-		if (StringUtils.isBlank(providerConfig.getUrl())) {
-			providerConfig.setUrl(getServiceUrl(providerConfig));
-		} else if (providerConfig.getUrl().contains("#")) {
-			throw new IllegalArgumentException("service name cannot contains '#' symbol: " + providerConfig.getUrl());
-		} else if (providerConfig.isSupported() && !getServiceUrl(providerConfig).equals(providerConfig.getUrl())) {
-			logger.warn("customized [serviceName] cannot provide service to OCTO invoker "
-					+ "unless set the [serviceName] to canonical name of the interface class "
-					+ "or just keep [serviceName] config to blank. more help refer to: "
-					+ ConfigManagerLoader.getConfigManager().getStringValue("pigeon.help.provider.octo.url"
-					, "http://wiki.sankuai.com/pages/viewpage.action?pageId=606809899"));
-		}
-
 		try {
+			checkServiceName(providerConfig);
 			ServicePublisher.addService(providerConfig);
 			ServerConfig serverConfig = ProviderBootStrap.startup(providerConfig);
 			providerConfig.setServerConfig(serverConfig);
@@ -208,20 +197,8 @@ public class ServiceFactory {
 			logger.info("add services:" + providerConfigList);
 		}
 		if (providerConfigList != null && !providerConfigList.isEmpty()) {
-			try {
-				for (ProviderConfig<?> providerConfig : providerConfigList) {
-					if (StringUtils.isBlank(providerConfig.getUrl())) {
-						providerConfig.setUrl(getServiceUrl(providerConfig));
-					}
-					ServicePublisher.addService(providerConfig);
-					ServerConfig serverConfig = ProviderBootStrap.startup(providerConfig);
-					providerConfig.setServerConfig(serverConfig);
-					ServicePublisher.publishService(providerConfig, false);
-				}
-			} catch (RegistryException t) {
-				throw new RpcException("error while adding services:" + providerConfigList, t);
-			} catch (Throwable t) {
-				throw new RpcException("error while adding services:" + providerConfigList, t);
+			for (ProviderConfig<?> providerConfig : providerConfigList) {
+				addService(providerConfig);
 			}
 		}
 	}
@@ -385,5 +362,19 @@ public class ServiceFactory {
 
 	public static boolean isAutoPublish() {
 		return ServicePublisher.isAutoPublish();
+	}
+
+	private static void checkServiceName(ProviderConfig providerConfig) {
+		if (StringUtils.isBlank(providerConfig.getUrl())) {
+			providerConfig.setUrl(getServiceUrl(providerConfig));
+		} else if (providerConfig.getUrl().contains("#")) {
+			throw new IllegalArgumentException("service name cannot contains '#' symbol: " + providerConfig.getUrl());
+		} else if (providerConfig.isSupported() && !getServiceUrl(providerConfig).equals(providerConfig.getUrl())) {
+			logger.warn("customized [serviceName] cannot provide service to OCTO invoker "
+					+ "unless set the [serviceName] to canonical name of the interface class "
+					+ "or just keep [serviceName] config to blank. more help refer to: "
+					+ ConfigManagerLoader.getConfigManager().getStringValue("pigeon.help.provider.octo.url"
+					, "http://wiki.sankuai.com/pages/viewpage.action?pageId=606809899"));
+		}
 	}
 }

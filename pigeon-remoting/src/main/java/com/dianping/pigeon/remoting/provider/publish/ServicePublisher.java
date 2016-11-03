@@ -111,6 +111,7 @@ public final class ServicePublisher {
 		publishService(providerConfig, true);
 	}
 
+	// atom
 	public static <T> void publishService(ProviderConfig<T> providerConfig, boolean forcePublish)
 			throws RegistryException {
 		String url = providerConfig.getUrl();
@@ -133,7 +134,7 @@ public final class ServicePublisher {
 				List<Server> servers = ProviderBootStrap.getServers(providerConfig);
 				int registerCount = 0;
 				for (Server server : servers) {
-					publishService(url, server.getRegistryUrl(url), server.getPort(), providerConfig.getServerConfig()
+					publishServiceToRegistry(url, server.getRegistryUrl(url), server.getPort(), providerConfig.getServerConfig()
 							.getGroup(), providerConfig.isSupported());
 					registerCount++;
 				}
@@ -189,7 +190,7 @@ public final class ServicePublisher {
 		}
 	}
 
-	private synchronized static <T> void publishService(String url, String registryUrl, int port, String group, boolean support)
+	private synchronized static <T> void publishServiceToRegistry(String url, String registryUrl, int port, String group, boolean support)
 			throws RegistryException {
 		String ip = configManager.getLocalIp();
 		if (!canRegister(ip)) {
