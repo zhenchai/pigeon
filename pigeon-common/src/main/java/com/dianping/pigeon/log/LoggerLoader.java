@@ -6,7 +6,6 @@ package com.dianping.pigeon.log;
 import java.util.zip.Deflater;
 
 import org.apache.logging.log4j.Level;
-import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.Appender;
 import org.apache.logging.log4j.core.Filter;
 import org.apache.logging.log4j.core.Filter.Result;
