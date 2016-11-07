@@ -152,7 +152,11 @@ public class HeartBeatListener extends Thread {
             @Override
             public void onKeyUpdated(String key, String value) {
                 if (Constants.KEY_PROVIDER_HEARTBEAT_INTERNAL.equals(key)) {
-                    REFRESH_INTERVAL = Integer.parseInt(value);
+                    try {
+                        REFRESH_INTERVAL = Integer.parseInt(value);
+                    } catch (NumberFormatException e) {
+                        logger.info("failed to change heartbeat refresh internal, please check value: ", value);
+                    }
                 }
             }
 
