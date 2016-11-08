@@ -215,11 +215,11 @@ public final class ServicePublisher {
 		if (!autoRegisterEnable) {
 			weight = 0;
 		}
-		boolean enableOnlineTask = ConfigManagerLoader.getConfigManager().getBooleanValue("pigeon.online.task.enable",
+		/*boolean enableOnlineTask = ConfigManagerLoader.getConfigManager().getBooleanValue("pigeon.online.task.enable",
 				true);
 		if (!enableOnlineTask) {
 			weight = Constants.WEIGHT_DEFAULT;
-		}
+		}*/
 		if (serverWeightCache.containsKey(serverAddress)) {
 			weight = -1;
 		}
