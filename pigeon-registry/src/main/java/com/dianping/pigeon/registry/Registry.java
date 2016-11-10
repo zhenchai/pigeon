@@ -1,19 +1,16 @@
 package com.dianping.pigeon.registry;
 
 import java.util.List;
-import java.util.Properties;
 
 import com.dianping.pigeon.registry.exception.RegistryException;
 
 public interface Registry {
 
-	void init(Properties properties);
+	void init();
 
 	boolean isEnable();
 
 	String getName();
-
-	String getValue(String key);
 
 	// for invoker
 	String getServiceAddress(String serviceName) throws RegistryException;
