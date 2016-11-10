@@ -1,5 +1,12 @@
 package com.dianping.pigeon.registry.composite;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.apache.commons.lang.StringUtils;
+
 import com.dianping.pigeon.config.ConfigChangeListener;
 import com.dianping.pigeon.config.ConfigManager;
 import com.dianping.pigeon.config.ConfigManagerLoader;
@@ -13,9 +20,6 @@ import com.dianping.pigeon.registry.util.HeartBeatSupport;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import org.apache.commons.lang.StringUtils;
-
-import java.util.*;
 
 /**
  * Created by chenchongze on 16/8/15.
@@ -23,8 +27,6 @@ import java.util.*;
 public class CompositeRegistry implements Registry {
 
 	private final Logger logger = LoggerLoader.getLogger(getClass());
-
-	private Properties properties;
 
 	private final ConfigManager configManager = ConfigManagerLoader.getConfigManager();
 
@@ -35,8 +37,7 @@ public class CompositeRegistry implements Registry {
 	private static final String KEY_PIGEON_REGISTRY_PREFER = "pigeon.registry.prefer";
 
 	@Override
-	public void init(Properties properties) {
-		this.properties = properties;
+	public void init() {
 		if (!inited) {
 			synchronized (this) {
 				if (!inited) {
@@ -91,7 +92,7 @@ public class CompositeRegistry implements Registry {
 		List<Registry> candidateRegistryList = Lists.newArrayList();
 
 		for (Registry registry : orderedRegistryList) {
-			registry.init(properties);
+			registry.init();
 
 			if (registry.isEnable()) {
 				candidateRegistryList.add(registry);
@@ -108,11 +109,6 @@ public class CompositeRegistry implements Registry {
 	@Override
 	public String getName() {
 		return Constants.REGISTRY_COMPOSITE_NAME;
-	}
-
-	@Override
-	public String getValue(String key) {
-		return properties.getProperty(key);
 	}
 
 	@Override
@@ -584,7 +580,7 @@ public class CompositeRegistry implements Registry {
 					parseRegistryConfig(value);
 
 					for (Registry registry : registryList) {
-						registry.init(properties);
+						registry.init();
 					}
 
 					logger.info("composite registry prefer change to " + value);
