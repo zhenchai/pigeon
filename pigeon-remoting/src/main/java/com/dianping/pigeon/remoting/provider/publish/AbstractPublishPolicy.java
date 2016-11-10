@@ -38,8 +38,8 @@ public class AbstractPublishPolicy implements PublishPolicy {
     private void checkServiceName(ProviderConfig providerConfig) {
         if (StringUtils.isBlank(providerConfig.getUrl())) {
             providerConfig.setUrl(ServiceFactory.getServiceUrl(providerConfig));
-        } else if (providerConfig.getUrl().contains("#")) {
-            throw new IllegalArgumentException("service name cannot contains '#' symbol: " + providerConfig.getUrl());
+        } else if (providerConfig.getUrl().contains("#") || providerConfig.getUrl().contains("^")) {
+            throw new IllegalArgumentException("service name cannot contains '#' or '^' symbol: " + providerConfig.getUrl());
         } else if (providerConfig.isSupported() && !ServiceFactory.getServiceUrl(providerConfig).equals(providerConfig.getUrl())) {
             logger.warn("customized [serviceName] cannot provide service to OCTO invoker "
                     + "unless set the [serviceName] to canonical name of the interface class "
