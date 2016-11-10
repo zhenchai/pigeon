@@ -17,10 +17,13 @@ import com.dianping.pigeon.remoting.common.domain.generic.UnifiedResponse;
 import com.dianping.pigeon.remoting.common.exception.BadRequestException;
 import com.dianping.pigeon.remoting.common.util.Constants;
 import com.dianping.pigeon.remoting.common.util.InvocationUtils;
+import com.dianping.pigeon.remoting.provider.config.ProviderConfig;
 import com.dianping.pigeon.remoting.provider.domain.ProviderContext;
 import com.dianping.pigeon.remoting.provider.process.ProviderExceptionTranslator;
+import com.dianping.pigeon.remoting.provider.publish.ServicePublisher;
 import com.dianping.pigeon.util.LangUtils;
 import com.dianping.pigeon.util.VersionUtils;
+import org.apache.commons.lang.StringUtils;
 
 public final class ProviderUtils {
 
@@ -178,7 +181,7 @@ public final class ProviderUtils {
 
     public static InvocationResponse createHeartResponse(InvocationRequest request) {
         if (request instanceof UnifiedRequest) {
-            return createHeartResponse0((UnifiedRequest)request);
+            return createHeartResponse0((UnifiedRequest) request);
         } else {
             return createHeartResponse0(request);
         }
@@ -222,6 +225,30 @@ public final class ProviderUtils {
         } else {
             throw new BadRequestException("invalid scanner heartbeat request");
         }
+    }
+
+    public static InvocationResponse createHealthCheckResponse(ProviderContext invocationContext) {
+        InvocationRequest request = invocationContext.getRequest();
+        InvocationResponse response = InvocationUtils.newResponse(Constants.MESSAGE_TYPE_HEALTHCHECK, request.getSerialize());
+        response.setSequence(request.getSequence());
+        Map<String, Object> info = new HashMap<String, Object>();
+        info.put("version", VersionUtils.VERSION);
+        info.put("group", configManager.getGroup());
+        info.put("env", configManager.getEnv());
+        //check service exists
+        info.put("serviceCheck", Boolean.FALSE);
+        String serviceName = request.getServiceName();
+        if (StringUtils.isNotBlank(serviceName)) {
+            Map<String, ProviderConfig<?>> serviceCache = ServicePublisher.getAllServiceProviders();
+            ProviderConfig providerConfig = serviceCache.get(serviceName);
+            if (providerConfig != null
+                    && invocationContext.getChannel().getPort() == providerConfig.getServerConfig().getActualPort()) {
+                info.put("serviceCheck", Boolean.TRUE);
+            }
+        }
+
+        response.setReturn(info);
+        return response;
     }
 
     public static InvocationResponse createHealthCheckResponse(InvocationRequest request) {
