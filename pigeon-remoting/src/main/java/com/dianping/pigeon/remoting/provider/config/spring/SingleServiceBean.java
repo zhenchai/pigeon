@@ -23,7 +23,7 @@ import com.dianping.pigeon.remoting.provider.config.ProviderMethodConfig;
 import com.dianping.pigeon.util.ClassUtils;
 import com.dianping.pigeon.util.CollectionUtils;
 
-public class SingleServiceBean {
+public class SingleServiceBean extends ServiceInitializeListener {
 
 	private static final Logger logger = LoggerLoader.getLogger(SingleServiceBean.class);
 
