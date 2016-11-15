@@ -28,6 +28,7 @@ import com.dianping.pigeon.remoting.provider.service.method.ServiceMethod;
 import com.dianping.pigeon.remoting.provider.service.method.ServiceMethodFactory;
 import com.dianping.pigeon.remoting.provider.util.ProviderHelper;
 import com.dianping.pigeon.remoting.provider.util.ProviderUtils;
+import com.dianping.pigeon.util.TimeUtils;
 
 public class BusinessProcessFilter implements ServiceInvocationFilter<ProviderContext> {
 
@@ -72,7 +73,7 @@ public class BusinessProcessFilter implements ServiceInvocationFilter<ProviderCo
 			if (Constants.REPLY_MANUAL) {
 				ProviderHelper.setContext(invocationContext);
 			}
-			invocationContext.getTimeline().add(new TimePoint(TimePhase.M, System.currentTimeMillis()));
+			invocationContext.getTimeline().add(new TimePoint(TimePhase.M, TimeUtils.currentTimeMillis()));
 			Object returnObj = null;
 			try {
 				returnObj = method.invoke(request.getParameters());
@@ -80,7 +81,7 @@ public class BusinessProcessFilter implements ServiceInvocationFilter<ProviderCo
 				ProviderHelper.clearContext();
 			}
 
-			invocationContext.getTimeline().add(new TimePoint(TimePhase.M, System.currentTimeMillis()));
+			invocationContext.getTimeline().add(new TimePoint(TimePhase.M, TimeUtils.currentTimeMillis()));
 			if (request.getCallType() == Constants.CALLTYPE_REPLY) {
 				response = ProviderUtils.createSuccessResponse(request, returnObj);
 			}

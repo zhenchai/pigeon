@@ -8,7 +8,6 @@ import java.io.Serializable;
 import java.util.Calendar;
 import java.util.Map;
 
-import com.dianping.pigeon.remoting.common.codec.SerializerFactory;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.util.CollectionUtils;
 
@@ -19,6 +18,7 @@ import com.dianping.pigeon.log.LoggerLoader;
 import com.dianping.pigeon.monitor.Monitor;
 import com.dianping.pigeon.monitor.MonitorLoader;
 import com.dianping.pigeon.monitor.MonitorTransaction;
+import com.dianping.pigeon.remoting.common.codec.SerializerFactory;
 import com.dianping.pigeon.remoting.common.domain.InvocationContext.TimePhase;
 import com.dianping.pigeon.remoting.common.domain.InvocationContext.TimePoint;
 import com.dianping.pigeon.remoting.common.domain.InvocationRequest;
@@ -34,6 +34,7 @@ import com.dianping.pigeon.remoting.provider.domain.ProviderContext;
 import com.dianping.pigeon.remoting.provider.process.ProviderContextProcessor;
 import com.dianping.pigeon.remoting.provider.service.method.ServiceMethod;
 import com.dianping.pigeon.remoting.provider.service.method.ServiceMethodFactory;
+import com.dianping.pigeon.util.TimeUtils;
 
 public class MonitorProcessFilter implements ServiceInvocationFilter<ProviderContext> {
 
@@ -170,7 +171,7 @@ public class MonitorProcessFilter implements ServiceInvocationFilter<ProviderCon
                 transaction.setStatusError(frameworkError);
             }
             if (transaction != null) {
-                invocationContext.getTimeline().add(new TimePoint(TimePhase.E, System.currentTimeMillis()));
+                invocationContext.getTimeline().add(new TimePoint(TimePhase.E, TimeUtils.currentTimeMillis()));
                 try {
                     transaction.complete();
                     if (isAccessLogEnabled) {

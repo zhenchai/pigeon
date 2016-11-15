@@ -1,21 +1,21 @@
 package com.dianping.pigeon.remoting.provider.listener;
 
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
+
 import com.dianping.pigeon.config.ConfigChangeListener;
 import com.dianping.pigeon.config.ConfigManager;
 import com.dianping.pigeon.config.ConfigManagerLoader;
+import com.dianping.pigeon.log.Logger;
 import com.dianping.pigeon.log.LoggerLoader;
 import com.dianping.pigeon.monitor.Monitor;
 import com.dianping.pigeon.monitor.MonitorLoader;
 import com.dianping.pigeon.registry.RegistryManager;
 import com.dianping.pigeon.remoting.common.util.Constants;
-import com.dianping.pigeon.remoting.provider.ProviderBootStrap;
 import com.dianping.pigeon.remoting.provider.config.ProviderConfig;
-import com.dianping.pigeon.log.Logger;
-
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
+import com.dianping.pigeon.util.TimeUtils;
 
 /**
  * Created by chenchongze on 15/12/4.
@@ -104,13 +104,13 @@ public class HeartBeatListener extends Thread {
     public void run() {
         try {
             while (this.equals(heartBeatListener) && isSendHeartBeat) {
-                Long heartbeat = System.currentTimeMillis();
+                Long heartbeat = TimeUtils.currentTimeMillis();
                 // 写心跳
                 if(serviceHeartBeatCache.size() > 0) {
                     registryManager.updateHeartBeat(serviceAddress, heartbeat);
                 }
 
-                Long internal = REFRESH_INTERVAL - System.currentTimeMillis() + heartbeat;
+                Long internal = REFRESH_INTERVAL - TimeUtils.currentTimeMillis() + heartbeat;
                 if(internal > 0) {
                     Thread.sleep(internal);
                 }

@@ -13,7 +13,6 @@ import com.dianping.pigeon.monitor.MonitorLoader;
 import com.dianping.pigeon.monitor.MonitorTransaction;
 import com.dianping.pigeon.registry.RegistryManager;
 import com.dianping.pigeon.remoting.common.codec.SerializerFactory;
-import com.dianping.pigeon.remoting.common.domain.InvocationContext;
 import com.dianping.pigeon.remoting.common.domain.InvocationContext.TimePhase;
 import com.dianping.pigeon.remoting.common.domain.InvocationContext.TimePoint;
 import com.dianping.pigeon.remoting.common.domain.InvocationRequest;
@@ -26,6 +25,7 @@ import com.dianping.pigeon.remoting.invoker.Client;
 import com.dianping.pigeon.remoting.invoker.config.InvokerConfig;
 import com.dianping.pigeon.remoting.invoker.domain.InvokerContext;
 import com.dianping.pigeon.remoting.invoker.process.ExceptionManager;
+import com.dianping.pigeon.util.TimeUtils;
 
 public class RemoteCallMonitorInvokeFilter extends InvocationInvokeFilter {
 
@@ -132,7 +132,7 @@ public class RemoteCallMonitorInvokeFilter extends InvocationInvokeFilter {
 						}
 						monitorProtocal(invocationContext, _request, targetApp);
 					}
-					invocationContext.getTimeline().add(new TimePoint(TimePhase.E, System.currentTimeMillis()));
+					invocationContext.getTimeline().add(new TimePoint(TimePhase.E, TimeUtils.currentTimeMillis()));
 					transaction.complete();
 				} catch (Throwable e) {
 					monitor.logMonitorError(e);

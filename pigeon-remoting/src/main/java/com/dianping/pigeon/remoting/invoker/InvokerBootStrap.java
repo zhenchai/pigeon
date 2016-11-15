@@ -14,6 +14,7 @@ import com.dianping.pigeon.remoting.invoker.process.ResponseProcessorFactory;
 import com.dianping.pigeon.remoting.invoker.route.balance.LoadBalanceManager;
 import com.dianping.pigeon.remoting.invoker.route.region.RegionPolicyManager;
 import com.dianping.pigeon.remoting.invoker.service.ServiceInvocationRepository;
+import com.dianping.pigeon.util.TimeUtils;
 import com.dianping.pigeon.util.VersionUtils;
 
 public final class InvokerBootStrap {
@@ -34,6 +35,7 @@ public final class InvokerBootStrap {
 					InvokerProcessHandlerFactory.init();
 					SerializerFactory.init();
 					LoadBalanceManager.init();
+					TimeUtils.currentTimeMillis();
 					RegionPolicyManager.INSTANCE.init();
 					Monitor monitor = MonitorLoader.getMonitor();
 					if (monitor != null) {

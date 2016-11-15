@@ -11,7 +11,6 @@ import java.util.concurrent.TimeoutException;
 
 import com.dianping.pigeon.log.Logger;
 import com.dianping.pigeon.log.LoggerLoader;
-import com.dianping.pigeon.monitor.MonitorTransaction;
 import com.dianping.pigeon.remoting.common.domain.InvocationContext.TimePhase;
 import com.dianping.pigeon.remoting.common.domain.InvocationContext.TimePoint;
 import com.dianping.pigeon.remoting.common.domain.InvocationResponse;
@@ -26,6 +25,7 @@ import com.dianping.pigeon.remoting.invoker.exception.RequestTimeoutException;
 import com.dianping.pigeon.remoting.invoker.process.DegradationManager;
 import com.dianping.pigeon.remoting.invoker.process.ExceptionManager;
 import com.dianping.pigeon.remoting.invoker.process.filter.DegradationFilter;
+import com.dianping.pigeon.util.TimeUtils;
 
 public class ServiceFutureImpl extends CallbackFuture implements Future {
 
@@ -66,7 +66,7 @@ public class ServiceFutureImpl extends CallbackFuture implements Future {
 					"");
 			transaction.logEvent("PigeonCall.timeout", timeoutMillis + "",
 					invocationContext.getInvokerConfig().getTimeout() + "");
-			invocationContext.getTimeline().add(new TimePoint(TimePhase.F, System.currentTimeMillis()));
+			invocationContext.getTimeline().add(new TimePoint(TimePhase.F, TimeUtils.currentTimeMillis()));
 		}
 		try {
 			try {
@@ -77,7 +77,7 @@ public class ServiceFutureImpl extends CallbackFuture implements Future {
 						transaction.logEvent("PigeonCall.responseSize", size, "" + response.getSize());
 					}
 					invocationContext.getTimeline().add(new TimePoint(TimePhase.R, response.getCreateMillisTime()));
-					invocationContext.getTimeline().add(new TimePoint(TimePhase.F, System.currentTimeMillis()));
+					invocationContext.getTimeline().add(new TimePoint(TimePhase.F, TimeUtils.currentTimeMillis()));
 				}
 			} catch (RuntimeException e) {
 				// failure degrade condition
@@ -145,7 +145,7 @@ public class ServiceFutureImpl extends CallbackFuture implements Future {
 			throw e;
 		} finally {
 			if (transaction != null) {
-				invocationContext.getTimeline().add(new TimePoint(TimePhase.E, System.currentTimeMillis()));
+				invocationContext.getTimeline().add(new TimePoint(TimePhase.E, TimeUtils.currentTimeMillis()));
 				try {
 					transaction.complete();
 				} catch (RuntimeException e) {

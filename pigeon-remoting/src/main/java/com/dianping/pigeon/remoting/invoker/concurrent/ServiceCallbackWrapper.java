@@ -29,6 +29,7 @@ import com.dianping.pigeon.remoting.invoker.domain.InvokerContext;
 import com.dianping.pigeon.remoting.invoker.process.DegradationManager;
 import com.dianping.pigeon.remoting.invoker.process.ExceptionManager;
 import com.dianping.pigeon.remoting.invoker.process.filter.DegradationFilter;
+import com.dianping.pigeon.util.TimeUtils;
 
 public class ServiceCallbackWrapper implements Callback {
 
@@ -55,7 +56,7 @@ public class ServiceCallbackWrapper implements Callback {
 	public void run() {
 		InvokerConfig<?> invokerConfig = invocationContext.getInvokerConfig();
 		MonitorTransaction transaction = null;
-		long currentTime = System.currentTimeMillis();
+		long currentTime = TimeUtils.currentTimeMillis();
 		String addr = null;
 		if (client != null) {
 			addr = client.getAddress();
@@ -140,7 +141,7 @@ public class ServiceCallbackWrapper implements Callback {
 
 	private void completeTransaction(MonitorTransaction transaction) {
 		if (transaction != null) {
-			invocationContext.getTimeline().add(new TimePoint(TimePhase.E, System.currentTimeMillis()));
+			invocationContext.getTimeline().add(new TimePoint(TimePhase.E, TimeUtils.currentTimeMillis()));
 			try {
 				transaction.complete();
 			} catch (Throwable e) {

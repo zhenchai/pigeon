@@ -1,24 +1,25 @@
 package com.dianping.pigeon.remoting.invoker.client;
 
+import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
+
 import com.dianping.pigeon.log.Logger;
 import com.dianping.pigeon.log.LoggerLoader;
 import com.dianping.pigeon.monitor.Monitor;
 import com.dianping.pigeon.monitor.MonitorLoader;
 import com.dianping.pigeon.registry.RegistryManager;
 import com.dianping.pigeon.registry.util.HeartBeatSupport;
+import com.dianping.pigeon.remoting.common.channel.Channel;
 import com.dianping.pigeon.remoting.common.codec.SerializerFactory;
 import com.dianping.pigeon.remoting.common.domain.InvocationRequest;
 import com.dianping.pigeon.remoting.common.domain.InvocationResponse;
-import com.dianping.pigeon.remoting.common.channel.Channel;
 import com.dianping.pigeon.remoting.common.domain.generic.GenericRequest;
 import com.dianping.pigeon.remoting.common.util.Constants;
 import com.dianping.pigeon.remoting.common.util.InvocationUtils;
 import com.dianping.pigeon.remoting.invoker.Client;
 import com.dianping.pigeon.remoting.invoker.concurrent.CallbackFuture;
 import com.dianping.pigeon.remoting.invoker.util.InvokerUtils;
-
-import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
+import com.dianping.pigeon.util.TimeUtils;
 
 /**
  * @author qi.yin
@@ -171,7 +172,7 @@ public class HeartbeatTask implements Runnable {
         InvocationRequest request = InvocationUtils.newRequest(Constants.HEART_TASK_SERVICE + address, Constants.HEART_TASK_METHOD,
                 null, SerializerFactory.SERIALIZE_HESSIAN, Constants.MESSAGE_TYPE_HEART, clientConfig.getHeartbeatTimeout(), null);
         request.setSequence(generateHeartSeq());
-        request.setCreateMillisTime(System.currentTimeMillis());
+        request.setCreateMillisTime(TimeUtils.currentTimeMillis());
         request.setCallType(Constants.CALLTYPE_REPLY);
         return request;
     }
@@ -180,7 +181,7 @@ public class HeartbeatTask implements Runnable {
         InvocationRequest request = new GenericRequest(Constants.HEART_TASK_SERVICE + address, Constants.HEART_TASK_METHOD,
                 null, SerializerFactory.SERIALIZE_THRIFT, Constants.MESSAGE_TYPE_HEART, clientConfig.getHeartbeatTimeout());
         request.setSequence(generateHeartSeq());
-        request.setCreateMillisTime(System.currentTimeMillis());
+        request.setCreateMillisTime(TimeUtils.currentTimeMillis());
         request.setCallType(Constants.CALLTYPE_REPLY);
         return request;
     }
