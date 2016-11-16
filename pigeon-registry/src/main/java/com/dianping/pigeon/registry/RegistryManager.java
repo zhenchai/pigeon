@@ -140,7 +140,7 @@ public class RegistryManager {
 			if (addr == null) {
 				try {
 					addr = configManager.getLocalStringValue(serviceKey);
-				} catch (Throwable e) {
+				} catch (Throwable t) {
 				}
 			}
 			if (!StringUtils.isBlank(addr)) {
@@ -168,7 +168,7 @@ public class RegistryManager {
 			if (addr == null) {
 				try {
 					addr = configManager.getLocalStringValue(serviceKey);
-				} catch (Throwable e) {
+				} catch (Throwable t) {
 				}
 			}
 			if (!StringUtils.isBlank(addr)) {
@@ -222,8 +222,8 @@ public class RegistryManager {
 				if (hostInfo != null) {
 					hostInfo.setWeight(weight);
 				}
-			} catch (Throwable e) {
-				logger.error("failed to get weight for " + serverAddress, e);
+			} catch (Throwable t) {
+				logger.error("failed to get weight for " + serverAddress, t);
 			}
 		}
 
@@ -238,7 +238,7 @@ public class RegistryManager {
 	/**
 	 * For invoker to update service weight in local cache. Will not update to
 	 * registry center.
-	 * 
+	 *
 	 * @param serviceAddress
 	 * @param weight
 	 */
@@ -320,7 +320,7 @@ public class RegistryManager {
 		try {
 			support = isSupportNewProtocol(serviceAddress, serviceName, false);
 		} catch (RegistryException e) {
-			logger.error(e.getMessage(), e);
+			logger.info(e.getMessage(), e);
 		}
 		protocolInfoMap.put(serviceName, support);
 
@@ -596,8 +596,8 @@ public class RegistryManager {
 
 		try {
 			support = registry.isSupportNewProtocol(serviceAddress);
-		} catch (Throwable e) {
-			logger.error("failed to get protocol for " + serviceAddress, e);
+		} catch (Throwable t) {
+			logger.info("failed to get protocol for " + serviceAddress, t.getMessage());
 		}
 
 		return support;
@@ -625,8 +625,9 @@ public class RegistryManager {
 			if (protocolInfoMap != null) {
 				protocolInfoMap.put(serviceName, support);
 			}
-		} catch (Throwable e) {
-			logger.error("failed to get protocol for " + serviceAddress + "#" + serviceName, e);
+		} catch (Throwable t) {
+			logger.info("failed to get protocol for " + serviceAddress + "#" + serviceName);
+            throw new RegistryException(t);
 		}
 
 		return support;
@@ -662,8 +663,8 @@ public class RegistryManager {
 		try {
 			support = registry.isSupportNewProtocol(serverAddress, serviceName);
 			setReferencedProtocol(serverAddress, serviceName, support);
-		} catch (Throwable e) {
-			logger.error("failed to get protocol for " + serverAddress + "#" + serviceName, e);
+		} catch (Throwable t) {
+			logger.info("failed to get protocol for " + serverAddress + "#" + serviceName, t.getMessage());
 		}
 
 		return support;
@@ -678,7 +679,7 @@ public class RegistryManager {
 
 	/**
 	 * for governor: manual update service and set weight to 1
-	 * 
+	 *
 	 * @param serviceName
 	 * @param group
 	 * @param hosts
@@ -702,7 +703,7 @@ public class RegistryManager {
 
 	/**
 	 * for governor: manual delete service
-	 * 
+	 *
 	 * @param serviceName
 	 * @param group
 	 * @throws RegistryException
@@ -717,7 +718,7 @@ public class RegistryManager {
 
 	/**
 	 * for governor: getServiceHosts from zk
-	 * 
+	 *
 	 * @param serviceName
 	 * @param group
 	 * @return
@@ -728,10 +729,10 @@ public class RegistryManager {
 
 		try {
 			addr = registry.getServiceAddress(serviceName, group, false, false);
-		} catch (Throwable e) {
-			logger.error("failed to get service hosts for " + serviceName + "#" + group + ", msg: " + e.getMessage());
+		} catch (Throwable t) {
+			logger.info("failed to get service hosts for " + serviceName + "#" + group + ", msg: " + t.getMessage());
 
-			throw new RegistryException(e);
+			throw new RegistryException(t);
 		}
 
 		return addr;
