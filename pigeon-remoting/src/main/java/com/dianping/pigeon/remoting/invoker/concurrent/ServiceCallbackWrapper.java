@@ -89,17 +89,20 @@ public class ServiceCallbackWrapper implements Callback {
 				msg.append("request callback timeout:").append(request);
 				Exception e = InvocationUtils.newTimeoutException(msg.toString());
 				e.setStackTrace(new StackTraceElement[] {});
+				InvocationResponse degradedResponse = null;
 				if (DegradationManager.INSTANCE.needFailureDegrade(invocationContext)) {
 					try {
-						DegradationFilter.degradeCall(invocationContext);
+						degradedResponse = DegradationFilter.degradeCall(invocationContext);
 					} catch (Throwable t) {
 						logger.warn("failure degrade in callback call type error: " + t.toString());
 					}
 				}
-				DegradationManager.INSTANCE.addFailedRequest(invocationContext, e);
-				ExceptionManager.INSTANCE.logRpcException(addr, invocationContext.getInvokerConfig().getUrl(),
-						invocationContext.getMethodName(), "request callback timeout", e, request, response,
-						transaction);
+				if (degradedResponse == null) {
+					DegradationManager.INSTANCE.addFailedRequest(invocationContext, e);
+					ExceptionManager.INSTANCE.logRpcException(addr, invocationContext.getInvokerConfig().getUrl(),
+							invocationContext.getMethodName(), "request callback timeout", e, request, response,
+							transaction);
+				}
 			}
 		} finally {
 			try {
@@ -110,17 +113,21 @@ public class ServiceCallbackWrapper implements Callback {
 					RpcException e = ExceptionManager.INSTANCE.logRemoteCallException(addr,
 							invocationContext.getInvokerConfig().getUrl(), invocationContext.getMethodName(),
 							"remote call error with callback", request, response, transaction);
+					InvocationResponse degradedResponse = null;
 					if (DegradationManager.INSTANCE.needFailureDegrade(invocationContext)) {
 						try {
-							DegradationFilter.degradeCall(invocationContext);
+							degradedResponse = DegradationFilter.degradeCall(invocationContext);
 						} catch (Throwable t) {
 							logger.warn("failure degrade in callback call type error: " + t.toString());
 						}
 					}
-					DegradationManager.INSTANCE.addFailedRequest(invocationContext, e);
+					if (degradedResponse == null) {
+						DegradationManager.INSTANCE.addFailedRequest(invocationContext, e);
+					}
 					completeTransaction(transaction);
-
-					this.callback.onFailure(e);
+					if (degradedResponse == null) {
+						this.callback.onFailure(e);
+					}
 				} else if (response.getMessageType() == Constants.MESSAGE_TYPE_SERVICE_EXCEPTION) {
 					Exception e = ExceptionManager.INSTANCE
 							.logRemoteServiceException("remote service biz error with callback", request, response);

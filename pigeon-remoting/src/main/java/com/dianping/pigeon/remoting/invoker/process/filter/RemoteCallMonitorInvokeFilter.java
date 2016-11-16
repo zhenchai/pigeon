@@ -98,27 +98,32 @@ public class RemoteCallMonitorInvokeFilter extends InvocationInvokeFilter {
 			}
 			return response;
 		} catch (Throwable e) {
-			Client client = invocationContext.getClient();
-			String remoteAddress = null;
-			if (client != null) {
-				remoteAddress = client.getAddress();
-				targetApp = RegistryManager.getInstance().getReferencedAppFromCache(remoteAddress);
-				transaction.logEvent("PigeonCall.app", targetApp, "");
-				String parameters = "";
-				if (Constants.LOG_PARAMETERS) {
-					parameters = InvocationUtils.toJsonString(request.getParameters(), 1000, 50);
+			if (transaction != null) {
+				if (invocationContext.isDegraded()) {
+					transaction.logEvent("PigeonCall.degrade", callInterface, "");
 				}
-				transaction.logEvent("PigeonCall.server", client.getAddress(), parameters);
-			}
-			if (request != null) {
-				String reqSize = SizeMonitor.getInstance().getLogSize(request.getSize());
-				if (reqSize != null) {
-					monitor.logEvent("PigeonCall.requestSize", reqSize, "" + request.getSize());
+				Client client = invocationContext.getClient();
+				String remoteAddress = null;
+				if (client != null) {
+					remoteAddress = client.getAddress();
+					targetApp = RegistryManager.getInstance().getReferencedAppFromCache(remoteAddress);
+					transaction.logEvent("PigeonCall.app", targetApp, "");
+					String parameters = "";
+					if (Constants.LOG_PARAMETERS) {
+						parameters = InvocationUtils.toJsonString(request.getParameters(), 1000, 50);
+					}
+					transaction.logEvent("PigeonCall.server", client.getAddress(), parameters);
 				}
-			}
+				if (request != null) {
+					String reqSize = SizeMonitor.getInstance().getLogSize(request.getSize());
+					if (reqSize != null) {
+						monitor.logEvent("PigeonCall.requestSize", reqSize, "" + request.getSize());
+					}
+				}
 
-			ExceptionManager.INSTANCE.logRpcException(remoteAddress, invokerConfig.getUrl(),
-					invocationContext.getMethodName(), "", e, request, null, transaction);
+				ExceptionManager.INSTANCE.logRpcException(remoteAddress, invokerConfig.getUrl(),
+						invocationContext.getMethodName(), "", e, request, null, transaction);
+			}
 			throw e;
 		} finally {
 
