@@ -40,6 +40,7 @@
 				<xsd:documentation><![CDATA[ Call type: sync/callback/future/oneway. ]]></xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
+		<xsd:attribute name="pool" type="xsd:string" use="optional" />
 	</xsd:complexType>
 
 	<xsd:element name="reference">
@@ -90,6 +91,7 @@
 						use="required" />
 					<xsd:attribute name="ref" type="xsd:string" use="required" />
 					<xsd:attribute name="server" type="xsd:string" />
+					<xsd:attribute name="pool" type="xsd:string" />
 					<xsd:attribute name="port" type="xsd:string" default="4040" />
 					<xsd:attribute name="version" type="xsd:string" />
 					<xsd:attribute name="cancelTimeout" type="xsd:string"
@@ -120,6 +122,18 @@
 						default="300" />
 				</xsd:extension>
 			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="pool">
+		<xsd:complexType>
+			<xsd:attribute name="id" type="xsd:ID" use="required" />
+			<xsd:attribute name="corePoolSize" type="xsd:string"
+						   use="required" />
+			<xsd:attribute name="maxPoolSize" type="xsd:string"
+						   use="required" />
+			<xsd:attribute name="workQueueSize" type="xsd:string"
+						   use="required" />
 		</xsd:complexType>
 	</xsd:element>
 

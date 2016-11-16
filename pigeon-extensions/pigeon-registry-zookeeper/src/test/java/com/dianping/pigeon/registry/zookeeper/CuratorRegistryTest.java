@@ -5,7 +5,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -14,6 +13,7 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.dianping.pigeon.config.ConfigManagerLoader;
 import com.dianping.pigeon.extension.ExtensionLoader;
 import com.dianping.pigeon.registry.Registry;
 import com.dianping.pigeon.registry.exception.RegistryException;
@@ -23,14 +23,12 @@ import com.dianping.pigeon.registry.util.Constants;
 public class CuratorRegistryTest {
 
 	private static TestingServer server = null;
-	private static Properties properties = null;
 
 	@BeforeClass
 	public static void startTestServer() throws Exception {
 		server = new TestingServer();
-		properties = new Properties();
-		properties.put(Constants.KEY_REGISTRY_ADDRESS, server.getConnectString());
-		System.out.println(properties);
+		ConfigManagerLoader.getConfigManager().setLocalStringValue(Constants.KEY_REGISTRY_ADDRESS,
+				server.getConnectString());
 	}
 
 	@AfterClass
@@ -44,14 +42,14 @@ public class CuratorRegistryTest {
 	@Test
 	public void testGetName() {
 		Registry registry = ExtensionLoader.getExtension(Registry.class);
-		registry.init(properties);
+		registry.init();
 		assertEquals(registry.getName(), "curator");
 	}
 
 	@Test
 	public void testRegisterService() throws Exception {
 		Registry registry = ExtensionLoader.getExtension(Registry.class);
-		registry.init(properties);
+		registry.init();
 		registry.registerService("srv_a", "group_a", "1.1.1.1:1234", 5);
 		assertEquals(registry.getServiceAddress("srv_a", "group_a"), "1.1.1.1:1234");
 		assertEquals(registry.getServerWeight("1.1.1.1:1234"), 5);
@@ -61,7 +59,7 @@ public class CuratorRegistryTest {
 	@Test
 	public void testRegisterService2() throws Exception {
 		CuratorRegistry registry = new CuratorRegistry();
-		registry.init(properties);
+		registry.init();
 		registry.registerPersistentNode("srv_a", "group_a", "1.1.1.1:1234", 5);
 		registry.registerPersistentNode("srv_a", "group_a", "1.1.1.2:1234", 5);
 		registry.registerPersistentNode("srv_a", "group_a", "1.1.1.3:1234", 5);
@@ -78,7 +76,7 @@ public class CuratorRegistryTest {
 	@Test
 	public void testUnregisterServiceStringString() throws Exception {
 		Registry registry = ExtensionLoader.getExtension(Registry.class);
-		registry.init(properties);
+		registry.init();
 		registry.registerService("srv_a", "group_a", "1.1.1.1:1234", 5);
 		registry.unregisterService("srv_a", "group_a", "1.1.1.1:1234");
 		assertEquals(registry.getServiceAddress("srv_a", "group_a"), "");
@@ -93,7 +91,7 @@ public class CuratorRegistryTest {
 	@Test
 	public void testSetServerWeight() throws Exception {
 		Registry registry = ExtensionLoader.getExtension(Registry.class);
-		registry.init(properties);
+		registry.init();
 		registry.registerService("srv_a", "group_a", "1.1.1.1:1234", 5);
 		assertEquals(registry.getServerWeight("1.1.1.1:1234"), 5);
 		registry.setServerWeight("1.1.1.1:1234", 7);
@@ -103,7 +101,7 @@ public class CuratorRegistryTest {
 	@Test
 	public void testGetChildren() throws Exception {
 		Registry registry = ExtensionLoader.getExtension(Registry.class);
-		registry.init(properties);
+		registry.init();
 		registry.registerService("srv_a", "group_a", "1.1.1.1:1234", 5);
 		registry.registerService("srv_a", "group_a", "1.1.1.2:1234", 6);
 		registry.registerService("srv_a", "group_a", "1.1.1.3:1234", 7);
@@ -114,7 +112,7 @@ public class CuratorRegistryTest {
 	@Test
 	public void testWatch() throws Exception {
 		CuratorRegistry registry = new CuratorRegistry();
-		registry.init(properties);
+		registry.init();
 		CuratorClient client = registry.getCuratorClient();
 		client.watch("/DP/SERVER/a");
 		client.watchChildren("/DP/SERVICE/a");
@@ -136,12 +134,12 @@ public class CuratorRegistryTest {
 	@Test
 	public void integrateTest() throws Exception {
 		CuratorRegistry registry = new CuratorRegistry();
-		registry.init(properties);
-		Process oldProcess1 = new Process(properties, false);
-		Process oldProcess2 = new Process(properties, false);
-		Process newProcess1 = new Process(properties, true);
-		Process newProcess2 = new Process(properties, true);
-		Process newProcess3 = new Process(properties, true);
+		registry.init();
+		Process oldProcess1 = new Process(false);
+		Process oldProcess2 = new Process(false);
+		Process newProcess1 = new Process(true);
+		Process newProcess2 = new Process(true);
+		Process newProcess3 = new Process(true);
 
 		oldProcess1.register();
 		oldProcess2.register();
@@ -186,12 +184,12 @@ public class CuratorRegistryTest {
 		volatile boolean isExit = false;
 		int port = 0;
 
-		public Process(Properties properties, boolean isEphemeral) {
+		public Process(boolean isEphemeral) {
 			this.isEphemeral = isEphemeral;
 			this.port = seq.getAndIncrement();
 			this.serverAddress = ip + ":" + port;
 			registry = new CuratorRegistry();
-			registry.init(properties);
+			registry.init();
 			setDaemon(true);
 			start();
 		}

@@ -35,6 +35,7 @@ import com.dianping.pigeon.remoting.invoker.Client;
 import com.dianping.pigeon.remoting.invoker.config.InvokerConfig;
 import com.dianping.pigeon.remoting.invoker.domain.InvokerContext;
 import com.dianping.pigeon.remoting.invoker.process.InvokerContextProcessor;
+import com.dianping.pigeon.util.TimeUtils;
 import com.dianping.pigeon.util.VersionUtils;
 
 public class ContextPrepareInvokeFilter extends InvocationInvokeFilter {
@@ -95,7 +96,7 @@ public class ContextPrepareInvokeFilter extends InvocationInvokeFilter {
         checkSerialize(invokerContext);
         request = invokerContext.getRequest();
         request.setSequence(requestSequenceMaker.incrementAndGet() * -1);
-        request.setCreateMillisTime(System.currentTimeMillis());
+        request.setCreateMillisTime(TimeUtils.currentTimeMillis());
         request.setMessageType(Constants.MESSAGE_TYPE_SERVICE);
 
         InvokerConfig<?> invokerConfig = invokerContext.getInvokerConfig();

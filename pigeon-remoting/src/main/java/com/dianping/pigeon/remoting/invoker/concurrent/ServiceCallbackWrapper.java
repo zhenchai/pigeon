@@ -30,9 +30,9 @@ import com.dianping.pigeon.remoting.invoker.domain.InvokerContext;
 import com.dianping.pigeon.remoting.invoker.process.DegradationManager;
 import com.dianping.pigeon.remoting.invoker.process.ExceptionManager;
 import com.dianping.pigeon.remoting.invoker.process.filter.DegradationFilter;
+import com.dianping.pigeon.util.TimeUtils;
 
 public class ServiceCallbackWrapper implements Callback {
-
     private static final Logger logger = LoggerLoader.getLogger(ServiceCallbackWrapper.class);
 
     private static final Monitor monitor = MonitorLoader.getMonitor();
@@ -56,7 +56,7 @@ public class ServiceCallbackWrapper implements Callback {
     public void run() {
         InvokerConfig<?> invokerConfig = invocationContext.getInvokerConfig();
         MonitorTransaction transaction = null;
-        long currentTime = System.currentTimeMillis();
+        long currentTime = TimeUtils.currentTimeMillis();
         String addr = null;
         if (client != null) {
             addr = client.getAddress();
@@ -71,9 +71,10 @@ public class ServiceCallbackWrapper implements Callback {
             }
             if (transaction != null) {
                 transaction.setStatusOk();
-                transaction.addData("CallType", invokerConfig.getCallType());
-                transaction.addData("Timeout", invokerConfig.getTimeout());
-                transaction.addData("Serialize", request.getSerialize());
+                transaction.logEvent("PigeonCall.callType", invokerConfig.getCallType(), "");
+                transaction.logEvent("PigeonCall.serialize", request.getSerialize() + "", "");
+                transaction.logEvent("PigeonCall.timeout", invokerConfig.getTimeout() + "", "");
+
                 if (response != null && response.getSize() > 0) {
                     String respSize = SizeMonitor.getInstance().getLogSize(response.getSize());
                     if (respSize != null) {
@@ -136,15 +137,14 @@ public class ServiceCallbackWrapper implements Callback {
                 }
             } catch (Throwable e) {
                 logger.error("error while executing service callback", e);
-            } finally {
-                StatisCollector.updateInvokeData(invocationContext, request.getCreateMillisTime(), isSuccess);
             }
+            StatisCollector.updateInvokeData(invocationContext, request.getCreateMillisTime(), isSuccess);
         }
     }
 
     private void completeTransaction(MonitorTransaction transaction) {
         if (transaction != null) {
-            invocationContext.getTimeline().add(new TimePoint(TimePhase.E, System.currentTimeMillis()));
+            invocationContext.getTimeline().add(new TimePoint(TimePhase.E, TimeUtils.currentTimeMillis()));
             try {
                 transaction.complete();
             } catch (Throwable e) {

@@ -22,7 +22,7 @@ public class GroovyScriptInvocationProxy implements InvocationHandler {
         Class<?>[] parameterTypes = method.getParameterTypes();
 
         if (method.getDeclaringClass() == Object.class) {
-            return method.invoke(script, args);
+            return "dfsfsd";
         }
         if ("toString".equals(methodName) && parameterTypes.length == 0) {
             return script.toString();

@@ -4,7 +4,6 @@
  */
 package com.dianping.pigeon.remoting.invoker.process.filter;
 
-
 import com.dianping.pigeon.log.Logger;
 import com.dianping.pigeon.log.LoggerLoader;
 import com.dianping.pigeon.monitor.MonitorLoader;
@@ -35,8 +34,8 @@ import com.dianping.pigeon.remoting.invoker.util.InvokerUtils;
  */
 public class RemoteCallInvokeFilter extends InvocationInvokeFilter {
 
-    private static final Logger logger = LoggerLoader.getLogger(RemoteCallInvokeFilter.class);
-    private static final InvocationResponse NO_RETURN_RESPONSE = InvokerUtils.createNoReturnResponse();
+	private static final Logger logger = LoggerLoader.getLogger(RemoteCallInvokeFilter.class);
+	private static final InvocationResponse NO_RETURN_RESPONSE = InvokerUtils.createNoReturnResponse();
 
     @Override
     public InvocationResponse invoke(ServiceInvocationHandler handler, InvokerContext invocationContext)
@@ -53,11 +52,10 @@ public class RemoteCallInvokeFilter extends InvocationInvokeFilter {
             return InvokerUtils.createDefaultResponse(InvokerHelper.getDefaultResult());
         }
         InvocationResponse response = null;
-
-        Integer timeoutThreadLocal = InvokerHelper.getTimeout();
-        if (timeoutThreadLocal != null) {
-            request.setTimeout(timeoutThreadLocal.intValue());
-        }
+		Integer timeoutThreadLocal = InvokerHelper.getTimeout();
+		if (timeoutThreadLocal != null) {
+			request.setTimeout(timeoutThreadLocal.intValue());
+		}
 
         MonitorTransaction transaction = MonitorLoader.getMonitor().getCurrentCallTransaction();
         if (transaction != null) {
@@ -67,7 +65,7 @@ public class RemoteCallInvokeFilter extends InvocationInvokeFilter {
         try {
             switch (callMethod) {
                 case SYNC:
-                    CallbackFuture future = new CallbackFuture(invocationContext);
+                    CallbackFuture future = new CallbackFuture();
                     response = InvokerUtils.sendRequest(client, invocationContext.getRequest(), future);
                     invocationContext.getTimeline().add(new TimePoint(TimePhase.Q));
                     if (response == null) {

@@ -28,6 +28,7 @@ import com.dianping.pigeon.remoting.provider.domain.ProviderContext;
 import com.dianping.pigeon.remoting.provider.exception.ProcessTimeoutException;
 import com.dianping.pigeon.remoting.provider.exception.RequestAbortedException;
 import com.dianping.pigeon.remoting.provider.process.RequestProcessor;
+import com.dianping.pigeon.util.TimeUtils;
 import com.google.common.collect.Maps;
 
 public class RequestTimeoutListener implements Runnable {
@@ -113,7 +114,7 @@ public class RequestTimeoutListener implements Runnable {
 						reqMap.clear();
 					}
 				}
-				long currentTime = System.currentTimeMillis();
+				long currentTime = TimeUtils.currentTimeMillis();
 				Map<String, Count> timeoutRequests = new HashMap<String, Count>();
 				for (InvocationRequest request : requestContextMap.keySet()) {
 					String requestUrl = getRequestUrl(request);
@@ -149,7 +150,7 @@ public class RequestTimeoutListener implements Runnable {
 														: rc.getChannel().getRemoteAddress())
 												.append(", to:")
 												.append(ConfigManagerLoader.getConfigManager().getLocalIp())
-												.append(", process time:").append(System.currentTimeMillis())
+												.append(", process time:").append(TimeUtils.currentTimeMillis())
 												.append("\r\nrequest:").append(request)
 												.append("\r\nprocessor stats:interrupt:").append(cancelTimeout)
 												.append(",")

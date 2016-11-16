@@ -10,9 +10,9 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public interface ServiceProxy {
 
-    public void init();
+    void init();
 
-    public <T> T getProxy(InvokerConfig<T> invokerConfig);
+    <T> T getProxy(InvokerConfig<T> invokerConfig);
 
-    public Map<InvokerConfig<?>, Object> getAllServiceInvokers();
+    Map<InvokerConfig<?>, Object> getAllServiceInvokers();
 }

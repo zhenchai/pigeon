@@ -52,14 +52,14 @@ public class ClientManager {
 	private static ExecutorService providerAvailableThreadPool = Executors.newFixedThreadPool(1,
 			new DefaultThreadFactory("Pigeon-Client-ProviderAvailable-ThreadPool"));
 
-	private static int registerPoolCoreSize = ConfigManagerLoader.getConfigManager().getIntValue(
-			"pigeon.invoker.registerpool.coresize", 10);
+	private static int registerPoolCoreSize = ConfigManagerLoader.getConfigManager()
+			.getIntValue("pigeon.invoker.registerpool.coresize", 10);
 
-	private static int registerPoolMaxSize = ConfigManagerLoader.getConfigManager().getIntValue(
-			"pigeon.invoker.registerpool.maxsize", 30);
+	private static int registerPoolMaxSize = ConfigManagerLoader.getConfigManager()
+			.getIntValue("pigeon.invoker.registerpool.maxsize", 30);
 
-	private static int registerPoolQueueSize = ConfigManagerLoader.getConfigManager().getIntValue(
-			"pigeon.invoker.registerpool.queuesize", 50);
+	private static int registerPoolQueueSize = ConfigManagerLoader.getConfigManager()
+			.getIntValue("pigeon.invoker.registerpool.queuesize", 50);
 
 	private static ThreadPool registerThreadPool = new DefaultThreadPool("Pigeon-Client-Register-Pool",
 			registerPoolCoreSize, registerPoolMaxSize, new LinkedBlockingQueue<Runnable>(registerPoolQueueSize),
@@ -69,8 +69,8 @@ public class ClientManager {
 
 	private RegistryConnectionListener registryConnectionListener = new InnerRegistryConnectionListener();
 
-	private static boolean enableVip = ConfigManagerLoader.getConfigManager().getBooleanValue(
-			"pigeon.invoker.vip.enable", false);
+	private static boolean enableVip = ConfigManagerLoader.getConfigManager()
+			.getBooleanValue("pigeon.invoker.vip.enable", false);
 
 	private static volatile boolean enableRegisterConcurrently = ConfigManagerLoader.getConfigManager()
 			.getBooleanValue("pigeon.invoker.registerconcurrently.enable", true);
@@ -118,8 +118,8 @@ public class ClientManager {
 		}
 		RegistryEventListener.removeListener(providerChangeListener);
 		ThreadPoolUtils.shutdown(providerAvailableThreadPool);
-//		ThreadPoolUtils.shutdown(heartBeatThreadPool);
-//		ThreadPoolUtils.shutdown(reconnectThreadPool);
+		// ThreadPoolUtils.shutdown(heartBeatThreadPool);
+		// ThreadPoolUtils.shutdown(reconnectThreadPool);
 		this.clusterListener.destroy();
 	}
 
@@ -145,7 +145,7 @@ public class ClientManager {
 				serviceAddress = vip;
 			} else if (StringUtils.isNotBlank(remoteAppkey)) {
 				serviceAddress = RegistryManager.getInstance().getServiceAddress(remoteAppkey, serviceName, group);
-			}else {
+			} else {
 				serviceAddress = RegistryManager.getInstance().getServiceAddress(serviceName, group);
 			}
 		} catch (Throwable e) {
@@ -215,7 +215,7 @@ public class ClientManager {
 			}
 		}
 		final String url = serviceName;
-		long start = System.currentTimeMillis();
+		long start = System.nanoTime();
 		if (enableRegisterConcurrently) {
 			final CountDownLatch latch = new CountDownLatch(addresses.size());
 			for (final HostInfo hostInfo : addresses) {
@@ -227,7 +227,7 @@ public class ClientManager {
 							RegistryEventListener.providerAdded(url, hostInfo.getHost(), hostInfo.getPort(),
 									hostInfo.getWeight());
 							RegistryEventListener.serverInfoChanged(url, hostInfo.getConnect());
-						} catch(Throwable t) {
+						} catch (Throwable t) {
 							logger.error("failed to add provider client:" + hostInfo, t);
 						} finally {
 							latch.countDown();
@@ -248,19 +248,19 @@ public class ClientManager {
 				RegistryEventListener.serverInfoChanged(url, hostInfo.getConnect());
 			}
 		}
-		long end = System.currentTimeMillis();
-		logger.info("end to register clients for service '" + serviceName + "#" + group + "', cost:" + (end - start));
+		long end = System.nanoTime();
+		logger.info("end to register clients for service '" + serviceName + "#" + group + "', cost:"
+				+ ((end - start) / 1000000));
 
 		return addresses;
 	}
 
-	/*public void closeRegisterThreadPool() {
-		if (enableRegisterConcurrently) {
-			enableRegisterConcurrently = false;
-			ThreadPoolUtils.shutdown(registerThreadPool.getExecutor());
-			logger.info("closed register thread pool");
-		}
-	}*/
+	/*
+	 * public void closeRegisterThreadPool() { if (enableRegisterConcurrently) {
+	 * enableRegisterConcurrently = false;
+	 * ThreadPoolUtils.shutdown(registerThreadPool.getExecutor());
+	 * logger.info("closed register thread pool"); } }
+	 */
 
 	public Map<String, Set<HostInfo>> getServiceHosts() {
 		return RegistryManager.getInstance().getAllReferencedServiceAddresses();
@@ -310,11 +310,13 @@ public class ClientManager {
 					// remove unreferenced service address
 					Set<HostInfo> currentAddresses = serviceAddresses.get(url);
 					if (currentAddresses != null && addresses != null) {
-						logger.info(url + " 's addresses, new:" + addresses.size() + ", old:" + currentAddresses.size());
+						logger.info(
+								url + " 's addresses, new:" + addresses.size() + ", old:" + currentAddresses.size());
 						currentAddresses.retainAll(addresses);
 					}
 				} catch (Throwable t) {
-					logger.warn("error while trying to sync service addresses:" + url + ", caused by:" + t.getMessage());
+					logger.warn(
+							"error while trying to sync service addresses:" + url + ", caused by:" + t.getMessage());
 				}
 			}
 

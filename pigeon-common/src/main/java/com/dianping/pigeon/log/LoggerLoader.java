@@ -6,7 +6,6 @@ package com.dianping.pigeon.log;
 import java.util.zip.Deflater;
 
 import org.apache.logging.log4j.Level;
-import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.Appender;
 import org.apache.logging.log4j.core.Filter;
 import org.apache.logging.log4j.core.Filter.Result;
@@ -38,86 +37,88 @@ public class LoggerLoader {
 	}
 
 	public static synchronized void init() {
-		String appName = AppUtils.getAppName();
-		System.setProperty("app.name", appName);
+		if (context == null) {
+			String appName = AppUtils.getAppName();
+			System.setProperty("app.name", appName);
 
-		final LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
-		final Configuration config = ctx.getConfiguration();
-		Layout layout = PatternLayout.newBuilder()
-				.withPattern("%d [%t] %-5p [%c{2}] %m%n")
-				.withConfiguration(config)
-				.withRegexReplacement(null)
-				.withCharset(null)
-				.withAlwaysWriteExceptions(true)
-				.withNoConsoleNoAnsi(false)
-				.withHeader(null)
-				.withFooter(null)
-				.build();
+			final LoggerContext ctx = new LoggerContext("Pigeon");
+			final Configuration config = ctx.getConfiguration();
+			Layout layout = PatternLayout.newBuilder()
+					.withPattern("%d [%t] %-5p [%c{2}] %m%n")
+					.withConfiguration(config)
+					.withRegexReplacement(null)
+					.withCharset(null)
+					.withAlwaysWriteExceptions(true)
+					.withNoConsoleNoAnsi(false)
+					.withHeader(null)
+					.withFooter(null)
+					.build();
 
-		
-		// file info
-		Filter fileInfoFilter = ThresholdFilter.createFilter(Level.ERROR, Result.DENY, Result.ACCEPT);
-		Appender fileInfoAppender = RollingFileAppender.createAppender(LOG_ROOT + "/pigeon." + appName + ".log",
-				LOG_ROOT + "/pigeon." + appName + ".log.%d{yyyy-MM-dd}.gz", "true", "FileInfo", "true", "4000",
-				"true", TimeBasedTriggeringPolicy.createPolicy("1", "true"),
-				PigeonRolloverStrategy.createStrategy("30", "1", null, Deflater.DEFAULT_COMPRESSION + "", config),
-				layout, fileInfoFilter, "false", null, null, config);
-		fileInfoAppender.start();
-		config.addAppender(fileInfoAppender);
-		AppenderRef fileInfoRef = AppenderRef.createAppenderRef("FileInfo", null, fileInfoFilter);
 
-		// console error
-		
-		Filter burstErrorFilter = BurstFilter.newBuilder().setLevel(Level.ERROR).setRate(50).setMaxBurst(250).build();
-		Appender consoleErrorAppender = ConsoleAppender.createAppender(layout, burstErrorFilter, "SYSTEM_ERR", "ConsoleError",
-				"false", "false");
-		config.addAppender(consoleErrorAppender);
-		consoleErrorAppender.start();
+			// file info
+			Filter fileInfoFilter = ThresholdFilter.createFilter(Level.ERROR, Result.DENY, Result.ACCEPT);
+			Appender fileInfoAppender = RollingFileAppender.createAppender(LOG_ROOT + "/pigeon." + appName + ".log",
+					LOG_ROOT + "/pigeon." + appName + ".log.%d{yyyy-MM-dd}.gz", "true", "FileInfo", "true", "4000",
+					"true", TimeBasedTriggeringPolicy.createPolicy("1", "true"),
+					PigeonRolloverStrategy.createStrategy("30", "1", null, Deflater.DEFAULT_COMPRESSION + "", config),
+					layout, fileInfoFilter, "false", null, null, config);
+			fileInfoAppender.start();
+			config.addAppender(fileInfoAppender);
+			AppenderRef fileInfoRef = AppenderRef.createAppenderRef("FileInfo", null, fileInfoFilter);
 
-		// console warn
-		Filter consoleWarnFilter = ThresholdFilter.createFilter(Level.ERROR, Result.DENY, Result.NEUTRAL);
-		Appender consoleWarnAppender = ConsoleAppender.createAppender(layout, consoleWarnFilter, "SYSTEM_OUT",
-				"ConsoleWarn", "false", "false");
-		config.addAppender(consoleWarnAppender);
-		consoleWarnAppender.start();
-		AppenderRef consoleWarnAppenderRef = AppenderRef
-				.createAppenderRef("ConsoleWarn", Level.WARN, consoleWarnFilter);
-		AppenderRef consoleErrorAppenderRef = AppenderRef
-				.createAppenderRef("ConsoleError", Level.ERROR, burstErrorFilter);
+			// console error
 
-		AppenderRef[] refs = new AppenderRef[] {consoleErrorAppenderRef, consoleWarnAppenderRef, fileInfoRef };
-		LoggerConfig loggerConfig = LoggerConfig.createLogger("false", Level.DEBUG, "com.dianping.pigeon", "true", refs,
-				null, config, null);
-		loggerConfig.addAppender(consoleErrorAppender, Level.ERROR, null);
-		loggerConfig.addAppender(consoleWarnAppender, Level.WARN, null);
-		loggerConfig.addAppender(fileInfoAppender, Level.DEBUG, null);
+			Filter burstErrorFilter = BurstFilter.newBuilder().setLevel(Level.ERROR).setRate(50).setMaxBurst(250).build();
+			Appender consoleErrorAppender = ConsoleAppender.createAppender(layout, burstErrorFilter, "SYSTEM_ERR", "ConsoleError",
+					"false", "false");
+			config.addAppender(consoleErrorAppender);
+			consoleErrorAppender.start();
 
-		config.addLogger("com.dianping.pigeon", loggerConfig);
+			// console warn
+			Filter consoleWarnFilter = ThresholdFilter.createFilter(Level.ERROR, Result.DENY, Result.NEUTRAL);
+			Appender consoleWarnAppender = ConsoleAppender.createAppender(layout, consoleWarnFilter, "SYSTEM_OUT",
+					"ConsoleWarn", "false", "false");
+			config.addAppender(consoleWarnAppender);
+			consoleWarnAppender.start();
+			AppenderRef consoleWarnAppenderRef = AppenderRef
+					.createAppenderRef("ConsoleWarn", Level.WARN, consoleWarnFilter);
+			AppenderRef consoleErrorAppenderRef = AppenderRef
+					.createAppenderRef("ConsoleError", Level.ERROR, burstErrorFilter);
 
-		// access info
-		Appender accessInfoAppender = RollingFileAppender.createAppender(LOG_ROOT + "/pigeon." + appName
-				+ ".access.log", LOG_ROOT + "/pigeon." + appName + ".log.access.%d{yyyy-MM-dd}.gz", "true",
-				"AccessInfo", "true", "4000", "false", TimeBasedTriggeringPolicy.createPolicy("1", "true"),
-				PigeonRolloverStrategy.createStrategy("30", "1", null, Deflater.DEFAULT_COMPRESSION + "", config),
-				layout, fileInfoFilter, "false", null, null, config);
-		accessInfoAppender.start();
-		config.addAppender(accessInfoAppender);
-		AppenderRef accessInfoRef = AppenderRef.createAppenderRef("AccessInfo", Level.INFO, null);
+			AppenderRef[] refs = new AppenderRef[] {consoleErrorAppenderRef, consoleWarnAppenderRef, fileInfoRef };
+			LoggerConfig loggerConfig = LoggerConfig.createLogger("false", Level.DEBUG, "com.dianping.pigeon", "true", refs,
+					null, config, null);
+			loggerConfig.addAppender(consoleErrorAppender, Level.ERROR, null);
+			loggerConfig.addAppender(consoleWarnAppender, Level.WARN, null);
+			loggerConfig.addAppender(fileInfoAppender, Level.DEBUG, null);
 
-		PigeonAsyncAppender asyncAccessInfoAppender = PigeonAsyncAppender.createAppender(new AppenderRef[] { accessInfoRef }, null,
-				true, 128, "AsyncAccessInfo", false, null, config, false);
-		config.addAppender(asyncAccessInfoAppender);
-		asyncAccessInfoAppender.start();
-		AppenderRef asyncAccessInfoRef = AppenderRef.createAppenderRef("AsyncAccessInfo", Level.INFO, null);
+			config.addLogger("com.dianping.pigeon", loggerConfig);
 
-		LoggerConfig accessLoggerConfig = LoggerConfig.createLogger("false", Level.INFO, "pigeon-access", "true",
-				new AppenderRef[] { asyncAccessInfoRef }, null, config, null);
-		config.addLogger("pigeon-access", accessLoggerConfig);
-		accessLoggerConfig.addAppender(asyncAccessInfoAppender, Level.INFO, null);
+			// access info
+			Appender accessInfoAppender = RollingFileAppender.createAppender(LOG_ROOT + "/pigeon." + appName
+							+ ".access.log", LOG_ROOT + "/pigeon." + appName + ".log.access.%d{yyyy-MM-dd}.gz", "true",
+					"AccessInfo", "true", "4000", "false", TimeBasedTriggeringPolicy.createPolicy("1", "true"),
+					PigeonRolloverStrategy.createStrategy("30", "1", null, Deflater.DEFAULT_COMPRESSION + "", config),
+					layout, fileInfoFilter, "false", null, null, config);
+			accessInfoAppender.start();
+			config.addAppender(accessInfoAppender);
+			AppenderRef accessInfoRef = AppenderRef.createAppenderRef("AccessInfo", Level.INFO, null);
 
-		ctx.updateLoggers();
+			PigeonAsyncAppender asyncAccessInfoAppender = PigeonAsyncAppender.createAppender(new AppenderRef[] { accessInfoRef }, null,
+					true, 128, "AsyncAccessInfo", false, null, config, false);
+			config.addAppender(asyncAccessInfoAppender);
+			asyncAccessInfoAppender.start();
+			AppenderRef asyncAccessInfoRef = AppenderRef.createAppenderRef("AsyncAccessInfo", Level.INFO, null);
 
-		context = ctx;
+			LoggerConfig accessLoggerConfig = LoggerConfig.createLogger("false", Level.INFO, "pigeon-access", "true",
+					new AppenderRef[] { asyncAccessInfoRef }, null, config, null);
+			config.addLogger("pigeon-access", accessLoggerConfig);
+			accessLoggerConfig.addAppender(asyncAccessInfoAppender, Level.INFO, null);
+
+			ctx.updateLoggers();
+
+			context = ctx;
+		}
 	}
 
 	public static Logger getLogger(Class<?> className) {

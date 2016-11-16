@@ -22,7 +22,7 @@ public enum SerializerType {
 
     PROTOBUF((byte) 9, "protobuf"),
 
-    THRIFT((byte) 10, "thrift");
+    THRIFT((byte) 10, "thrift"), ;
 
     private byte code;
     private String name;
