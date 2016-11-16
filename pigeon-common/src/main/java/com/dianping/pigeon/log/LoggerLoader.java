@@ -27,8 +27,8 @@ public class LoggerLoader {
         if (context == null) {
             if (StringUtils.isBlank(System.getProperty(LOG_ROOT_KEY))) {
                 System.setProperty(LOG_ROOT_KEY, LOG_ROOT_DEFAULT);
-                LOG_ROOT = LOG_ROOT_DEFAULT;
             }
+            LOG_ROOT = System.getProperty(LOG_ROOT_KEY);
             String appName = AppUtils.getAppName();
             System.setProperty("app.name", appName);
 
