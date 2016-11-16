@@ -592,4 +592,14 @@ public class CompositeRegistry implements Registry {
 
         }
     }
+
+    @Override
+    public void setClientAddress(String clientAddress) {
+
+    }
+
+    @Override
+    public void delClientAddress(String clientAddress) {
+
+    }
 }

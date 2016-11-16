@@ -9,13 +9,13 @@ import com.dianping.pigeon.log.Logger;
 import com.dianping.pigeon.log.LoggerLoader;
 import com.dianping.pigeon.monitor.MonitorLoader;
 import com.dianping.pigeon.monitor.MonitorTransaction;
+import com.dianping.pigeon.remoting.common.domain.CallMethod;
 import com.dianping.pigeon.remoting.common.domain.InvocationContext.TimePhase;
 import com.dianping.pigeon.remoting.common.domain.InvocationContext.TimePoint;
 import com.dianping.pigeon.remoting.common.domain.InvocationRequest;
 import com.dianping.pigeon.remoting.common.domain.InvocationResponse;
 import com.dianping.pigeon.remoting.common.exception.BadRequestException;
 import com.dianping.pigeon.remoting.common.process.ServiceInvocationHandler;
-import com.dianping.pigeon.remoting.common.util.Constants;
 import com.dianping.pigeon.remoting.invoker.Client;
 import com.dianping.pigeon.remoting.invoker.concurrent.CallbackFuture;
 import com.dianping.pigeon.remoting.invoker.concurrent.FutureFactory;
@@ -45,7 +45,8 @@ public class RemoteCallInvokeFilter extends InvocationInvokeFilter {
         Client client = invocationContext.getClient();
         InvocationRequest request = invocationContext.getRequest();
         InvokerConfig<?> invokerConfig = invocationContext.getInvokerConfig();
-        String callType = invokerConfig.getCallType(invocationContext.getMethodName());
+        byte callMethodCode = invokerConfig.getCallMethod(invocationContext.getMethodName());
+
         beforeInvoke(invocationContext);
         boolean isCancel = InvokerHelper.getCancel();
         if (isCancel) {
@@ -62,45 +63,53 @@ public class RemoteCallInvokeFilter extends InvocationInvokeFilter {
         if (transaction != null) {
             transaction.addData("CurrentTimeout", request.getTimeout());
         }
-
+        CallMethod callMethod = CallMethod.getCallMethod(callMethodCode);
         try {
-            if (Constants.CALL_SYNC.equalsIgnoreCase(callType)) {
-                CallbackFuture future = new CallbackFuture();
-                response = InvokerUtils.sendRequest(client, invocationContext.getRequest(), future);
-                invocationContext.getTimeline().add(new TimePoint(TimePhase.Q));
-                if (response == null) {
-                    response = future.getResponse(request.getTimeout());
-                }
-            } else if (Constants.CALL_CALLBACK.equalsIgnoreCase(callType)) {
-                InvocationCallback callback = invokerConfig.getCallback();
-                InvocationCallback tlCallback = InvokerHelper.getCallback();
-                if (tlCallback != null) {
-                    callback = tlCallback;
-                    InvokerHelper.clearCallback();
-                }
-                InvokerUtils.sendRequest(client, invocationContext.getRequest(), new ServiceCallbackWrapper(
-                        invocationContext, callback));
-                response = NO_RETURN_RESPONSE;
-                invocationContext.getTimeline().add(new TimePoint(TimePhase.Q));
-            } else if (Constants.CALL_FUTURE.equalsIgnoreCase(callType)) {
-                ServiceFutureImpl future = new ServiceFutureImpl(invocationContext, request.getTimeout());
-                InvokerUtils.sendRequest(client, invocationContext.getRequest(), future);
-                FutureFactory.setFuture(future);
-                response = InvokerUtils.createFutureResponse(future);
-                invocationContext.getTimeline().add(new TimePoint(TimePhase.Q));
-            } else if (Constants.CALL_ONEWAY.equalsIgnoreCase(callType)) {
-                InvokerUtils.sendRequest(client, invocationContext.getRequest(), null);
-                response = NO_RETURN_RESPONSE;
-                invocationContext.getTimeline().add(new TimePoint(TimePhase.Q));
-            } else {
-                throw new BadRequestException("Call type[" + callType + "] is not supported!");
+            switch (callMethod) {
+                case SYNC:
+                    CallbackFuture future = new CallbackFuture(invocationContext);
+                    response = InvokerUtils.sendRequest(client, invocationContext.getRequest(), future);
+                    invocationContext.getTimeline().add(new TimePoint(TimePhase.Q));
+                    if (response == null) {
+                        response = future.getResponse(request.getTimeout());
+                    }
+                    break;
+                case CALLBACK:
+                    InvocationCallback callback = invokerConfig.getCallback();
+                    InvocationCallback tlCallback = InvokerHelper.getCallback();
+                    if (tlCallback != null) {
+                        callback = tlCallback;
+                        InvokerHelper.clearCallback();
+                    }
+                    InvokerUtils.sendRequest(client, invocationContext.getRequest(), new ServiceCallbackWrapper(
+                            invocationContext, callback));
+                    response = NO_RETURN_RESPONSE;
+                    invocationContext.getTimeline().add(new TimePoint(TimePhase.Q));
+                    break;
+                case FUTURE:
+                    ServiceFutureImpl futureImpl = new ServiceFutureImpl(invocationContext, request.getTimeout());
+                    InvokerUtils.sendRequest(client, invocationContext.getRequest(), futureImpl);
+                    FutureFactory.setFuture(futureImpl);
+                    response = InvokerUtils.createFutureResponse(futureImpl);
+                    invocationContext.getTimeline().add(new TimePoint(TimePhase.Q));
+                    break;
+                case ONEWAY:
+                    InvokerUtils.sendRequest(client, invocationContext.getRequest(), null);
+                    response = NO_RETURN_RESPONSE;
+                    invocationContext.getTimeline().add(new TimePoint(TimePhase.Q));
+                    break;
+                default:
+                    throw new BadRequestException("Call type[" + callMethod.getName() + "] is not supported!");
+
             }
+
             ((DefaultInvokerContext) invocationContext).setResponse(response);
             afterInvoke(invocationContext);
         } catch (Throwable t) {
             afterThrowing(invocationContext, t);
             throw t;
         }
+
         return response;
     }
 

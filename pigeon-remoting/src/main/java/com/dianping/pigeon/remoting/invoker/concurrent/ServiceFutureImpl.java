@@ -11,7 +11,6 @@ import java.util.concurrent.TimeoutException;
 
 import com.dianping.pigeon.log.Logger;
 import com.dianping.pigeon.log.LoggerLoader;
-import com.dianping.pigeon.monitor.MonitorTransaction;
 import com.dianping.pigeon.remoting.common.domain.InvocationContext.TimePhase;
 import com.dianping.pigeon.remoting.common.domain.InvocationContext.TimePoint;
 import com.dianping.pigeon.remoting.common.domain.InvocationResponse;
@@ -19,6 +18,7 @@ import com.dianping.pigeon.remoting.common.exception.ApplicationException;
 import com.dianping.pigeon.remoting.common.exception.BadResponseException;
 import com.dianping.pigeon.remoting.common.exception.RpcException;
 import com.dianping.pigeon.remoting.common.monitor.SizeMonitor;
+import com.dianping.pigeon.remoting.common.monitor.StatisCollector;
 import com.dianping.pigeon.remoting.common.util.Constants;
 import com.dianping.pigeon.remoting.common.util.InvocationUtils;
 import com.dianping.pigeon.remoting.invoker.domain.InvokerContext;
@@ -67,6 +67,7 @@ public class ServiceFutureImpl extends CallbackFuture implements Future {
             transaction.addData("FutureTimeout", timeoutMillis);
             invocationContext.getTimeline().add(new TimePoint(TimePhase.F, System.currentTimeMillis()));
         }
+        boolean isSuccess = false;
         try {
             try {
                 response = super.waitResponse(timeoutMillis);
@@ -105,6 +106,7 @@ public class ServiceFutureImpl extends CallbackFuture implements Future {
             setResponseContext(response);
 
             if (response.getMessageType() == Constants.MESSAGE_TYPE_SERVICE) {
+                isSuccess = true;
                 return response.getReturn();
             } else if (response.getMessageType() == Constants.MESSAGE_TYPE_EXCEPTION) {
                 // failure degrade condition
@@ -151,6 +153,7 @@ public class ServiceFutureImpl extends CallbackFuture implements Future {
                     monitor.logMonitorError(e);
                 }
             }
+            StatisCollector.updateInvokeData(invocationContext, request.getCreateMillisTime(), isSuccess);
         }
     }
 

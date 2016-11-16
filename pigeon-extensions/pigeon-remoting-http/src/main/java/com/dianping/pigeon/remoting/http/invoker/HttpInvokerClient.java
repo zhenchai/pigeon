@@ -7,6 +7,7 @@ package com.dianping.pigeon.remoting.http.invoker;
 import java.net.ConnectException;
 
 import com.dianping.pigeon.remoting.common.channel.Channel;
+import com.dianping.pigeon.remoting.common.codec.SerializerType;
 import com.dianping.pigeon.remoting.invoker.process.ResponseProcessor;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpConnectionManager;
@@ -74,7 +75,7 @@ public class HttpInvokerClient extends AbstractClient {
     @Override
     public void doOpen() {
         InvocationRequest request = InvocationUtils.newRequest(Constants.HEART_TASK_SERVICE,
-                Constants.HEART_TASK_METHOD, null, SerializerFactory.SERIALIZE_HESSIAN,
+                Constants.HEART_TASK_METHOD, null, SerializerType.HESSIAN.getCode(),
                 Constants.MESSAGE_TYPE_HEART, 5000, null);
         request.setSequence(0);
         request.setCreateMillisTime(System.currentTimeMillis());

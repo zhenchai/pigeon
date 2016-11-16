@@ -4,6 +4,9 @@
  */
 package com.dianping.pigeon.remoting.common.domain;
 
+import com.dianping.pigeon.monitor.MethodKey;
+import com.dianping.pigeon.remoting.common.monitor.StatisCollector;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -12,56 +15,68 @@ import java.util.Map;
 
 public abstract class AbstractInvocationContext implements InvocationContext {
 
-	protected InvocationRequest request;
-	protected InvocationResponse response;
-	private Map<String, Serializable> contextValues;
-	private List<TimePoint> timeline = new ArrayList<TimePoint>();
+    protected InvocationRequest request;
+    protected InvocationResponse response;
+    private Map<String, Serializable> contextValues;
+    private List<TimePoint> timeline = new ArrayList<TimePoint>();
 
-	public AbstractInvocationContext(InvocationRequest request) {
-		this.request = request;
-	}
+    protected MethodKey methodKey;
 
-	@Override
-	public InvocationRequest getRequest() {
-		return request;
-	}
+    public AbstractInvocationContext(InvocationRequest request) {
+        this.request = request;
+    }
 
-	public void setRequest(InvocationRequest request) {
-		this.request = request;
-	}
+    @Override
+    public InvocationRequest getRequest() {
+        return request;
+    }
 
-	@Override
-	public InvocationResponse getResponse() {
-		return response;
-	}
+    public void setRequest(InvocationRequest request) {
+        this.request = request;
+    }
 
-	public void setResponse(InvocationResponse response) {
-		this.response = response;
-	}
+    @Override
+    public InvocationResponse getResponse() {
+        return response;
+    }
 
-	@Override
-	public void putContextValue(String key, Serializable value) {
-		if (contextValues == null) {
-			contextValues = new HashMap<String, Serializable>();
-		}
-		contextValues.put(key, value);
-	}
+    public void setResponse(InvocationResponse response) {
+        this.response = response;
+    }
 
-	@Override
-	public Serializable getContextValue(String key) {
-		if (contextValues == null) {
-			return null;
-		}
-		return contextValues.get(key);
-	}
+    @Override
+    public void putContextValue(String key, Serializable value) {
+        if (contextValues == null) {
+            contextValues = new HashMap<String, Serializable>();
+        }
+        contextValues.put(key, value);
+    }
 
-	@Override
-	public Map<String, Serializable> getContextValues() {
-		return contextValues;
-	}
+    @Override
+    public Serializable getContextValue(String key) {
+        if (contextValues == null) {
+            return null;
+        }
+        return contextValues.get(key);
+    }
 
-	@Override
-	public List<TimePoint> getTimeline() {
-		return timeline;
-	}
+    @Override
+    public Map<String, Serializable> getContextValues() {
+        return contextValues;
+    }
+
+    @Override
+    public List<TimePoint> getTimeline() {
+        return timeline;
+    }
+
+    @Override
+    public void setMethodKey(MethodKey methodKey) {
+        this.methodKey = methodKey;
+    }
+
+    @Override
+    public MethodKey getMethodKey() {
+        return methodKey;
+    }
 }

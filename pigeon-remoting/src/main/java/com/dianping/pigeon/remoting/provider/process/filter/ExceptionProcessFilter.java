@@ -29,15 +29,18 @@ public class ExceptionProcessFilter implements ServiceInvocationFilter<ProviderC
 
 	public ExceptionProcessFilter() {
 		ConfigManagerLoader.getConfigManager().getBooleanValue(KEY_LOG_SERVICE_EXCEPTION, true);
+
 	}
 
-	@Override
+
 	public InvocationResponse invoke(ServiceInvocationHandler handler, ProviderContext invocationContext)
 			throws Throwable {
 		InvocationRequest request = invocationContext.getRequest();
 		InvocationResponse response = null;
 		try {
+
 			response = handler.handle(invocationContext);
+
 		} catch (InvocationTargetException e) {
 			Throwable e2 = e.getTargetException();
 			if (e2 != null) {

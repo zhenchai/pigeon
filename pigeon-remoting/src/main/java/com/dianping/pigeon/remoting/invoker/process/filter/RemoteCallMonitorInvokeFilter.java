@@ -12,8 +12,7 @@ import com.dianping.pigeon.monitor.Monitor;
 import com.dianping.pigeon.monitor.MonitorLoader;
 import com.dianping.pigeon.monitor.MonitorTransaction;
 import com.dianping.pigeon.registry.RegistryManager;
-import com.dianping.pigeon.remoting.common.codec.SerializerFactory;
-import com.dianping.pigeon.remoting.common.domain.InvocationContext;
+import com.dianping.pigeon.remoting.common.codec.SerializerType;
 import com.dianping.pigeon.remoting.common.domain.InvocationContext.TimePhase;
 import com.dianping.pigeon.remoting.common.domain.InvocationContext.TimePoint;
 import com.dianping.pigeon.remoting.common.domain.InvocationRequest;
@@ -144,7 +143,7 @@ public class RemoteCallMonitorInvokeFilter extends InvocationInvokeFilter {
     }
 
     private void monitorProtocal(InvokerContext invokerContext, InvocationRequest request, String targetApp) {
-        if (request.getSerialize() == SerializerFactory.SERIALIZE_THRIFT) {
+        if (SerializerType.isThrift(request.getSerialize())) {
             Client client = invokerContext.getClient();
             String address = "NULL";
             if (client != null) {

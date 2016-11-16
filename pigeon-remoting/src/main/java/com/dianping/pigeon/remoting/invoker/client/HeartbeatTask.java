@@ -9,6 +9,7 @@ import com.dianping.pigeon.monitor.MonitorLoader;
 import com.dianping.pigeon.registry.RegistryManager;
 import com.dianping.pigeon.registry.util.HeartBeatSupport;
 import com.dianping.pigeon.remoting.common.codec.SerializerFactory;
+import com.dianping.pigeon.remoting.common.codec.SerializerType;
 import com.dianping.pigeon.remoting.common.domain.InvocationRequest;
 import com.dianping.pigeon.remoting.common.domain.InvocationResponse;
 import com.dianping.pigeon.remoting.common.channel.Channel;
@@ -178,7 +179,7 @@ public class HeartbeatTask implements Runnable {
 
     private InvocationRequest createHeartRequest0(String address) {
         InvocationRequest request = InvocationUtils.newRequest(Constants.HEART_TASK_SERVICE + address, Constants.HEART_TASK_METHOD,
-                null, SerializerFactory.SERIALIZE_HESSIAN, Constants.MESSAGE_TYPE_HEART, timeout, null);
+                null, SerializerType.HESSIAN.getCode(), Constants.MESSAGE_TYPE_HEART, timeout, null);
         request.setSequence(generateHeartSeq());
         request.setCreateMillisTime(System.currentTimeMillis());
         request.setCallType(Constants.CALLTYPE_REPLY);
@@ -187,7 +188,7 @@ public class HeartbeatTask implements Runnable {
 
     private InvocationRequest createHeartRequest_(String address) {
         InvocationRequest request = new GenericRequest(Constants.HEART_TASK_SERVICE + address, Constants.HEART_TASK_METHOD,
-                null, SerializerFactory.SERIALIZE_THRIFT, Constants.MESSAGE_TYPE_HEART, timeout);
+                null, SerializerType.THRIFT.getCode(), Constants.MESSAGE_TYPE_HEART, timeout);
         request.setSequence(generateHeartSeq());
         request.setCreateMillisTime(System.currentTimeMillis());
         request.setCallType(Constants.CALLTYPE_REPLY);

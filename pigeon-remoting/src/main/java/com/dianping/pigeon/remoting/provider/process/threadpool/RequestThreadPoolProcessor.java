@@ -16,6 +16,7 @@ import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import com.dianping.pigeon.remoting.common.monitor.StatisCollector;
 import org.apache.commons.lang.StringUtils;
 
 import com.dianping.pigeon.config.ConfigChangeListener;
@@ -109,6 +110,9 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
     public Future<InvocationResponse> doProcessRequest(final InvocationRequest request,
                                                        final ProviderContext providerContext) {
         requestContextMap.put(request, providerContext);
+
+        StatisCollector.updateProvideCount(providerContext);
+
         Callable<InvocationResponse> requestExecutor = new Callable<InvocationResponse>() {
 
             @Override
@@ -147,6 +151,7 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
         // transaction.complete();
         // }
     }
+
 
     private void checkRequest(final ThreadPool pool, final InvocationRequest request) {
         GatewayProcessFilter.checkRequest(request);

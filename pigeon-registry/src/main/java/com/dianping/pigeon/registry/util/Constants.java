@@ -20,6 +20,7 @@ public final class Constants {
 	public static final String TOKEN_PATH = "/DP/TOKEN";
 	public static final String HEARTBEAT_PATH = "/DP/HEARTBEAT";
 	public static final String PROTOCOL_PATH = "/DP/PROTOCOL";
+	public static final String CLIENT_PATH="/DP/CLIENT";
 	public static final String PATH_SEPARATOR = "/";
 	public static final String PLACEHOLDER = "^";
 

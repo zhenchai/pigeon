@@ -4,6 +4,9 @@
  **/
 package com.dianping.pigeon.remoting.common.domain;
 
+import com.dianping.pigeon.monitor.MethodKey;
+import com.dianping.pigeon.remoting.common.monitor.StatisCollector;
+
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
@@ -45,6 +48,9 @@ public interface InvocationContext {
 
 	List<TimePoint> getTimeline();
 
+	MethodKey getMethodKey();
+
+	void setMethodKey(MethodKey methodKey);
 
 	enum TimePhase {
 		S/** start **/

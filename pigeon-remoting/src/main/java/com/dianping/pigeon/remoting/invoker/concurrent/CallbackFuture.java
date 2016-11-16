@@ -10,16 +10,20 @@ import java.util.concurrent.locks.ReentrantLock;
 import com.dianping.pigeon.extension.ExtensionLoader;
 import com.dianping.pigeon.log.Logger;
 import com.dianping.pigeon.log.LoggerLoader;
+import com.dianping.pigeon.monitor.MethodKey;
 import com.dianping.pigeon.monitor.Monitor;
 import com.dianping.pigeon.monitor.MonitorLoader;
 import com.dianping.pigeon.monitor.MonitorTransaction;
+import com.dianping.pigeon.remoting.common.domain.InvocationContext;
 import com.dianping.pigeon.remoting.common.domain.InvocationRequest;
 import com.dianping.pigeon.remoting.common.domain.InvocationResponse;
 import com.dianping.pigeon.remoting.common.domain.generic.UnifiedResponse;
+import com.dianping.pigeon.remoting.common.monitor.StatisCollector;
 import com.dianping.pigeon.remoting.common.util.Constants;
 import com.dianping.pigeon.remoting.common.util.ContextUtils;
 import com.dianping.pigeon.remoting.common.util.InvocationUtils;
 import com.dianping.pigeon.remoting.invoker.Client;
+import com.dianping.pigeon.remoting.invoker.domain.InvokerContext;
 import com.dianping.pigeon.remoting.invoker.process.ExceptionManager;
 import com.dianping.pigeon.remoting.invoker.process.InvokerContextProcessor;
 import com.dianping.pigeon.remoting.invoker.route.statistics.ServiceStatisticsHolder;
@@ -29,188 +33,194 @@ import com.dianping.pigeon.remoting.invoker.route.statistics.ServiceStatisticsHo
  */
 public class CallbackFuture implements Callback, CallFuture {
 
-	private static final Logger logger = LoggerLoader.getLogger(CallbackFuture.class);
-	protected static final Monitor monitor = MonitorLoader.getMonitor();
-	private static final InvokerContextProcessor contextProcessor = ExtensionLoader
-			.getExtension(InvokerContextProcessor.class);
+    private static final Logger logger = LoggerLoader.getLogger(CallbackFuture.class);
+    protected static final Monitor monitor = MonitorLoader.getMonitor();
+    private static final InvokerContextProcessor contextProcessor = ExtensionLoader
+            .getExtension(InvokerContextProcessor.class);
 
-	protected InvocationResponse response;
-	private boolean done = false;
-	private boolean cancelled = false;
-	protected InvocationRequest request;
-	protected Client client;
-	protected MonitorTransaction transaction;
+    protected InvocationResponse response;
+    private boolean done = false;
+    private boolean cancelled = false;
+    protected InvocationRequest request;
+    protected Client client;
+    protected MonitorTransaction transaction;
 
-	private final Lock lock = new ReentrantLock();
-	private final Condition condition = lock.newCondition();
+    protected InvokerContext invokerContext;
 
-	public CallbackFuture() {
-		transaction = monitor.getCurrentCallTransaction();
-	}
+    private final Lock lock = new ReentrantLock();
+    private final Condition condition = lock.newCondition();
 
-	@Override
-	public void callback(InvocationResponse response) {
-		this.response = response;
-	}
+    public CallbackFuture() {
+        transaction = monitor.getCurrentCallTransaction();
+    }
 
-	@Override
-	public void run() {
-		lock.lock();
-		try {
-			this.done = true;
-			if (condition != null) {
-				condition.signal();
-			}
-		} finally {
-			lock.unlock();
-		}
-	}
+    public CallbackFuture(InvokerContext invokerContext) {
+        this.invokerContext = invokerContext;
+    }
 
-	@Override
-	public boolean isDone() {
-		return this.done;
-	}
+    @Override
+    public void callback(InvocationResponse response) {
+        this.response = response;
+    }
 
-	protected InvocationResponse waitResponse(long timeoutMillis) throws InterruptedException {
-		if (response != null && response.getMessageType() == Constants.MESSAGE_TYPE_SERVICE) {
-			return response;
-		}
-		if (request == null && response != null) {
-			return response;
-		}
+    @Override
+    public void run() {
+        lock.lock();
+        try {
+            this.done = true;
+            if (condition != null) {
+                condition.signal();
+            }
+        } finally {
+            lock.unlock();
+        }
+    }
 
-		lock.lock();
-		try {
-			long start = request.getCreateMillisTime();
-			long timeoutLeft = timeoutMillis;
+    @Override
+    public boolean isDone() {
+        return this.done;
+    }
 
-			while (!isDone()) {
-				condition.await(timeoutLeft, TimeUnit.MILLISECONDS);
-				long timeoutPassed = System.currentTimeMillis() - start;
+    protected InvocationResponse waitResponse(long timeoutMillis) throws InterruptedException {
+        if (response != null && response.getMessageType() == Constants.MESSAGE_TYPE_SERVICE) {
+            return response;
+        }
+        if (request == null && response != null) {
+            return response;
+        }
 
-				if (isDone() || timeoutPassed >= timeoutMillis) {
-					break;
-				} else {
-					timeoutLeft = timeoutMillis - timeoutPassed;
-				}
-			}
-		} finally {
-			lock.unlock();
-		}
+        lock.lock();
+        try {
+            long start = request.getCreateMillisTime();
+            long timeoutLeft = timeoutMillis;
 
-		if (!isDone()) {
-			ServiceStatisticsHolder.flowOut(request, client.getAddress());
-			throw InvocationUtils.newTimeoutException(
-					"request timeout, current time:" + System.currentTimeMillis() + "\r\nrequest:" + request);
-		}
+            while (!isDone()) {
+                condition.await(timeoutLeft, TimeUnit.MILLISECONDS);
+                long timeoutPassed = System.currentTimeMillis() - start;
 
-		return this.response;
-	}
+                if (isDone() || timeoutPassed >= timeoutMillis) {
+                    break;
+                } else {
+                    timeoutLeft = timeoutMillis - timeoutPassed;
+                }
+            }
+        } finally {
+            lock.unlock();
+        }
 
-	@Override
-	public InvocationResponse getResponse() throws InterruptedException {
-		return getResponse(Long.MAX_VALUE);
-	}
+        if (!isDone()) {
+            ServiceStatisticsHolder.flowOut(request, client.getAddress());
+            throw InvocationUtils.newTimeoutException(
+                    "request timeout, current time:" + System.currentTimeMillis() + "\r\nrequest:" + request);
+        }
 
-	@Override
-	public InvocationResponse getResponse(long timeout, TimeUnit unit) throws InterruptedException {
-		return getResponse(unit.toMillis(timeout));
-	}
+        return this.response;
+    }
 
-	@Override
-	public InvocationResponse getResponse(long timeoutMillis) throws InterruptedException {
-		waitResponse(timeoutMillis);
-		processContext();
+    @Override
+    public InvocationResponse getResponse() throws InterruptedException {
+        return getResponse(Long.MAX_VALUE);
+    }
 
-		if (response.getMessageType() == Constants.MESSAGE_TYPE_EXCEPTION) {
-			ExceptionManager.INSTANCE.logRemoteCallException(client.getAddress(), request.getServiceName(),
-					request.getMethodName(), "remote call error", request, response, transaction);
-		} else if (response.getMessageType() == Constants.MESSAGE_TYPE_SERVICE_EXCEPTION) {
-			ExceptionManager.INSTANCE.logRemoteServiceException("remote service biz error", request, response);
-		}
+    @Override
+    public InvocationResponse getResponse(long timeout, TimeUnit unit) throws InterruptedException {
+        return getResponse(unit.toMillis(timeout));
+    }
 
-		return this.response;
-	}
+    @Override
+    public InvocationResponse getResponse(long timeoutMillis) throws InterruptedException {
+        waitResponse(timeoutMillis);
+        processContext();
 
-	@Override
-	public void setRequest(InvocationRequest request) {
-		this.request = request;
-	}
+        if (response.getMessageType() == Constants.MESSAGE_TYPE_EXCEPTION) {
+            ExceptionManager.INSTANCE.logRemoteCallException(client.getAddress(), request.getServiceName(),
+                    request.getMethodName(), "remote call error", request, response, transaction);
+        } else if (response.getMessageType() == Constants.MESSAGE_TYPE_SERVICE_EXCEPTION) {
+            ExceptionManager.INSTANCE.logRemoteServiceException("remote service biz error", request, response);
+        }
 
-	@Override
-	public void setClient(Client client) {
-		this.client = client;
-	}
+        return this.response;
+    }
 
-	@Override
-	public Client getClient() {
-		return this.client;
-	}
+    @Override
+    public void setRequest(InvocationRequest request) {
+        this.request = request;
+    }
 
-	@Override
-	public void dispose() {
+    @Override
+    public void setClient(Client client) {
+        this.client = client;
+    }
 
-	}
+    @Override
+    public Client getClient() {
+        return this.client;
+    }
 
-	@Override
-	public boolean cancel() {
-		return this.cancelled;
-	}
+    @Override
+    public void dispose() {
 
-	@Override
-	public boolean isCancelled() {
-		return this.cancelled;
-	}
+    }
 
-	protected void processContext() {
-		if (response == null) {
-			return;
-		}
-		if (response instanceof UnifiedResponse) {
-			processContext0((UnifiedResponse) response);
-		} else {
-			processContext0();
-		}
-	}
+    @Override
+    public boolean cancel() {
+        return this.cancelled;
+    }
 
-	protected void processContext0() {
-		Map<String, Serializable> responseValues = response.getResponseValues();
-		if (responseValues != null) {
-			ContextUtils.setResponseContext(responseValues);
-		}
+    @Override
+    public boolean isCancelled() {
+        return this.cancelled;
+    }
 
-		if (contextProcessor != null) {
-			contextProcessor.postInvoke(response);
-		}
-	}
+    protected void processContext() {
+        if (response == null) {
+            return;
+        }
+        if (response instanceof UnifiedResponse) {
+            processContext0((UnifiedResponse) response);
+        } else {
+            processContext0();
+        }
+    }
 
-	protected void processContext0(UnifiedResponse response) {
-		if (response != null) {
-			UnifiedResponse _response = (UnifiedResponse) response;
-			Map<String, String> responseValues = _response.getLocalContext();
-			if (responseValues != null) {
-				ContextUtils.setResponseContext((Map) responseValues);
-			}
-		}
-	}
+    protected void processContext0() {
+        Map<String, Serializable> responseValues = response.getResponseValues();
+        if (responseValues != null) {
+            ContextUtils.setResponseContext(responseValues);
+        }
 
-	protected void setResponseContext(InvocationResponse response) {
-		if (response == null) {
-			return;
-		}
+        if (contextProcessor != null) {
+            contextProcessor.postInvoke(response);
+        }
+    }
 
-		if (response instanceof UnifiedResponse) {
-			UnifiedResponse _response = (UnifiedResponse) response;
-			Map<String, String> responseValues = _response.getLocalContext();
-			if (responseValues != null) {
-				ContextUtils.setResponseContext((Map) responseValues);
-			}
-		} else {
-			Map<String, Serializable> responseValues = response.getResponseValues();
-			if (responseValues != null) {
-				ContextUtils.setResponseContext(responseValues);
-			}
-		}
-	}
+    protected void processContext0(UnifiedResponse response) {
+        if (response != null) {
+            UnifiedResponse _response = (UnifiedResponse) response;
+            Map<String, String> responseValues = _response.getLocalContext();
+            if (responseValues != null) {
+                ContextUtils.setResponseContext((Map) responseValues);
+            }
+        }
+    }
+
+    protected void setResponseContext(InvocationResponse response) {
+        if (response == null) {
+            return;
+        }
+
+        if (response instanceof UnifiedResponse) {
+            UnifiedResponse _response = (UnifiedResponse) response;
+            Map<String, String> responseValues = _response.getLocalContext();
+            if (responseValues != null) {
+                ContextUtils.setResponseContext((Map) responseValues);
+            }
+        } else {
+            Map<String, Serializable> responseValues = response.getResponseValues();
+            if (responseValues != null) {
+                ContextUtils.setResponseContext(responseValues);
+            }
+        }
+    }
 
 }

@@ -9,6 +9,7 @@ import java.util.Calendar;
 import java.util.Map;
 
 import com.dianping.pigeon.remoting.common.codec.SerializerFactory;
+import com.dianping.pigeon.remoting.common.codec.SerializerType;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.util.CollectionUtils;
 
@@ -101,7 +102,7 @@ public class MonitorProcessFilter implements ServiceInvocationFilter<ProviderCon
                         transaction.addData("Protocol", channel.getProtocol());
                     }
 
-                    if (request.getSerialize() == SerializerFactory.SERIALIZE_THRIFT) {
+                    if (SerializerType.isThrift(request.getSerialize())) {
                         monitor.logEvent("PigeonService.protocal", request.getApp(), fromIp);
                     }
                 }
