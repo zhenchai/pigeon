@@ -38,7 +38,7 @@ public class LoggerLoader {
                 ctx = LogManager.getContext(false);
             } else {
                 try {
-                    ctx = new org.apache.logging.log4j.core.LoggerContext("Lion", null, url.toURI());
+                    ctx = new org.apache.logging.log4j.core.LoggerContext("Pigeon", null, url.toURI());
                     ((org.apache.logging.log4j.core.LoggerContext) ctx).start();
                 } catch (Exception e) {
                     System.err.println("failed to initialize log4j2...");
