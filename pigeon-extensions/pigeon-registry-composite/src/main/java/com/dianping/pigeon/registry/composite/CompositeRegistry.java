@@ -119,9 +119,13 @@ public class CompositeRegistry implements Registry {
 			try {
 				addr = mergeAddress(addr, registry.getServiceAddress(serviceName));
 			} catch (Throwable t) {
-				logger.info("failed to get service address from registry: " + registry.getName(), t);
+				logger.info("failed to get service address from registry: " + registry.getName());
 			}
 		}
+
+        if (StringUtils.isBlank(addr)) {
+            throw new RegistryException("failed to get service address for " + serviceName);
+        }
 
 		return addr;
 	}
@@ -134,9 +138,13 @@ public class CompositeRegistry implements Registry {
 			try {
 				addr = mergeAddress(addr, registry.getServiceAddress(serviceName, group));
 			} catch (Throwable t) {
-				logger.info("failed to get service address from registry: " + registry.getName(), t);
+				logger.info("failed to get service address from registry: " + registry.getName());
 			}
 		}
+
+        if (StringUtils.isBlank(addr)) {
+            throw new RegistryException("failed to get service address for " + serviceName + "/" + group);
+        }
 
 		return addr;
 	}
@@ -150,9 +158,13 @@ public class CompositeRegistry implements Registry {
 			try {
 				addr = mergeAddress(addr, registry.getServiceAddress(serviceName, group, fallbackDefaultGroup));
 			} catch (Throwable t) {
-				logger.info("failed to get service address from registry: " + registry.getName(), t);
+				logger.info("failed to get service address from registry: " + registry.getName());
 			}
 		}
+
+        if (StringUtils.isBlank(addr)) {
+            throw new RegistryException("failed to get service address for " + serviceName + "/" + group);
+        }
 
 		return addr;
 	}
@@ -167,9 +179,13 @@ public class CompositeRegistry implements Registry {
 				addr = mergeAddress(addr,
 						registry.getServiceAddress(remoteAppkey, serviceName, group, fallbackDefaultGroup));
 			} catch (Throwable t) {
-				logger.info("failed to get service address from registry: " + registry.getName(), t);
+				logger.info("failed to get service address from registry: " + registry.getName());
 			}
 		}
+
+        if (StringUtils.isBlank(addr)) {
+            throw new RegistryException("failed to get service address for " + remoteAppkey + "/" + serviceName + "/" + group);
+        }
 
 		return addr;
 	}
@@ -181,7 +197,8 @@ public class CompositeRegistry implements Registry {
 			try {
 				registry.registerService(serviceName, group, serviceAddress, weight);
 			} catch (Throwable t) {
-				logger.info("failed to register service to registry: " + registry.getName(), t);
+				logger.info("failed to register service to registry: " + registry.getName());
+                throw new RegistryException(t);
 			}
 		}
 	}
@@ -192,7 +209,8 @@ public class CompositeRegistry implements Registry {
 			try {
 				registry.unregisterService(serviceName, serviceAddress);
 			} catch (Throwable t) {
-				logger.info("failed to unregister service to registry: " + registry.getName(), t);
+				logger.info("failed to unregister service to registry: " + registry.getName());
+                throw new RegistryException(t);
 			}
 		}
 	}
@@ -203,7 +221,8 @@ public class CompositeRegistry implements Registry {
 			try {
 				registry.unregisterService(serviceName, group, serviceAddress);
 			} catch (Throwable t) {
-				logger.info("failed to unregister service to registry: " + registry.getName(), t);
+				logger.info("failed to unregister service to registry: " + registry.getName());
+                throw new RegistryException(t);
 			}
 		}
 	}
@@ -217,7 +236,7 @@ public class CompositeRegistry implements Registry {
 			try {
 				checkList.add(registry.getServerWeight(serverAddress));
 			} catch (Throwable t) {
-				logger.info("failed to get weight from registry: " + registry.getName(), t);
+				logger.info("failed to get weight from registry: " + registry.getName());
 			}
 		}
 
@@ -241,7 +260,8 @@ public class CompositeRegistry implements Registry {
 			try {
 				registry.setServerWeight(serverAddress, weight);
 			} catch (Throwable t) {
-				logger.info("failed to set weight to registry: " + registry.getName(), t);
+				logger.info("failed to set weight to registry: " + registry.getName());
+                throw new RegistryException(t);
 			}
 		}
 	}
@@ -255,7 +275,7 @@ public class CompositeRegistry implements Registry {
 			try {
 				checkList.add(registry.getServerApp(serverAddress));
 			} catch (Throwable t) {
-				logger.info("failed to get app from registry: " + registry.getName(), t);
+				logger.info("failed to get app from registry: " + registry.getName());
 			}
 		}
 
@@ -274,7 +294,7 @@ public class CompositeRegistry implements Registry {
 			try {
 				registry.setServerApp(serverAddress, app);
 			} catch (Throwable t) {
-				logger.info("failed to set app to registry: " + registry.getName(), t);
+				logger.info("failed to set app to registry: " + registry.getName());
 			}
 		}
 	}
@@ -285,7 +305,7 @@ public class CompositeRegistry implements Registry {
 			try {
 				registry.unregisterServerApp(serverAddress);
 			} catch (Throwable t) {
-				logger.info("failed to unregister app to registry: " + registry.getName(), t);
+				logger.info("failed to unregister app to registry: " + registry.getName());
 			}
 		}
 	}
@@ -296,7 +316,7 @@ public class CompositeRegistry implements Registry {
 			try {
 				registry.setServerVersion(serverAddress, version);
 			} catch (Throwable t) {
-				logger.info("failed to set version to registry: " + registry.getName(), t);
+				logger.info("failed to set version to registry: " + registry.getName());
 			}
 		}
 	}
@@ -310,7 +330,7 @@ public class CompositeRegistry implements Registry {
 			try {
 				checkList.add(registry.getServerVersion(serverAddress));
 			} catch (Throwable t) {
-				logger.info("failed to get version from registry: " + registry.getName(), t);
+				logger.info("failed to get version from registry: " + registry.getName());
 			}
 		}
 
@@ -329,7 +349,7 @@ public class CompositeRegistry implements Registry {
 			try {
 				registry.unregisterServerVersion(serverAddress);
 			} catch (Throwable t) {
-				logger.info("failed to unregister version to registry: " + registry.getName(), t);
+				logger.info("failed to unregister version to registry: " + registry.getName());
 			}
 		}
 	}
@@ -354,7 +374,7 @@ public class CompositeRegistry implements Registry {
 			try {
 				checkList.add(registry.getServerHeartBeatSupport(serviceAddress));
 			} catch (Throwable t) {
-				logger.info("failed to get heartbeat support from registry: " + registry.getName(), t);
+				logger.info("failed to get heartbeat support from registry: " + registry.getName());
 			}
 		}
 
@@ -376,7 +396,7 @@ public class CompositeRegistry implements Registry {
 			try {
 				checkList.add(registry.isSupportNewProtocol(serviceAddress));
 			} catch (Throwable t) {
-				logger.info("failed to get support new protocol from registry: " + registry.getName(), t);
+				logger.info("failed to get support new protocol from registry: " + registry.getName());
 			}
 		}
 
@@ -398,19 +418,15 @@ public class CompositeRegistry implements Registry {
 			try {
 				checkList.add(registry.isSupportNewProtocol(serviceAddress, serviceName));
 			} catch (Throwable t) {
-				logger.info("failed to get support new protocol from registry: " + registry.getName(), t);
+				logger.info("failed to get support new protocol from registry: " + registry.getName());
 			}
 		}
 
 		if (checkList.size() == 0) {
-			// throw new RegistryException("failed to get service protocol
-			// support for "
-			// + serviceAddress + ", " + serviceName);
-			logger.warn("failed to get service protocol support for " + serviceAddress + ", " + serviceName);
-			support = false;
-		} else {
-			support = checkValueConsistency(checkList, "service protocol support");
+            throw new RegistryException("failed to get service protocol support for " + serviceAddress + ", " + serviceName);
 		}
+
+        support = checkValueConsistency(checkList, "service protocol support");
 
 		return support;
 	}
@@ -422,7 +438,8 @@ public class CompositeRegistry implements Registry {
 			try {
 				registry.setSupportNewProtocol(serviceAddress, serviceName, support);
 			} catch (Throwable t) {
-				logger.info("failed to set support new protocol to registry: " + registry.getName(), t);
+				logger.info("failed to set support new protocol to registry: " + registry.getName());
+                throw new RegistryException(t);
 			}
 		}
 	}
@@ -434,7 +451,8 @@ public class CompositeRegistry implements Registry {
 			try {
 				registry.unregisterSupportNewProtocol(serviceAddress, serviceName, support);
 			} catch (Throwable t) {
-				logger.info("failed to unregister support new protocol to registry: " + registry.getName(), t);
+				logger.info("failed to unregister support new protocol to registry: " + registry.getName());
+                throw new RegistryException(t);
 			}
 		}
 	}
@@ -445,7 +463,7 @@ public class CompositeRegistry implements Registry {
 			try {
 				registry.updateHeartBeat(serviceAddress, heartBeatTimeMillis);
 			} catch (Throwable t) {
-				logger.info("failed to update heartbeat to registry: " + registry.getName(), t);
+				logger.info("failed to update heartbeat to registry: " + registry.getName());
 			}
 		}
 	}
@@ -456,7 +474,7 @@ public class CompositeRegistry implements Registry {
 			try {
 				registry.deleteHeartBeat(serviceAddress);
 			} catch (Throwable t) {
-				logger.info("failed to delete heartbeat to registry: " + registry.getName(), t);
+				logger.info("failed to delete heartbeat to registry: " + registry.getName());
 			}
 		}
 	}
@@ -467,7 +485,7 @@ public class CompositeRegistry implements Registry {
 			try {
 				registry.setServerService(serviceName, group, hosts);
 			} catch (Throwable t) {
-				logger.info("failed to set server service to registry: " + registry.getName(), t);
+				logger.info("failed to set server service to registry: " + registry.getName());
 			}
 		}
 	}
@@ -478,7 +496,7 @@ public class CompositeRegistry implements Registry {
 			try {
 				registry.delServerService(serviceName, group);
 			} catch (Throwable t) {
-				logger.info("failed to delete server service to registry: " + registry.getName(), t);
+				logger.info("failed to delete server service to registry: " + registry.getName());
 			}
 		}
 	}
@@ -489,7 +507,7 @@ public class CompositeRegistry implements Registry {
 			try {
 				registry.setHostsWeight(serviceName, group, hosts, weight);
 			} catch (Throwable t) {
-				logger.info("failed to set hosts weight to registry: " + registry.getName(), t);
+				logger.info("failed to set hosts weight to registry: " + registry.getName());
 			}
 		}
 	}
@@ -504,7 +522,7 @@ public class CompositeRegistry implements Registry {
 				addr = mergeAddress(addr, registry.getServiceAddress(remoteAppkey, serviceName, group,
 						fallbackDefaultGroup, needListener));
 			} catch (Throwable t) {
-				logger.info("failed to get service address from registry: " + registry.getName(), t);
+				logger.info("failed to get service address from registry: " + registry.getName());
 			}
 		}
 
@@ -521,7 +539,7 @@ public class CompositeRegistry implements Registry {
 				addr = mergeAddress(addr,
 						registry.getServiceAddress(serviceName, group, fallbackDefaultGroup, needListener));
 			} catch (Throwable t) {
-				logger.info("failed to get service address from registry: " + registry.getName(), t);
+				logger.info("failed to get service address from registry: " + registry.getName());
 			}
 		}
 
