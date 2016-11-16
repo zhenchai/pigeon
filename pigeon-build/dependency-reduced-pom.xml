@@ -265,28 +265,7 @@
     <dependency>
       <groupId>com.facebook.swift</groupId>
       <artifactId>swift-generator</artifactId>
-      <version>0.16.0-mt-20151222.050944-1</version>
-      <scope>compile</scope>
-      <optional>true</optional>
-    </dependency>
-    <dependency>
-      <groupId>com.facebook.swift</groupId>
-      <artifactId>swift-idl-parser</artifactId>
-      <version>0.16.0-mt-20151222.051729-1</version>
-      <scope>compile</scope>
-      <optional>true</optional>
-    </dependency>
-    <dependency>
-      <groupId>org.antlr</groupId>
-      <artifactId>antlr-runtime</artifactId>
-      <version>3.5</version>
-      <scope>compile</scope>
-      <optional>true</optional>
-    </dependency>
-    <dependency>
-      <groupId>org.antlr</groupId>
-      <artifactId>stringtemplate</artifactId>
-      <version>4.0.2</version>
+      <version>0.16.0-mt-20161114.094117-5</version>
       <scope>compile</scope>
       <optional>true</optional>
     </dependency>
