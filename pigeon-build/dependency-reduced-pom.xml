@@ -144,6 +144,12 @@
       <scope>compile</scope>
     </dependency>
     <dependency>
+      <groupId>com.lmax</groupId>
+      <artifactId>disruptor</artifactId>
+      <version>3.3.6</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
       <groupId>com.facebook.swift</groupId>
       <artifactId>swift-annotations</artifactId>
       <version>0.16.0-mt-20151221.124547-1</version>
