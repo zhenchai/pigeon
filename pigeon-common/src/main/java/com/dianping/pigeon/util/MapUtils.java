@@ -58,14 +58,10 @@ public class MapUtils {
 
     }
 
+
     public static <K, V, T extends V> V getOrCreate(ConcurrentMap<K, V> map, K key, Class<T> clazz) {
 
         return getOrCreate(map, key, new ReflectObjectFactory<T>(clazz));
-    }
-
-    public static <K, V, T extends V> V getOrCreate(ConcurrentMap<K, V> map, K key, V value) {
-
-        return getOrCreate(map, key, value);
     }
 
 

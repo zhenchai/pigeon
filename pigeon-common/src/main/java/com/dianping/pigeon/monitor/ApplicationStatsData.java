@@ -9,7 +9,7 @@ import java.util.concurrent.ConcurrentMap;
  * @author qi.yin
  *         2016/11/03  下午9:07.
  */
-public class ApplicationStatisData extends AbstractStatisData implements ProviderChainable, InvokerStatisable, ProviderStatisable {
+public class ApplicationStatsData extends AbstractStatsData implements ProviderChainable, InvokerStatsable, ProviderStatsable {
 
     private long startMillis = System.currentTimeMillis();
 
@@ -17,11 +17,11 @@ public class ApplicationStatisData extends AbstractStatisData implements Provide
 
     private static transient final ThreadLocal<MethodKey> methodKeys = new ThreadLocal<MethodKey>();
 
-    private final ConcurrentMap<MethodKey, ProviderStatisData> statisDatas = new ConcurrentHashMap<MethodKey, ProviderStatisData>();
+    private final ConcurrentMap<MethodKey, ProviderStatsData> providerDatas = new ConcurrentHashMap<MethodKey, ProviderStatsData>();
 
     private final ConcurrentMap<MethodKey, InvokerMonitorData> invokerDatas = new ConcurrentHashMap<MethodKey, InvokerMonitorData>();
 
-    public ApplicationStatisData(String appName) {
+    public ApplicationStatsData(String appName) {
         this.appName = appName;
     }
 
@@ -41,7 +41,7 @@ public class ApplicationStatisData extends AbstractStatisData implements Provide
         MethodKey sourceKey = methodKeys.get();
 
         if (sourceKey != null) {
-            ProviderStatisData data = MapUtils.getOrCreate(statisDatas, methodKey, ProviderStatisData.class);
+            ProviderStatsData data = MapUtils.getOrCreate(providerDatas, methodKey, ProviderStatsData.class);
             data.startInvoker(methodKey);
         } else {
             super.startInvoker(methodKey);
@@ -53,7 +53,7 @@ public class ApplicationStatisData extends AbstractStatisData implements Provide
         MethodKey sourceKey = methodKeys.get();
 
         if (sourceKey != null) {
-            ProviderStatisData data = MapUtils.getOrCreate(statisDatas, methodKey, ProviderStatisData.class);
+            ProviderStatsData data = MapUtils.getOrCreate(providerDatas, methodKey, ProviderStatsData.class);
             data.completeInvoker(methodKey);
         } else {
             super.completeInvoker(methodKey);
@@ -63,19 +63,19 @@ public class ApplicationStatisData extends AbstractStatisData implements Provide
 
     @Override
     public void addProviderData(MethodKey methodKey, String appName, byte callType, byte serialize, int timeout) {
-        ProviderStatisData data = MapUtils.getOrCreate(statisDatas, methodKey, ProviderStatisData.class);
+        ProviderStatsData data = MapUtils.getOrCreate(providerDatas, methodKey, ProviderStatsData.class);
         data.addProviderData(methodKey, appName, callType, serialize, timeout);
     }
 
     @Override
     public void updateProviderData(MethodKey methodKey, String appName, long elapsed, boolean isSuccess) {
-        ProviderStatisData data = MapUtils.getOrCreate(statisDatas, methodKey, ProviderStatisData.class);
+        ProviderStatsData data = MapUtils.getOrCreate(providerDatas, methodKey, ProviderStatsData.class);
         data.updateProviderData(methodKey, appName, elapsed, isSuccess);
     }
 
     @Override
     public void updateProviderTotalCount(MethodKey methodKey, String appName) {
-        ProviderStatisData data = MapUtils.getOrCreate(statisDatas, methodKey, ProviderStatisData.class);
+        ProviderStatsData data = MapUtils.getOrCreate(providerDatas, methodKey, ProviderStatsData.class);
         data.updateProviderTotalCount(methodKey, appName);
     }
 
@@ -108,8 +108,8 @@ public class ApplicationStatisData extends AbstractStatisData implements Provide
         return appName;
     }
 
-    public ConcurrentMap<MethodKey, ProviderStatisData> getStatisDatas() {
-        return statisDatas;
+    public ConcurrentMap<MethodKey, ProviderStatsData> getProviderDatas() {
+        return providerDatas;
     }
 
     public ConcurrentMap<MethodKey, InvokerMonitorData> getInvokerDatas() {

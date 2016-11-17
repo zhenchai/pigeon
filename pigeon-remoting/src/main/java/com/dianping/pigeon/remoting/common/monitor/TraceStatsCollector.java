@@ -1,8 +1,7 @@
 package com.dianping.pigeon.remoting.common.monitor;
 
 import com.dianping.pigeon.config.ConfigManagerLoader;
-import com.dianping.pigeon.monitor.ApplicationStatisData;
-import com.dianping.pigeon.monitor.MethodKey;
+import com.dianping.pigeon.monitor.ApplicationStatsData;
 import com.dianping.pigeon.remoting.common.domain.InvocationRequest;
 import com.dianping.pigeon.remoting.invoker.config.InvokerConfig;
 import com.dianping.pigeon.remoting.invoker.domain.InvokerContext;
@@ -12,11 +11,11 @@ import com.dianping.pigeon.remoting.provider.domain.ProviderContext;
  * @author qi.yin
  *         2016/11/01  下午4:41.
  */
-public class StatisCollector {
+public class TraceStatsCollector {
 
     private static final String appName = ConfigManagerLoader.getConfigManager().getAppName();
 
-    private static final ApplicationStatisData statisData = new ApplicationStatisData(appName);
+    private static final ApplicationStatsData statisData = new ApplicationStatsData(appName);
 
     public static void updateProvideCount(ProviderContext context) {
         InvocationRequest request = context.getRequest();
@@ -71,7 +70,7 @@ public class StatisCollector {
         statisData.completeInvoker(context.getMethodKey());
     }
 
-    public ApplicationStatisData getStatisData() {
+    public static ApplicationStatsData getStatisData() {
         return statisData;
     }
 

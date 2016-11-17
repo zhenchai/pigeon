@@ -19,6 +19,8 @@ import com.dianping.pigeon.remoting.common.process.ServiceInvocationFilter;
 import com.dianping.pigeon.remoting.common.process.ServiceInvocationHandler;
 import com.dianping.pigeon.remoting.common.util.Constants;
 import com.dianping.pigeon.remoting.provider.domain.ProviderContext;
+import com.dianping.pigeon.remoting.provider.process.filter.SecurityFilter;
+import com.dianping.pigeon.remoting.provider.process.filter.TraceStatsCollectorFilter;
 
 public final class ProviderProcessHandlerFactory {
 
@@ -53,6 +55,7 @@ public final class ProviderProcessHandlerFactory {
 	}
 
 	public static void init() {
+		registerBizProcessFilter(new TraceStatsCollectorFilter());
 		if (Constants.MONITOR_ENABLE) {
 			registerBizProcessFilter(new MonitorProcessFilter());
 		}

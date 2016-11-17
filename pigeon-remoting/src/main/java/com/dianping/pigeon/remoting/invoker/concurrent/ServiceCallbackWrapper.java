@@ -20,7 +20,7 @@ import com.dianping.pigeon.remoting.common.domain.generic.UnifiedResponse;
 import com.dianping.pigeon.remoting.common.exception.BadResponseException;
 import com.dianping.pigeon.remoting.common.exception.RpcException;
 import com.dianping.pigeon.remoting.common.monitor.SizeMonitor;
-import com.dianping.pigeon.remoting.common.monitor.StatisCollector;
+import com.dianping.pigeon.remoting.common.monitor.TraceStatsCollector;
 import com.dianping.pigeon.remoting.common.util.Constants;
 import com.dianping.pigeon.remoting.common.util.ContextUtils;
 import com.dianping.pigeon.remoting.common.util.InvocationUtils;
@@ -138,7 +138,7 @@ public class ServiceCallbackWrapper implements Callback {
             } catch (Throwable e) {
                 logger.error("error while executing service callback", e);
             }
-            StatisCollector.updateInvokeData(invocationContext, request.getCreateMillisTime(), isSuccess);
+            TraceStatsCollector.updateInvokeData(invocationContext, request.getCreateMillisTime(), isSuccess);
         }
     }
 

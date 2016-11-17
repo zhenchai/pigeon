@@ -4,7 +4,7 @@ package com.dianping.pigeon.monitor;
  * @author qi.yin
  *         2016/11/04  下午3:27.
  */
-public interface InvokerStatisable extends Statisable {
+public interface InvokerStatsable extends Statsable {
 
     void addInvokerData(MethodKey methodKey, byte callMethod, byte serialize, int timeout);
 

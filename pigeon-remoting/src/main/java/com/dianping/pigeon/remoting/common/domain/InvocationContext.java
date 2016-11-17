@@ -5,7 +5,6 @@
 package com.dianping.pigeon.remoting.common.domain;
 
 import com.dianping.pigeon.monitor.MethodKey;
-import com.dianping.pigeon.remoting.common.monitor.StatisCollector;
 
 import java.io.Serializable;
 import java.util.List;

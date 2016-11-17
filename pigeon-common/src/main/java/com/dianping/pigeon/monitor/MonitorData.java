@@ -22,7 +22,7 @@ public class MonitorData {
 
     private AtomicLong maxElapsed = new AtomicLong();
 
-    private AtomicLong minElapsed = new AtomicLong();
+    private AtomicLong minElapsed = new AtomicLong(Long.MAX_VALUE);
 
     private AtomicLong totalElapsed = new AtomicLong();
 
@@ -150,11 +150,11 @@ public class MonitorData {
 
 
     protected long computeDuration(long duration) {
-        if (duration < 50) {
+        if (duration < 20) {
             return duration;
-        } else if (duration < 350) {
+        } else if (duration < 200) {
             return duration - duration % 5;
-        } else if (duration < 2500) {
+        } else if (duration < 2000) {
             return duration - duration % 50;
         } else {
             return duration - duration % 500;

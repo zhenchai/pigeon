@@ -9,7 +9,7 @@ import java.util.concurrent.ConcurrentMap;
  * @author qi.yin
  *         2016/11/03  下午8:25.
  */
-public class ProviderStatisData extends AbstractStatisData implements ProviderStatisable {
+public class ProviderStatsData extends AbstractStatsData implements ProviderStatsable {
 
     private final ProviderMonitorData monitorData = new ProviderMonitorData();
 

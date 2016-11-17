@@ -49,4 +49,9 @@ public class MethodKey {
         result = 31 * result + (methodName != null ? methodName.hashCode() : 0);
         return result;
     }
+
+    @Override
+    public String toString() {
+        return "MethodKey{serviceName=" + serviceName + ", methodName=" + methodName + "}";
+    }
 }

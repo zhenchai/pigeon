@@ -4,7 +4,7 @@ package com.dianping.pigeon.monitor;
  * @author qi.yin
  *         2016/11/04  下午3:18.
  */
-public interface ProviderStatisable extends Statisable {
+public interface ProviderStatsable extends Statsable {
 
     void addProviderData(MethodKey methodKey, String appName, byte callType, byte serialize,
                          int timeout);

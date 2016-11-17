@@ -3,7 +3,7 @@ package com.dianping.pigeon.remoting.invoker.process.filter;
 import com.dianping.pigeon.remoting.common.domain.CallMethod;
 import com.dianping.pigeon.remoting.common.domain.InvocationResponse;
 import com.dianping.pigeon.remoting.common.domain.MessageType;
-import com.dianping.pigeon.remoting.common.monitor.StatisCollector;
+import com.dianping.pigeon.remoting.common.monitor.TraceStatsCollector;
 import com.dianping.pigeon.remoting.common.process.ServiceInvocationHandler;
 import com.dianping.pigeon.remoting.invoker.config.InvokerConfig;
 import com.dianping.pigeon.remoting.invoker.domain.InvokerContext;
@@ -12,9 +12,9 @@ import com.dianping.pigeon.remoting.invoker.domain.InvokerContext;
  * @author qi.yin
  *         2016/11/14  下午11:59.
  */
-public class StatisCollectorFilter extends InvocationInvokeFilter {
+public class TraceStatsCollectorFilter extends InvocationInvokeFilter {
 
-    public StatisCollectorFilter() {
+    public TraceStatsCollectorFilter() {
     }
 
     @Override
@@ -22,9 +22,9 @@ public class StatisCollectorFilter extends InvocationInvokeFilter {
         InvokerConfig config = invocationContext.getInvokerConfig();
         long startMillis = System.currentTimeMillis();
 
-        StatisCollector.beforeInvoke(invocationContext);
-        StatisCollector.andInvokeData(invocationContext);
-        StatisCollector.updateInvokeCount(invocationContext);
+        TraceStatsCollector.beforeInvoke(invocationContext);
+        TraceStatsCollector.andInvokeData(invocationContext);
+        TraceStatsCollector.updateInvokeCount(invocationContext);
 
         InvocationResponse response = null;
 
@@ -35,13 +35,13 @@ public class StatisCollectorFilter extends InvocationInvokeFilter {
             if (CallMethod.isSync(config.getCallMethod(invocationContext.getMethodName()))) {
                 if (response != null && (MessageType.isException((byte) response.getMessageType()) ||
                         MessageType.isServiceException((byte) response.getMessageType()))) {
-                    StatisCollector.updateInvokeData(invocationContext, startMillis, false);
+                    TraceStatsCollector.updateInvokeData(invocationContext, startMillis, false);
                 } else {
-                    StatisCollector.updateInvokeData(invocationContext, startMillis, true);
+                    TraceStatsCollector.updateInvokeData(invocationContext, startMillis, true);
                 }
             }
 
-            StatisCollector.afterInvoke(invocationContext);
+            TraceStatsCollector.afterInvoke(invocationContext);
         }
 
         return response;
