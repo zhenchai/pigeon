@@ -24,7 +24,6 @@ public class JettyConsoleProcessor implements JettyHttpServerProcessor {
 
 	@Override
 	public void preStart(ServerConfig serverConfig, Server server, Context context) {
-		System.setProperty("org.freemarker.loggerLibrary", "SLF4J");
 		int port = server.getConnectors()[0].getPort();
 		context.addServlet(new ServletHolder(new ServiceServlet(serverConfig, port)), "/services");
 		context.addServlet(new ServletHolder(new ServicePublishServlet(serverConfig, port)), "/services.publish");
