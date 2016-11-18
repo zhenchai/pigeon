@@ -8,24 +8,25 @@ package com.dianping.pigeon.monitor;
 /**
  * @author xiangwu
  * @Sep 25, 2013
- * 
  */
 public interface MonitorTransaction {
 
-	public void setStatusError(Throwable t);
+    public void setStatusError(Throwable t);
 
-	public void complete();
-	
-	public void complete(long startTime);
+    public void complete();
 
-	public void setStatusOk();
+    public void complete(long startTime);
 
-	public void addData(String name, Object data);
+    public void setStatusOk();
 
-	public void readMonitorContext(String serverDomain);
+    public void addData(String name, Object data);
 
-	public void writeMonitorContext();
+    public void readMonitorContext(String serverDomain);
 
-	public void logEvent(String name, String event, String desc);
+    public void writeMonitorContext();
+
+    public void logEvent(String name, String event, String desc);
+
+    public String getRootMessage();
 
 }

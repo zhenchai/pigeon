@@ -13,7 +13,7 @@ import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import com.dianping.pigeon.remoting.common.monitor.TraceStatsCollector;
+import com.dianping.pigeon.remoting.common.monitor.trace.TraceStatsCollector;
 import com.dianping.pigeon.config.ConfigManager;
 import com.dianping.pigeon.remoting.common.codec.json.JacksonSerializer;
 import com.dianping.pigeon.remoting.provider.config.spring.PoolBean;

@@ -4,7 +4,7 @@
  */
 package com.dianping.pigeon.remoting.invoker.domain;
 
-import com.dianping.pigeon.monitor.MethodKey;
+import com.dianping.pigeon.monitor.trace.MethodKey;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
 

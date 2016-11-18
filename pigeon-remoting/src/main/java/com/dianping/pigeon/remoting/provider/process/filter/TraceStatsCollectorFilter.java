@@ -2,10 +2,11 @@ package com.dianping.pigeon.remoting.provider.process.filter;
 
 import com.dianping.pigeon.remoting.common.domain.InvocationResponse;
 import com.dianping.pigeon.remoting.common.domain.MessageType;
-import com.dianping.pigeon.remoting.common.monitor.TraceStatsCollector;
+import com.dianping.pigeon.remoting.common.monitor.trace.TraceStatsCollector;
 import com.dianping.pigeon.remoting.common.process.ServiceInvocationFilter;
 import com.dianping.pigeon.remoting.common.process.ServiceInvocationHandler;
 import com.dianping.pigeon.remoting.provider.domain.ProviderContext;
+import com.dianping.pigeon.util.TimeUtils;
 
 /**
  * @author qi.yin
@@ -19,7 +20,7 @@ public class TraceStatsCollectorFilter implements ServiceInvocationFilter<Provid
     @Override
     public InvocationResponse invoke(ServiceInvocationHandler handler, ProviderContext invocationContext) throws Throwable {
 
-        long startMillis = System.currentTimeMillis();
+        long startMillis = TimeUtils.currentTimeMillis();
         TraceStatsCollector.beforeProvide(invocationContext);
         TraceStatsCollector.addProvideData(invocationContext);
         InvocationResponse response = null;

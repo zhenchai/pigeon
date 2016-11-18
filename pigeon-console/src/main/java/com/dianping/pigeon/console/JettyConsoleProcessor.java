@@ -58,7 +58,7 @@ public class JettyConsoleProcessor implements JettyHttpServerProcessor {
         context.addServlet(new ServletHolder(providerOnlineStatusServlet), "/onlineStatus");
 
         TraceStatsJsonServlet statsJsonServlet = new TraceStatsJsonServlet();
-        context.addServlet(new ServletHolder(statsJsonServlet), "/traceStats");
+        context.addServlet(new ServletHolder(statsJsonServlet), "/trace");
 
         ServletHolder holder = new ServletHolder(new DefaultServlet());
         URL url = JettyConsoleProcessor.class.getClassLoader().getResource("statics");

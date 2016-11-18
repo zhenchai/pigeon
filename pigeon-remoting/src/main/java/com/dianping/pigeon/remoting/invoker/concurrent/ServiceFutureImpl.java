@@ -18,7 +18,7 @@ import com.dianping.pigeon.remoting.common.exception.ApplicationException;
 import com.dianping.pigeon.remoting.common.exception.BadResponseException;
 import com.dianping.pigeon.remoting.common.exception.RpcException;
 import com.dianping.pigeon.remoting.common.monitor.SizeMonitor;
-import com.dianping.pigeon.remoting.common.monitor.TraceStatsCollector;
+import com.dianping.pigeon.remoting.common.monitor.trace.TraceStatsCollector;
 import com.dianping.pigeon.remoting.common.util.Constants;
 import com.dianping.pigeon.remoting.common.util.InvocationUtils;
 import com.dianping.pigeon.remoting.invoker.domain.InvokerContext;
