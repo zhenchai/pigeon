@@ -12,6 +12,7 @@ import com.dianping.pigeon.log.LoggerLoader;
 import com.dianping.pigeon.remoting.ServiceFactory;
 import com.dianping.pigeon.remoting.provider.config.ProviderConfig;
 import com.dianping.pigeon.util.CollectionUtils;
+import org.springframework.aop.support.AopUtils;
 
 public class ServiceStatusChecker implements StatusChecker {
 
@@ -27,17 +28,7 @@ public class ServiceStatusChecker implements StatusChecker {
 					for (Entry<String, ProviderConfig<?>> entry : serviceProviders.entrySet()) {
 						String serviceName = entry.getKey();
 						ProviderConfig<?> providerConfig = entry.getValue();
-						Class<?> beanClass = providerConfig.getService().getClass();
-						int idxCglib = beanClass.getName().contains("$$EnhancerByCGLIB") ?
-								beanClass.getName().indexOf("$$EnhancerByCGLIB") : beanClass.getName().indexOf("$$EnhancerBySpringCGLIB");
-						if (idxCglib != -1) {
-							try {
-								beanClass = Class.forName(beanClass.getName().substring(0, idxCglib));
-							} catch (ClassNotFoundException e) {
-								throw new IllegalStateException("Failed to export remote service class "
-										+ beanClass.getName(), e);
-							}
-						}
+						Class<?> beanClass = AopUtils.getTargetClass(providerConfig.getService());
 						Map<String, Object> item = new LinkedHashMap<String, Object>();
 						item.put("name", serviceName);
 						item.put("type", beanClass.getName());
