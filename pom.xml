@@ -116,7 +116,7 @@
 			</roles>
 		</developer>
 	</developers>
-	
+
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
@@ -397,7 +397,7 @@
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
-	
+
 	<build>
 		<pluginManagement>
 			<plugins>
@@ -460,7 +460,7 @@
 					<charset>UTF-8</charset>
 					<encoding>UTF-8</encoding>
 					<docencoding>UTF-8</docencoding>
-					<excludePackageNames>com.alibaba.com.*</excludePackageNames>
+					<excludePackageNames>com.dianping.com.*</excludePackageNames>
 					<links>
 						<link>http://docs.oracle.com/javase/6/docs/api</link>
 					</links>
@@ -666,8 +666,8 @@
 			</plugin>
 		</plugins>
 	</reporting>
-	
-	 <distributionManagement>
+
+	<distributionManagement>
 		<repository>
 			<id>dianping.repo</id>
 			<name>Dian Ping internal repository for released artifacts</name>
@@ -679,5 +679,5 @@
 			<url>http://mvn.dianpingoa.com/dianping-snapshots</url>
 		</snapshotRepository>
 	</distributionManagement>
-	
+
 </project>
