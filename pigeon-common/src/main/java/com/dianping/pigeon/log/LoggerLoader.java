@@ -27,8 +27,8 @@ public class LoggerLoader {
         if (context == null) {
             if (StringUtils.isBlank(System.getProperty(LOG_ROOT_KEY))) {
                 System.setProperty(LOG_ROOT_KEY, LOG_ROOT_DEFAULT);
-                LOG_ROOT = LOG_ROOT_DEFAULT;
             }
+            LOG_ROOT = System.getProperty(LOG_ROOT_KEY);
             String appName = AppUtils.getAppName();
             System.setProperty("app.name", appName);
 
@@ -38,7 +38,7 @@ public class LoggerLoader {
                 ctx = LogManager.getContext(false);
             } else {
                 try {
-                    ctx = new org.apache.logging.log4j.core.LoggerContext("Lion", null, url.toURI());
+                    ctx = new org.apache.logging.log4j.core.LoggerContext("Pigeon", null, url.toURI());
                     ((org.apache.logging.log4j.core.LoggerContext) ctx).start();
                 } catch (Exception e) {
                     System.err.println("failed to initialize log4j2...");

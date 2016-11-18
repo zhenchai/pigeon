@@ -54,10 +54,12 @@ public class AutoSwitchRegionPolicy implements RegionPolicy {
         for (Client client : clientList) {
             try {
                 InnerRegionStat regionStat = regionStats.get(client.getRegion());
-                regionStat.addTotal();
-                if (client.isActive() && registryManager.getServiceWeightFromCache(client.getAddress()) > 0) {
-                    regionStat.addActive();
-                    regionStat.addClient(client);
+                if (regionStat != null) {
+                    regionStat.addTotal();
+                    if (client.isActive() && registryManager.getServiceWeightFromCache(client.getAddress()) > 0) {
+                        regionStat.addActive();
+                        regionStat.addClient(client);
+                    }
                 }
             } catch (Throwable t) {
                 logger.error(t);
