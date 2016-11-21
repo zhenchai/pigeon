@@ -16,14 +16,11 @@ import java.util.concurrent.TimeUnit;
 public class PoolBean {
 
     private static Logger logger = LoggerLoader.getLogger(PoolBean.class);
-
-    private ThreadPool threadPool = null;
-
+    private volatile ThreadPool threadPool = null;
     private String poolName;
-    private int corePoolSize;
-    private int maxPoolSize;
-    private int workQueueSize;
-
+    private volatile int corePoolSize;
+    private volatile int maxPoolSize;
+    private volatile int workQueueSize;
 
     public String getPoolName() {
         return poolName;
@@ -90,8 +87,12 @@ public class PoolBean {
         return result;
     }
 
-    public boolean checkNotNull() {
-        if (StringUtils.isNotBlank(poolName) && corePoolSize >= 0 && maxPoolSize > 0 && workQueueSize > 0) {
+    public boolean validate() {
+        if (StringUtils.isNotBlank(poolName)
+                && corePoolSize >= 0
+                && maxPoolSize > 0
+                && maxPoolSize >= corePoolSize
+                && workQueueSize > 0) {
             return true;
         }
         return false;
@@ -126,27 +127,38 @@ public class PoolBean {
                 || (maxPoolSize != threadPool.getExecutor().getMaximumPoolSize())) {
             synchronized (this) {
                 if(threadPool != null && (corePoolSize != threadPool.getExecutor().getCorePoolSize())
-                        || (maxPoolSize != threadPool.getExecutor().getMaximumPoolSize())
-                        && corePoolSize >= 0 && maxPoolSize > 0 && maxPoolSize >= corePoolSize) {
-                    threadPool.getExecutor().setCorePoolSize(corePoolSize);
-                    threadPool.getExecutor().setMaximumPoolSize(maxPoolSize);
+                        || (maxPoolSize != threadPool.getExecutor().getMaximumPoolSize())) {
+                    if (corePoolSize >= 0 && maxPoolSize > 0 && maxPoolSize >= corePoolSize) {
+                        threadPool.getExecutor().setCorePoolSize(corePoolSize);
+                        threadPool.getExecutor().setMaximumPoolSize(maxPoolSize);
+                    } else {
+                        setCorePoolSize(threadPool.getExecutor().getCorePoolSize());
+                        setMaxPoolSize(threadPool.getExecutor().getMaximumPoolSize());
+                        logger.warn("poolBean: " + poolName + " core or max arg is unreasonable, please check!");
+                    }
                 }
             }
         } else if (threadPool != null && workQueueSize
                 != (threadPool.getExecutor().getQueue().size()
                 + threadPool.getExecutor().getQueue().remainingCapacity())) {
             synchronized (this) {
-                if (threadPool != null && workQueueSize > 0 && workQueueSize
+                if (threadPool != null &&  workQueueSize
                         != (threadPool.getExecutor().getQueue().size()
                         + threadPool.getExecutor().getQueue().remainingCapacity())) {
-                    try {
-                        threadPool.getExecutor().shutdown();
-                        threadPool.getExecutor().awaitTermination(5, TimeUnit.SECONDS);
-                        threadPool = new DefaultThreadPool(
-                                "Pigeon-Server-Request-Processor-" + poolName, corePoolSize, maxPoolSize,
-                                new LinkedBlockingQueue<Runnable>(workQueueSize));
-                    } catch (Throwable t) {
-                        logger.warn("error when shutting down old pool", t);
+                    if (workQueueSize > 0) {
+                        try {
+                            threadPool.getExecutor().shutdown();
+                            threadPool.getExecutor().awaitTermination(5, TimeUnit.SECONDS);
+                            threadPool = new DefaultThreadPool(
+                                    "Pigeon-Server-Request-Processor-" + poolName, corePoolSize, maxPoolSize,
+                                    new LinkedBlockingQueue<Runnable>(workQueueSize));
+                        } catch (Throwable t) {
+                            logger.warn("error when shutting down old pool", t);
+                        }
+                    } else {
+                        setWorkQueueSize(threadPool.getExecutor().getQueue().size()
+                                + threadPool.getExecutor().getQueue().remainingCapacity());
+                        logger.warn("poolBean: " + poolName + " queue arg is unreasonable, please check!");
                     }
                 }
             }

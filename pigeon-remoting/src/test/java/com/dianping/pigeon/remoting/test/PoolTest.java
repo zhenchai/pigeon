@@ -60,7 +60,7 @@ public class PoolTest {
             Map<String, PoolBean> _poolNameMapping = Maps.newConcurrentMap();
 
             for (PoolBean poolBean : poolBeen) {
-                if(poolBean.checkNotNull()) {
+                if(poolBean.validate()) {
                     _poolNameMapping.put(poolBean.getPoolName(), poolBean);
                 } else {//报异常,保持原状
                     throw new RuntimeException("pool config error! please check: " + poolBean);
