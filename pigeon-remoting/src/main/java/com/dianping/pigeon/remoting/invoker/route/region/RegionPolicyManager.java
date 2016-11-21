@@ -333,7 +333,6 @@ public enum RegionPolicyManager {
         if(patternRegionMappings.containsKey(pattern)) {
             return patternRegionMappings.get(pattern);
         } else {
-            logger.error("can't find ip pattern in region mapping: " + host);
             return null;
         }
     }
