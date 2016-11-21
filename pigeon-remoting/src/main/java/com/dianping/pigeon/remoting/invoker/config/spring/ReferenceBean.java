@@ -301,23 +301,25 @@ public class ReferenceBean implements FactoryBean {
     }
 
     private void checkRemoteAppkey() {
-        if (StringUtils.isNotBlank(remoteAppKey)) {
-            if (SerializerFactory.getSerialize(serialize) != SerializerFactory.SERIALIZE_THRIFT) {
-                remoteAppKey = "";
-                logger.info("not thrift serialize, set remoteAppKey to null");
-            }
-
-            String[] mtPackageBases = configManager
-                    .getStringValue("pigeon.mt.package.base", "com.sankuai,com.meituan").split(",");
-            boolean isMatch = false;
-            for (String mtPackageBase : mtPackageBases) {
-                if(interfaceName.startsWith(mtPackageBase)) {
-                    isMatch = true;
+        if (configManager.getBooleanValue("pigeon.remote.appkey.check", false)) {
+            if (StringUtils.isNotBlank(remoteAppKey)) {
+                if (SerializerFactory.getSerialize(serialize) != SerializerFactory.SERIALIZE_THRIFT) {
+                    remoteAppKey = "";
+                    logger.info("not thrift serialize, set remoteAppKey to null");
                 }
-            }
-            if (!isMatch) {
-                remoteAppKey = "";
-                logger.info("not match mt package base, set remoteAppKey to null");
+
+                String[] mtPackageBases = configManager
+                        .getStringValue("pigeon.mt.package.base", "com.sankuai,com.meituan").split(",");
+                boolean isMatch = false;
+                for (String mtPackageBase : mtPackageBases) {
+                    if(interfaceName.startsWith(mtPackageBase)) {
+                        isMatch = true;
+                    }
+                }
+                if (!isMatch) {
+                    remoteAppKey = "";
+                    logger.info("not match mt package base, set remoteAppKey to null");
+                }
             }
         }
     }
