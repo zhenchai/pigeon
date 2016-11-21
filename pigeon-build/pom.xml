@@ -122,31 +122,7 @@
 	</dependencies>
 	
 	<build>
-		<plugins>
-			<plugin>
-				<groupId>com.github.github</groupId>
-				<artifactId>site-maven-plugin</artifactId>
-				<version>0.10</version>
-				<configuration>
-					<message>Maven artifacts for ${project.version}</message>  <!--git commit message -->
-					<noJekyll>true</noJekyll>
-					<outputDirectory>${project.build.directory}/</outputDirectory>
-					<branch>refs/heads/mvn-repo</branch>                       <!-- remote branch name -->
-					<includes>
-						<include>**/*</include>
-					</includes>
-					<repositoryName>pigeon</repositoryName>      <!-- github repo name -->
-					<repositoryOwner>dianping</repositoryOwner>    <!-- github username -->
-				</configuration>
-				<executions>
-					<execution>
-						<goals>
-							<goal>site</goal>
-						</goals>
-						<phase>deploy</phase>
-					</execution>
-				</executions>
-			</plugin>
+		<plugins>		
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-shade-plugin</artifactId>
