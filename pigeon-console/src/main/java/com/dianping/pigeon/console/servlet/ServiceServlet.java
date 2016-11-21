@@ -18,8 +18,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.dianping.pigeon.registry.Registry;
-import com.dianping.pigeon.registry.util.Constants;
 import org.apache.commons.lang.StringUtils;
 import com.dianping.pigeon.log.Logger;
 
@@ -47,6 +45,7 @@ import freemarker.template.Configuration;
 import freemarker.template.DefaultObjectWrapper;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
+import org.springframework.aop.support.AopUtils;
 
 /**
  * @author sean.wang
@@ -74,6 +73,12 @@ public class ServiceServlet extends HttpServlet {
 	protected static boolean directInvoke = configManager.getBooleanValue("pigeon.console.invoke.direct", false);
 
 	protected static String token;
+
+	static {
+		if (StringUtils.isBlank(System.getProperty("org.freemarker.loggerLibrary"))) {
+			System.setProperty("org.freemarker.loggerLibrary", "SLF4J");
+		}
+	}
 
 	{
 		Method[] objectMethodArray = Object.class.getMethods();
@@ -128,16 +133,7 @@ public class ServiceServlet extends HttpServlet {
 			ProviderConfig<?> providerConfig = entry.getValue();
 			Service s = new Service();
 			s.setName(serviceName);
-			Class<?> beanClass = providerConfig.getService().getClass();
-			int idxCglib = beanClass.getName().contains("$$EnhancerByCGLIB") ?
-					beanClass.getName().indexOf("$$EnhancerByCGLIB") : beanClass.getName().indexOf("$$EnhancerBySpringCGLIB");
-			if (idxCglib != -1) {
-				try {
-					beanClass = Class.forName(beanClass.getName().substring(0, idxCglib));
-				} catch (ClassNotFoundException e) {
-					throw new IllegalStateException("Failed to export remote service class " + beanClass.getName(), e);
-				}
-			}
+			Class<?> beanClass = AopUtils.getTargetClass(providerConfig.getService());
 			s.setType(beanClass);
 			s.setPublished(providerConfig.isPublished() + "");
 			Map<String, Method> allMethods = new HashMap<String, Method>();

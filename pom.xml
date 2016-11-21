@@ -41,7 +41,7 @@
 		<groovy.version>2.3.9</groovy.version>
 		<commons-codec.version>1.9</commons-codec.version>
 		<jetty-servlet-api.version>2.5-20081211</jetty-servlet-api.version>
-		<freemarker.version>2.3.19</freemarker.version>
+		<freemarker.version>2.3.22</freemarker.version>
 		<slf4j.version>1.7.12</slf4j.version>
 		<disruptor.version>3.3.6</disruptor.version>
 	</properties>
