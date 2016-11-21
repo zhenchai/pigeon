@@ -26,10 +26,10 @@ public final class InvokerProcessHandlerFactory {
 
 	public static void init() {
 		if (!isInitialized) {
-			registerBizProcessFilter(new TraceStatsCollectorFilter());
 			if (Constants.MONITOR_ENABLE) {
 				registerBizProcessFilter(new RemoteCallMonitorInvokeFilter());
 			}
+			registerBizProcessFilter(new TraceFilter());
 			registerBizProcessFilter(new DegradationFilter());
 			registerBizProcessFilter(new ClusterInvokeFilter());
 			registerBizProcessFilter(new GatewayInvokeFilter());

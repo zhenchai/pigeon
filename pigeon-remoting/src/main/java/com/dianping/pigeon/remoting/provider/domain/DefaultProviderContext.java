@@ -6,7 +6,6 @@ package com.dianping.pigeon.remoting.provider.domain;
 
 import java.util.concurrent.Future;
 
-import com.dianping.pigeon.monitor.trace.MethodKey;
 import com.dianping.pigeon.remoting.common.domain.AbstractInvocationContext;
 import com.dianping.pigeon.remoting.common.domain.InvocationRequest;
 import com.dianping.pigeon.remoting.provider.service.method.ServiceMethod;
@@ -24,7 +23,6 @@ public class DefaultProviderContext extends AbstractInvocationContext implements
     public DefaultProviderContext(InvocationRequest request, ProviderChannel channel) {
         super(request);
         this.channel = channel;
-        this.methodKey = new MethodKey(request.getServiceName(), request.getMethodName());
         getTimeline().add(new TimePoint(TimePhase.R, request.getCreateMillisTime()));
         getTimeline().add(new TimePoint(TimePhase.R, TimeUtils.currentTimeMillis()));
     }
@@ -50,7 +48,8 @@ public class DefaultProviderContext extends AbstractInvocationContext implements
         return channel;
     }
 
-    public void setFuture(Future<?> future) {
+    @Override
+    public void setFuture(Future future) {
         this.future = future;
     }
 

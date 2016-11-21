@@ -27,6 +27,6 @@ public interface MonitorTransaction {
 
     public void logEvent(String name, String event, String desc);
 
-    public String getRootMessage();
+    public String getParentRootMessage();
 
 }

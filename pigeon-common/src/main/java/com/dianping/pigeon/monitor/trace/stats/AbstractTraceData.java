@@ -1,4 +1,4 @@
-package com.dianping.pigeon.monitor.trace;
+package com.dianping.pigeon.monitor.trace.stats;
 
 import com.dianping.pigeon.util.MapUtils;
 
@@ -10,9 +10,9 @@ import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * @author qi.yin
- *         2016/11/17  下午2:04.
+ *         2016/11/17  下午1:32.
  */
-public class TraceData {
+public class AbstractTraceData {
 
     private AtomicLong totalCount = new AtomicLong();
 
@@ -36,9 +36,30 @@ public class TraceData {
 
     private transient ConcurrentNavigableMap<Long, AtomicLong> elapseds = new ConcurrentSkipListMap<Long, AtomicLong>();
 
-    public TraceData() {
+    private byte serialize;
+
+    private int timeout;
+
+    public AbstractTraceData() {
 
     }
+
+    public void setSerialize(byte serialize) {
+        this.serialize = serialize;
+    }
+
+    public byte getSerialize() {
+        return serialize;
+    }
+
+    public int getTimeout() {
+        return timeout;
+    }
+
+    public void setTimeout(int timeout) {
+        this.timeout = timeout;
+    }
+
 
     public long getTotalCount() {
         return totalCount.get();

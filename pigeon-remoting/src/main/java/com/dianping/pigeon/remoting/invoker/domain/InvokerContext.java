@@ -4,26 +4,26 @@
  */
 package com.dianping.pigeon.remoting.invoker.domain;
 
+import com.dianping.pigeon.monitor.trace.data.InvokerMonitorData;
 import com.dianping.pigeon.remoting.common.domain.InvocationContext;
 import com.dianping.pigeon.remoting.invoker.Client;
 import com.dianping.pigeon.remoting.invoker.config.InvokerConfig;
 
-public interface InvokerContext extends InvocationContext {
+public interface InvokerContext<M extends InvokerMonitorData> extends InvocationContext<M> {
 
-	InvokerConfig<?> getInvokerConfig();
+    InvokerConfig<?> getInvokerConfig();
 
-	String getMethodName();
-	
-	Class<?>[] getParameterTypes();
+    String getMethodName();
 
-	Object[] getArguments();
+    Class<?>[] getParameterTypes();
 
-	Client getClient();
+    Object[] getArguments();
 
-	void setClient(Client client);
+    Client getClient();
 
-	void setDegraded();
-	
-	boolean isDegraded();
-	
+    void setClient(Client client);
+
+    void setDegraded();
+
+    boolean isDegraded();
 }

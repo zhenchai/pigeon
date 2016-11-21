@@ -6,31 +6,32 @@ package com.dianping.pigeon.remoting.provider.domain;
 
 import java.util.concurrent.Future;
 
+import com.dianping.pigeon.monitor.trace.data.ProviderMonitorData;
 import com.dianping.pigeon.remoting.common.domain.InvocationContext;
 import com.dianping.pigeon.remoting.provider.service.method.ServiceMethod;
 
-public interface ProviderContext extends InvocationContext {
+public interface ProviderContext<M extends ProviderMonitorData> extends InvocationContext<M> {
 
-	Throwable getServiceError();
+    Throwable getServiceError();
 
-	void setServiceError(Throwable serviceError);
+    void setServiceError(Throwable serviceError);
 
-	Throwable getFrameworkError();
+    Throwable getFrameworkError();
 
-	void setFrameworkError(Throwable frameworkError);
+    void setFrameworkError(Throwable frameworkError);
 
-	ProviderChannel getChannel();
+    ProviderChannel getChannel();
 
-	Future<?> getFuture();
+    Future<?> getFuture();
 
-	void setFuture(Future<?> future);
+    void setFuture(Future<?> future);
 
-	Thread getThread();
+    Thread getThread();
 
-	void setThread(Thread thread);
+    void setThread(Thread thread);
 
-	void setServiceMethod(ServiceMethod serviceMethod);
+    void setServiceMethod(ServiceMethod serviceMethod);
 
-	ServiceMethod getServiceMethod();
+    ServiceMethod getServiceMethod();
 
 }

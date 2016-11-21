@@ -12,6 +12,7 @@ import com.dianping.pigeon.log.LoggerLoader;
 import com.dianping.pigeon.monitor.Monitor;
 import com.dianping.pigeon.monitor.MonitorLoader;
 import com.dianping.pigeon.monitor.MonitorTransaction;
+import com.dianping.pigeon.monitor.trace.data.InvokerMonitorData;
 import com.dianping.pigeon.remoting.common.domain.InvocationContext.TimePhase;
 import com.dianping.pigeon.remoting.common.domain.InvocationContext.TimePoint;
 import com.dianping.pigeon.remoting.common.domain.InvocationRequest;
@@ -20,7 +21,6 @@ import com.dianping.pigeon.remoting.common.domain.generic.UnifiedResponse;
 import com.dianping.pigeon.remoting.common.exception.BadResponseException;
 import com.dianping.pigeon.remoting.common.exception.RpcException;
 import com.dianping.pigeon.remoting.common.monitor.SizeMonitor;
-import com.dianping.pigeon.remoting.common.monitor.trace.TraceStatsCollector;
 import com.dianping.pigeon.remoting.common.util.Constants;
 import com.dianping.pigeon.remoting.common.util.ContextUtils;
 import com.dianping.pigeon.remoting.common.util.InvocationUtils;
@@ -138,7 +138,10 @@ public class ServiceCallbackWrapper implements Callback {
             } catch (Throwable e) {
                 logger.error("error while executing service callback", e);
             }
-            TraceStatsCollector.updateInvokeData(invocationContext, request.getCreateMillisTime(), isSuccess);
+
+            InvokerMonitorData monitorData = (InvokerMonitorData) invocationContext.getMonitorData();
+            monitorData.setIsSuccess(isSuccess);
+            monitorData.complete();
         }
     }
 

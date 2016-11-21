@@ -13,9 +13,12 @@ import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import com.dianping.pigeon.remoting.common.monitor.trace.TraceStatsCollector;
+import com.dianping.pigeon.monitor.trace.data.ProviderMonitorData;
 import com.dianping.pigeon.config.ConfigManager;
+import com.dianping.pigeon.monitor.trace.stats.ApplicationKey;
+import com.dianping.pigeon.monitor.trace.stats.MethodKey;
 import com.dianping.pigeon.remoting.common.codec.json.JacksonSerializer;
+import com.dianping.pigeon.remoting.common.monitor.MonitorDataFactory;
 import com.dianping.pigeon.remoting.provider.config.spring.PoolBean;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -144,18 +147,18 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
 
     private static synchronized void refreshPoolConfig(String poolConfig) throws Throwable {
         if (StringUtils.isNotBlank(poolConfig)) {
-            PoolBean[] poolBeen = (PoolBean[])jacksonSerializer.toObject(PoolBean[].class, poolConfig);
+            PoolBean[] poolBeen = (PoolBean[]) jacksonSerializer.toObject(PoolBean[].class, poolConfig);
             Map<String, PoolBean> _poolNameMapping = Maps.newConcurrentMap();
 
             for (PoolBean poolBean : poolBeen) {
-                if(poolBean.checkNotNull()) {
+                if (poolBean.checkNotNull()) {
                     _poolNameMapping.put(poolBean.getPoolName(), poolBean);
                 } else {//报异常,保持原状
                     throw new RuntimeException("pool config error! please check: " + poolBean);
                 }
             }
 
-            if(_poolNameMapping.size() != poolBeen.length) {//报异常,保持原状
+            if (_poolNameMapping.size() != poolBeen.length) {//报异常,保持原状
                 throw new RuntimeException("conflict pool name exists, please check!");
             } else {
                 List<PoolBean> poolBeenToClose = Lists.newLinkedList();
@@ -192,7 +195,7 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
                                                        final ProviderContext providerContext) {
         requestContextMap.put(request, providerContext);
 
-        TraceStatsCollector.updateProvideCount(providerContext);
+        doMonitorData(request, providerContext);
 
         Callable<InvocationResponse> requestExecutor = new Callable<InvocationResponse>() {
 
@@ -233,6 +236,13 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
         // }
     }
 
+    private void doMonitorData(InvocationRequest request, ProviderContext providerContext) {
+        ProviderMonitorData monitorData = MonitorDataFactory.newProviderMonitorData(new ApplicationKey(request.getApp()),
+                new MethodKey(request.getServiceName(), request.getMethodName()));
+        providerContext.setMonitorData(monitorData);
+        monitorData.start();
+    }
+
 
     private void checkRequest(final ThreadPool pool, final InvocationRequest request) {
         GatewayProcessFilter.checkRequest(request);
@@ -268,14 +278,14 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
             String poolName = apiPoolConfigMapping.get(methodKey);
             if (StringUtils.isNotBlank(poolName)) { // 方法级别
                 poolBean = poolNameMapping.get(poolName);
-                if(poolBean != null) {
+                if (poolBean != null) {
                     pool = poolBean.getRefreshedThreadPool();
                 }
             } else { // 服务级别
                 poolName = apiPoolConfigMapping.get(serviceKey);
                 if (StringUtils.isNotBlank(poolName)) {
                     poolBean = poolNameMapping.get(poolName);
-                    if(poolBean != null) {
+                    if (poolBean != null) {
                         pool = poolBean.getRefreshedThreadPool();
                     }
                 }

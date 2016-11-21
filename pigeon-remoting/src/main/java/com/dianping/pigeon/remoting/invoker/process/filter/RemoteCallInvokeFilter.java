@@ -8,6 +8,7 @@ import com.dianping.pigeon.log.Logger;
 import com.dianping.pigeon.log.LoggerLoader;
 import com.dianping.pigeon.monitor.MonitorLoader;
 import com.dianping.pigeon.monitor.MonitorTransaction;
+import com.dianping.pigeon.monitor.trace.data.InvokerMonitorData;
 import com.dianping.pigeon.remoting.common.domain.CallMethod;
 import com.dianping.pigeon.remoting.common.domain.InvocationContext.TimePhase;
 import com.dianping.pigeon.remoting.common.domain.InvocationContext.TimePoint;
@@ -24,6 +25,7 @@ import com.dianping.pigeon.remoting.invoker.concurrent.ServiceFutureImpl;
 import com.dianping.pigeon.remoting.invoker.config.InvokerConfig;
 import com.dianping.pigeon.remoting.invoker.domain.DefaultInvokerContext;
 import com.dianping.pigeon.remoting.invoker.domain.InvokerContext;
+import com.dianping.pigeon.remoting.invoker.route.region.Region;
 import com.dianping.pigeon.remoting.invoker.util.InvokerHelper;
 import com.dianping.pigeon.remoting.invoker.util.InvokerUtils;
 
@@ -34,8 +36,8 @@ import com.dianping.pigeon.remoting.invoker.util.InvokerUtils;
  */
 public class RemoteCallInvokeFilter extends InvocationInvokeFilter {
 
-	private static final Logger logger = LoggerLoader.getLogger(RemoteCallInvokeFilter.class);
-	private static final InvocationResponse NO_RETURN_RESPONSE = InvokerUtils.createNoReturnResponse();
+    private static final Logger logger = LoggerLoader.getLogger(RemoteCallInvokeFilter.class);
+    private static final InvocationResponse NO_RETURN_RESPONSE = InvokerUtils.createNoReturnResponse();
 
     @Override
     public InvocationResponse invoke(ServiceInvocationHandler handler, InvokerContext invocationContext)
@@ -52,16 +54,27 @@ public class RemoteCallInvokeFilter extends InvocationInvokeFilter {
             return InvokerUtils.createDefaultResponse(InvokerHelper.getDefaultResult());
         }
         InvocationResponse response = null;
-		Integer timeoutThreadLocal = InvokerHelper.getTimeout();
-		if (timeoutThreadLocal != null) {
-			request.setTimeout(timeoutThreadLocal.intValue());
-		}
+        Integer timeoutThreadLocal = InvokerHelper.getTimeout();
+        if (timeoutThreadLocal != null) {
+            request.setTimeout(timeoutThreadLocal.intValue());
+        }
 
         MonitorTransaction transaction = MonitorLoader.getMonitor().getCurrentCallTransaction();
         if (transaction != null) {
             transaction.addData("CurrentTimeout", request.getTimeout());
         }
+
         CallMethod callMethod = CallMethod.getCallMethod(callMethodCode);
+
+        InvokerMonitorData monitorData = (InvokerMonitorData) invocationContext.getMonitorData();
+        monitorData.setCallMethod(callMethodCode);
+        monitorData.setIsDegraded(invocationContext.isDegraded());
+        monitorData.setSerialize(request.getSerialize());
+        monitorData.setTimeout(request.getTimeout());
+        Region region = client.getRegion();
+        monitorData.setRegion(region == null ? null : region.getName());
+        monitorData.add();
+
         try {
             switch (callMethod) {
                 case SYNC:

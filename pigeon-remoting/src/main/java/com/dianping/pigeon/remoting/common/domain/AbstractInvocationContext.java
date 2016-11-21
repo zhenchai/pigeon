@@ -4,7 +4,7 @@
  */
 package com.dianping.pigeon.remoting.common.domain;
 
-import com.dianping.pigeon.monitor.trace.MethodKey;
+import com.dianping.pigeon.monitor.trace.data.MonitorData;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -12,14 +12,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public abstract class AbstractInvocationContext implements InvocationContext {
+public abstract class AbstractInvocationContext<M extends MonitorData> implements InvocationContext<M> {
 
     protected InvocationRequest request;
     protected InvocationResponse response;
     private Map<String, Serializable> contextValues;
     private List<TimePoint> timeline = new ArrayList<TimePoint>();
 
-    protected MethodKey methodKey;
+    protected M monitorData;
 
     public AbstractInvocationContext(InvocationRequest request) {
         this.request = request;
@@ -70,12 +70,12 @@ public abstract class AbstractInvocationContext implements InvocationContext {
     }
 
     @Override
-    public void setMethodKey(MethodKey methodKey) {
-        this.methodKey = methodKey;
+    public M getMonitorData() {
+        return this.monitorData;
     }
 
     @Override
-    public MethodKey getMethodKey() {
-        return methodKey;
+    public void setMonitorData(M monitorData) {
+        this.monitorData = monitorData;
     }
 }

@@ -1,4 +1,6 @@
-package com.dianping.pigeon.monitor.trace;
+package com.dianping.pigeon.monitor.trace.stats;
+
+import com.dianping.pigeon.monitor.trace.data.MonitorData;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -7,7 +9,7 @@ import java.util.concurrent.ConcurrentMap;
  * @author qi.yin
  *         2016/11/17  下午3:15.
  */
-public abstract class AbstractAllTraceData<T extends TraceData> {
+public abstract class AbstractAllTraceData<M extends MonitorData, T extends AbstractTraceData> implements AllTraceData<M> {
 
     protected ConcurrentMap<KeyPair<SourceKey, DestinationKey>, T> traceDatas =
             new ConcurrentHashMap<KeyPair<SourceKey, DestinationKey>, T>();
@@ -16,12 +18,9 @@ public abstract class AbstractAllTraceData<T extends TraceData> {
 
     }
 
-    public void start(SourceKey srcKey, DestinationKey dstKey) {
-        //
-    }
+    @Override
+    public void reset() {
 
-    public void complete(SourceKey srcKey, DestinationKey dstKey) {
-        //
     }
 
     public ConcurrentMap<KeyPair<SourceKey, DestinationKey>, T> getTraceDatas() {

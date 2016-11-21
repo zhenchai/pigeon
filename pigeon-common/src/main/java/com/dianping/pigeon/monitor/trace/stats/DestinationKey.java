@@ -1,4 +1,4 @@
-package com.dianping.pigeon.monitor.trace;
+package com.dianping.pigeon.monitor.trace.stats;
 
 /**
  * @author qi.yin
