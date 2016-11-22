@@ -27,7 +27,6 @@ public class InvokerAllTraceData extends AbstractAllTraceData<InvokerMonitorData
         traceStatsData.setCallMethod(monitorData.getCallMethod());
         traceStatsData.setSerialize(monitorData.getSerialize());
         traceStatsData.setTimeout(monitorData.getTimeout());
-        traceStatsData.setDegraded(monitorData.isDegraded());
         traceStatsData.setRegion(monitorData.getRegion());
     }
 
@@ -44,6 +43,14 @@ public class InvokerAllTraceData extends AbstractAllTraceData<InvokerMonitorData
         } else {
             traceStatsData.incTotalFailed();
         }
+    }
+
+    public void degrade(InvokerMonitorData monitorData) {
+        InvokerTraceData traceStatsData = MapUtils.getOrCreate(traceDatas,
+                new KeyPair<SourceKey, DestinationKey>(monitorData.getSrcKey(), monitorData.getDstKey()),
+                InvokerTraceData.class);
+
+        traceStatsData.incDegradedCount();
     }
 
     @Override

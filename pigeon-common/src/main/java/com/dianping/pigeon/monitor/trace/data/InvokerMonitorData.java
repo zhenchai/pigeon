@@ -14,8 +14,6 @@ public class InvokerMonitorData extends AbstractMonitorData {
 
     private String region;
 
-    private boolean isDegraded;
-
     public byte getCallMethod() {
         return callMethod;
     }
@@ -56,6 +54,13 @@ public class InvokerMonitorData extends AbstractMonitorData {
         this.traceData.start(this);
     }
 
+
+    @Override
+    public void degrade() {
+        this.traceData.degrade(this);
+    }
+
+
     public void setCallMethod(byte callMethod) {
         this.callMethod = callMethod;
     }
@@ -68,11 +73,4 @@ public class InvokerMonitorData extends AbstractMonitorData {
         this.region = region;
     }
 
-    public boolean isDegraded() {
-        return isDegraded;
-    }
-
-    public void setIsDegraded(boolean isDegraded) {
-        this.isDegraded = isDegraded;
-    }
 }

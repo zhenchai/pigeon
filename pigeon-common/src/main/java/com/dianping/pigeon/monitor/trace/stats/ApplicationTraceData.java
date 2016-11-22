@@ -55,6 +55,10 @@ public class ApplicationTraceData {
         invokerTraceData.addData(monitorData);
     }
 
+    public void degrade(InvokerMonitorData monitorData){
+        invokerTraceData.degrade(monitorData);
+    }
+
     public void reset() {
         invokerTraceData.reset();
         providerTraceData.reset();

@@ -68,10 +68,11 @@ public class RemoteCallInvokeFilter extends InvocationInvokeFilter {
 
         InvokerMonitorData monitorData = (InvokerMonitorData) invocationContext.getMonitorData();
         monitorData.setCallMethod(callMethodCode);
-        monitorData.setIsDegraded(invocationContext.isDegraded());
         monitorData.setSerialize(request.getSerialize());
         monitorData.setTimeout(request.getTimeout());
+
         Region region = client.getRegion();
+
         monitorData.setRegion(region == null ? null : region.getName());
         monitorData.add();
 

@@ -10,6 +10,8 @@ public interface MonitorData {
 
     void trace();
 
+    void degrade();
+
     void add();
 
     void complete();

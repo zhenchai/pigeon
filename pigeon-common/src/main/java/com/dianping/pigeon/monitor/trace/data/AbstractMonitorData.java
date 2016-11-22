@@ -53,6 +53,11 @@ public abstract class AbstractMonitorData implements MonitorData {
         //
     }
 
+    @Override
+    public void degrade() {
+
+    }
+
     public SourceKey getSrcKey() {
         return srcKey;
     }

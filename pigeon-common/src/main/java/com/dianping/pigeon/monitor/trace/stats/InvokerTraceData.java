@@ -17,8 +17,6 @@ public class InvokerTraceData extends AbstractTraceData {
 
     private byte callMethod;
 
-    private boolean degraded;
-
     private String region;
 
     public byte getCallMethod() {
@@ -29,19 +27,19 @@ public class InvokerTraceData extends AbstractTraceData {
         this.callMethod = callMethod;
     }
 
-    public boolean isDegraded() {
-        return degraded;
-    }
-
-    public void setDegraded(boolean degraded) {
-        this.degraded = degraded;
-    }
-
     public String getRegion() {
         return region;
     }
 
     public void setRegion(String region) {
         this.region = region;
+    }
+
+    public long getDegradedCount() {
+        return degradedCount.get();
+    }
+
+    public void incDegradedCount() {
+        this.degradedCount.incrementAndGet();
     }
 }
