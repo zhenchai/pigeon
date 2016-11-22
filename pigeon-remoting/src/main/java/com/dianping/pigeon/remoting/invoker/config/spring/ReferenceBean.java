@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.dianping.pigeon.remoting.common.codec.SerializerType;
+import com.dianping.pigeon.remoting.common.domain.CallMethod;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
@@ -42,7 +43,7 @@ public class ReferenceBean implements FactoryBean {
 
     private String serialize = SerializerType.HESSIAN.getName();
 
-    private String callType = Constants.CALL_SYNC;
+    private String callType = CallMethod.SYNC.getName();
 
     private String cluster = Constants.CLUSTER_FAILFAST;
 

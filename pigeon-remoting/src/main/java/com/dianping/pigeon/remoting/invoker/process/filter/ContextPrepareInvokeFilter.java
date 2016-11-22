@@ -11,6 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 import com.dianping.pigeon.remoting.common.codec.SerializerType;
+import com.dianping.pigeon.remoting.common.domain.*;
 import org.apache.commons.lang.StringUtils;
 
 import com.dianping.pigeon.config.ConfigManagerLoader;
@@ -21,11 +22,8 @@ import com.dianping.pigeon.monitor.MonitorLoader;
 import com.dianping.pigeon.monitor.MonitorTransaction;
 import com.dianping.pigeon.registry.RegistryManager;
 import com.dianping.pigeon.registry.exception.RegistryException;
-import com.dianping.pigeon.remoting.common.domain.CompactRequest;
 import com.dianping.pigeon.remoting.common.domain.InvocationContext.TimePhase;
 import com.dianping.pigeon.remoting.common.domain.InvocationContext.TimePoint;
-import com.dianping.pigeon.remoting.common.domain.InvocationRequest;
-import com.dianping.pigeon.remoting.common.domain.InvocationResponse;
 import com.dianping.pigeon.remoting.common.domain.generic.UnifiedRequest;
 import com.dianping.pigeon.remoting.common.process.ServiceInvocationHandler;
 import com.dianping.pigeon.remoting.common.util.Constants;
@@ -112,10 +110,10 @@ public class ContextPrepareInvokeFilter extends InvocationInvokeFilter {
                     }
                 }
             }
-            if (Constants.CALL_ONEWAY.equalsIgnoreCase(invokerConfig.getCallType())) {
-                request.setCallType(Constants.CALLTYPE_NOREPLY);
+            if (CallMethod.isOneway(invokerConfig.getCallType())) {
+                request.setCallType(CallType.NOREPLY.getCode());
             } else {
-                request.setCallType(Constants.CALLTYPE_REPLY);
+                request.setCallType(CallType.REPLY.getCode());
             }
         }
     }

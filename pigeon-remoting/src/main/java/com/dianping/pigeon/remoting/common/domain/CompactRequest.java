@@ -66,10 +66,10 @@ public class CompactRequest implements InvocationRequest {
                 this.serialize = invokerConfig.getSerialize();
                 this.timeout = invokerConfig.getTimeout(invokerContext.getMethodName());
                 // this.setVersion(invokerConfig.getVersion());
-                if (Constants.CALL_ONEWAY.equalsIgnoreCase(invokerConfig.getCallType())) {
-                    this.setCallType(Constants.CALLTYPE_NOREPLY);
+                if (CallMethod.isOneway(invokerConfig.getCallType())) {
+                    this.setCallType(CallType.NOREPLY.getCode());
                 } else {
-                    this.setCallType(Constants.CALLTYPE_REPLY);
+                    this.setCallType(CallType.REPLY.getCode());
                 }
                 this.serviceName = invokerConfig.getUrl();
                 this.methodName = invokerContext.getMethodName();
