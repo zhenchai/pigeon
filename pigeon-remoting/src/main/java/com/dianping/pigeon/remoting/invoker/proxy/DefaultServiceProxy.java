@@ -5,7 +5,7 @@ import com.dianping.pigeon.remoting.invoker.config.InvokerConfig;
 /**
  * Created by chenchongze on 15/12/16.
  */
-public class DefaultServiceProxy extends AbstractServiceProxy implements ServiceProxy {
+public final class DefaultServiceProxy extends AbstractServiceProxy {
 
     @Override
     public <T> T getProxy(InvokerConfig<T> invokerConfig) {

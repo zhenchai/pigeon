@@ -21,7 +21,7 @@ public class HealthCheckProcessFilter implements ServiceInvocationFilter<Provide
 	public InvocationResponse invoke(ServiceInvocationHandler handler, ProviderContext invocationContext)
 			throws Throwable {
 		if (invocationContext.getRequest().getMessageType() == Constants.MESSAGE_TYPE_HEALTHCHECK) {
-			return ProviderUtils.createHealthCheckResponse(invocationContext.getRequest());
+			return ProviderUtils.createHealthCheckResponse(invocationContext);
 		}
 		return handler.handle(invocationContext);
 	}

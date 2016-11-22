@@ -201,6 +201,22 @@ public class CuratorClient {
 		}
 	}
 
+	public String get(String path, Stat stat) throws Exception {
+		if (exists(path, false)) {
+			byte[] bytes = client.getData().storingStatIn(stat).forPath(path);
+			String value = new String(bytes, CHARSET);
+			if (logger.isDebugEnabled()) {
+				logger.debug("get value of node " + path + ", value " + value);
+			}
+			return value;
+		} else {
+			if (logger.isDebugEnabled()) {
+				logger.debug("node " + path + " does not exist");
+			}
+			return null;
+		}
+	}
+
 	public String get(String path, boolean watch) throws Exception {
 		if (exists(path, watch)) {
 			byte[] bytes = client.getData().forPath(path);

@@ -8,6 +8,8 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
+import com.dianping.pigeon.util.TimeUtils;
+
 public interface InvocationContext {
 
 	InvocationRequest getRequest();
@@ -76,7 +78,7 @@ public interface InvocationContext {
 
 		public TimePoint(TimePhase phase) {
 			this.phase = phase;
-			this.time = System.currentTimeMillis();
+			this.time = TimeUtils.currentTimeMillis();
 		}
 
 		public TimePhase getPhase() {

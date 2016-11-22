@@ -141,7 +141,7 @@ public class InvokeJsonServlet extends ServiceServlet {
 				authToken = request.getParameter("token");
 			}
 			try {
-				SecurityFilter.authenticateRequest(app, fromIp, timestamp, "", authToken, serviceName, methodName);
+				SecurityFilter.authenticateRequestToken(app, fromIp, timestamp, "", authToken, serviceName, methodName);
 			} catch (SecurityException e) {
 				writeResponse(response, new ResponseError(e.getMessage(), null, 403));
 				return;

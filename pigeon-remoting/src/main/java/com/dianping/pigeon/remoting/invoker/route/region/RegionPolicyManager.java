@@ -100,7 +100,10 @@ public enum RegionPolicyManager {
 
         clientList = regionPolicy.getPreferRegionClients(clientList, request);
         checkClientsNotNull(clientList, invokerConfig);
-        monitor.logEvent("PigeonCall.region", request.getServiceName() + "#" + clientList.get(0).getRegion().getName(), "");
+        Region regionSample = clientList.get(0).getRegion();
+        if (regionSample != null) {
+            monitor.logEvent("PigeonCall.region", request.getServiceName() + "#" + regionSample.getName(), "");
+        }
 
         return clientList;
     }
@@ -330,7 +333,6 @@ public enum RegionPolicyManager {
         if(patternRegionMappings.containsKey(pattern)) {
             return patternRegionMappings.get(pattern);
         } else {
-            logger.error("can't find ip pattern in region mapping: " + host);
             return null;
         }
     }

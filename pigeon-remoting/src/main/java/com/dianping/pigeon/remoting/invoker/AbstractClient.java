@@ -11,6 +11,7 @@ import com.dianping.pigeon.remoting.common.domain.InvocationRequest;
 import com.dianping.pigeon.remoting.common.domain.InvocationResponse;
 import com.dianping.pigeon.remoting.common.exception.NetworkException;
 import com.dianping.pigeon.remoting.common.util.Constants;
+import com.dianping.pigeon.remoting.invoker.client.ClientConfig;
 import com.dianping.pigeon.remoting.invoker.client.HeartbeatTask;
 import com.dianping.pigeon.remoting.invoker.process.ResponseProcessor;
 import com.dianping.pigeon.remoting.invoker.route.region.Region;
@@ -26,33 +27,20 @@ public abstract class AbstractClient implements Client {
 
     protected volatile boolean isActive = true;
 
-    private boolean heartbeated = true;
-
-    private int heartbeatTimeout;
-
-    private int clientThreshold;
-
-    private int heartbeatInterval;
-
-    protected AtomicBoolean isClosed = new AtomicBoolean(true);
+    protected final AtomicBoolean isClosed = new AtomicBoolean(true);
 
     private final ResponseProcessor responseProcessor;
 
     private ScheduledFuture<?> heatbeatTimer;
 
+    protected ClientConfig clientConfig;
+
     private static final ScheduledThreadPoolExecutor scheduled = new ScheduledThreadPoolExecutor(
             4, new NamedThreadFactory("Pigeon-Client-HeartBeat-ThreadPool", true));
 
-    public AbstractClient(ResponseProcessor responseProcessor,
-                          boolean heartbeated,
-                          int heartbeatTimeout,
-                          int clientThreshold,
-                          int heartbeatInterval) {
+    public AbstractClient(ClientConfig clientConfig, ResponseProcessor responseProcessor) {
+        this.clientConfig = clientConfig;
         this.responseProcessor = responseProcessor;
-        this.heartbeated = heartbeated;
-        this.heartbeatTimeout = heartbeatTimeout;
-        this.clientThreshold = clientThreshold;
-        this.heartbeatInterval = heartbeatInterval;
     }
 
     public void open() {
@@ -122,10 +110,14 @@ public abstract class AbstractClient implements Client {
 
     private void startHeatbeat() {
         stopHeartbeat();
-        if (heartbeated && Constants.PROTOCOL_DEFAULT.equals(getProtocol())) {
+
+        if (clientConfig.isHeartbeated() && Constants.PROTOCOL_DEFAULT.equals(getProtocol())) {
+
             heatbeatTimer = scheduled.scheduleWithFixedDelay(
-                    new HeartbeatTask(AbstractClient.this, heartbeatTimeout, clientThreshold),
-                    heartbeatInterval, heartbeatInterval, TimeUnit.MILLISECONDS);
+                    new HeartbeatTask(clientConfig, AbstractClient.this),
+                    clientConfig.getHeartbeatInterval(),
+                    clientConfig.getHeartbeatInterval(),
+                    TimeUnit.MILLISECONDS);
         }
     }
 

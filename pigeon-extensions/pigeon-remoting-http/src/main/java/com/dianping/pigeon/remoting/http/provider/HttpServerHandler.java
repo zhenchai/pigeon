@@ -11,25 +11,24 @@ import java.util.concurrent.Future;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.dianping.pigeon.extension.ExtensionLoader;
-import com.dianping.pigeon.remoting.http.adapter.HttpAdapter;
-import com.dianping.pigeon.remoting.http.adapter.HttpAdapterFactory;
 import org.apache.commons.lang.StringUtils;
 
-import com.dianping.pigeon.log.LoggerLoader;
-
+import com.dianping.pigeon.extension.ExtensionLoader;
 import com.dianping.pigeon.log.Logger;
-
+import com.dianping.pigeon.log.LoggerLoader;
 import com.dianping.pigeon.remoting.common.codec.Serializer;
 import com.dianping.pigeon.remoting.common.codec.SerializerFactory;
 import com.dianping.pigeon.remoting.common.domain.InvocationRequest;
 import com.dianping.pigeon.remoting.common.domain.InvocationResponse;
 import com.dianping.pigeon.remoting.common.util.Constants;
 import com.dianping.pigeon.remoting.http.HttpUtils;
+import com.dianping.pigeon.remoting.http.adapter.HttpAdapter;
+import com.dianping.pigeon.remoting.http.adapter.HttpAdapterFactory;
 import com.dianping.pigeon.remoting.provider.Server;
 import com.dianping.pigeon.remoting.provider.domain.DefaultProviderContext;
 import com.dianping.pigeon.remoting.provider.domain.ProviderContext;
 import com.dianping.pigeon.remoting.provider.util.ProviderUtils;
+import com.dianping.pigeon.util.TimeUtils;
 
 public class HttpServerHandler implements HttpHandler {
 
@@ -45,7 +44,7 @@ public class HttpServerHandler implements HttpHandler {
 
 	@Override
 	public void handle(HttpServletRequest request, HttpServletResponse response) throws Exception {
-		long createTime = System.currentTimeMillis();
+		long createTime = TimeUtils.currentTimeMillis();
 		Object obj;
 		String customize = request.getParameter("customize");
 		if("true".equalsIgnoreCase(customize)) {

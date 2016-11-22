@@ -2,14 +2,12 @@ package com.dianping.pigeon.remoting.invoker.route.region;
 
 import com.dianping.pigeon.config.ConfigManager;
 import com.dianping.pigeon.config.ConfigManagerLoader;
-import com.dianping.pigeon.domain.HostInfo;
 import com.dianping.pigeon.log.LoggerLoader;
 import com.dianping.pigeon.monitor.Monitor;
 import com.dianping.pigeon.monitor.MonitorLoader;
 import com.dianping.pigeon.registry.RegistryManager;
 import com.dianping.pigeon.remoting.common.domain.InvocationRequest;
 import com.dianping.pigeon.remoting.invoker.Client;
-import com.dianping.pigeon.remoting.invoker.ClientManager;
 import com.dianping.pigeon.remoting.invoker.route.quality.RequestQualityManager;
 import com.google.common.collect.Lists;
 import com.dianping.pigeon.log.Logger;
@@ -31,16 +29,12 @@ public class AutoSwitchRegionPolicy implements RegionPolicy {
 
     private final RequestQualityManager requestQualityManager = RequestQualityManager.INSTANCE;
 
-    private final ClientManager clientManager = ClientManager.getInstance();
-
     private final RegistryManager registryManager = RegistryManager.getInstance();
-
-    private Map<String, Set<HostInfo>> serviceHostInfos = clientManager.getServiceHosts();
-    private Map<String, Client> allClients = clientManager.getClusterListener().getAllClients();
     private final ConfigManager configManager = ConfigManagerLoader.getConfigManager();
     private final Monitor monitor = MonitorLoader.getMonitor();
 
-    private AutoSwitchRegionPolicy() {}
+    private AutoSwitchRegionPolicy() {
+    }
 
     @Override
     public List<Client> getPreferRegionClients(List<Client> clientList, InvocationRequest request) {
@@ -53,17 +47,19 @@ public class AutoSwitchRegionPolicy implements RegionPolicy {
         Map<Region, InnerRegionStat> regionStats = new HashMap<Region, InnerRegionStat>();
         List<Region> regionArrays = Lists.newArrayList(regionPolicyManager.getRegionArray());
 
-        for(Region region : regionArrays) {
+        for (Region region : regionArrays) {
             regionStats.put(region, new InnerRegionStat());
         }
 
-        for(Client client : clientList) {
+        for (Client client : clientList) {
             try {
                 InnerRegionStat regionStat = regionStats.get(client.getRegion());
-                regionStat.addTotal();
-                if(client.isActive() && registryManager.getServiceWeightFromCache(client.getAddress()) > 0) {
-                    regionStat.addActive();
-                    regionStat.addClient(client);
+                if (regionStat != null) {
+                    regionStat.addTotal();
+                    if (client.isActive() && registryManager.getServiceWeightFromCache(client.getAddress()) > 0) {
+                        regionStat.addActive();
+                        regionStat.addClient(client);
+                    }
                 }
             } catch (Throwable t) {
                 logger.error(t);
@@ -103,7 +99,7 @@ public class AutoSwitchRegionPolicy implements RegionPolicy {
             } catch (Throwable t) {
                 logger.error(t);
             } finally {
-                //todo 如果用户强制要求留在第一个region，这里做判断
+                //todo if force region, maybe here
             }
         }
 

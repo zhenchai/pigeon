@@ -7,6 +7,8 @@ package com.dianping.pigeon.remoting.provider.util;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.lang.StringUtils;
+
 import com.dianping.pigeon.config.ConfigManager;
 import com.dianping.pigeon.config.ConfigManagerLoader;
 import com.dianping.pigeon.remoting.common.codec.SerializerFactory;
@@ -17,9 +19,12 @@ import com.dianping.pigeon.remoting.common.domain.generic.UnifiedResponse;
 import com.dianping.pigeon.remoting.common.exception.BadRequestException;
 import com.dianping.pigeon.remoting.common.util.Constants;
 import com.dianping.pigeon.remoting.common.util.InvocationUtils;
+import com.dianping.pigeon.remoting.provider.config.ProviderConfig;
 import com.dianping.pigeon.remoting.provider.domain.ProviderContext;
 import com.dianping.pigeon.remoting.provider.process.ProviderExceptionTranslator;
+import com.dianping.pigeon.remoting.provider.publish.ServicePublisher;
 import com.dianping.pigeon.util.LangUtils;
+import com.dianping.pigeon.util.TimeUtils;
 import com.dianping.pigeon.util.VersionUtils;
 
 public final class ProviderUtils {
@@ -178,7 +183,7 @@ public final class ProviderUtils {
 
     public static InvocationResponse createHeartResponse(InvocationRequest request) {
         if (request instanceof UnifiedRequest) {
-            return createHeartResponse0((UnifiedRequest)request);
+            return createHeartResponse0((UnifiedRequest) request);
         } else {
             return createHeartResponse0(request);
         }
@@ -194,7 +199,7 @@ public final class ProviderUtils {
         response.setServiceName(request.getServiceName());
         response.setMethodName(request.getMethodName());
         response.setSeqId(request.getSeqId());
-        response.setCreateMillisTime(System.currentTimeMillis());
+        response.setCreateMillisTime(TimeUtils.currentTimeMillis());
         return response;
     }
 
@@ -217,11 +222,35 @@ public final class ProviderUtils {
             response.setServiceName(request.getServiceName());
             response.setMethodName(request.getMethodName());
             response.setSeqId(((UnifiedRequest) request).getSeqId());
-            response.setCreateMillisTime(System.currentTimeMillis());
+            response.setCreateMillisTime(TimeUtils.currentTimeMillis());
             return response;
         } else {
             throw new BadRequestException("invalid scanner heartbeat request");
         }
+    }
+
+    public static InvocationResponse createHealthCheckResponse(ProviderContext invocationContext) {
+        InvocationRequest request = invocationContext.getRequest();
+        InvocationResponse response = InvocationUtils.newResponse(Constants.MESSAGE_TYPE_HEALTHCHECK, request.getSerialize());
+        response.setSequence(request.getSequence());
+        Map<String, Object> info = new HashMap<String, Object>();
+        info.put("version", VersionUtils.VERSION);
+        info.put("group", configManager.getGroup());
+        info.put("env", configManager.getEnv());
+        //check service exists
+        info.put("serviceCheck", Boolean.FALSE);
+        String serviceName = request.getServiceName();
+        if (StringUtils.isNotBlank(serviceName)) {
+            Map<String, ProviderConfig<?>> serviceCache = ServicePublisher.getAllServiceProviders();
+            ProviderConfig providerConfig = serviceCache.get(serviceName);
+            if (providerConfig != null
+                    && invocationContext.getChannel().getPort() == providerConfig.getServerConfig().getActualPort()) {
+                info.put("serviceCheck", Boolean.TRUE);
+            }
+        }
+
+        response.setReturn(info);
+        return response;
     }
 
     public static InvocationResponse createHealthCheckResponse(InvocationRequest request) {
@@ -241,7 +270,7 @@ public final class ProviderUtils {
         msg.append(title).append(", from:")
                 .append(providerContext.getChannel() == null ? "" : providerContext.getChannel().getRemoteAddress())
                 .append(", to:").append(ConfigManagerLoader.getConfigManager().getLocalIp())
-                .append(", time:").append(System.currentTimeMillis()).append("\r\nrequest:")
+                .append(", time:").append(TimeUtils.currentTimeMillis()).append("\r\nrequest:")
                 .append(request);
         return msg.toString();
     }

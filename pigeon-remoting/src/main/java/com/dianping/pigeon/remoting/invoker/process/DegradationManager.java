@@ -13,12 +13,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import com.dianping.pigeon.log.Logger;
-import com.dianping.pigeon.remoting.invoker.process.filter.DegradationFilter;
 import org.springframework.util.CollectionUtils;
 
 import com.dianping.pigeon.config.ConfigManager;
 import com.dianping.pigeon.config.ConfigManagerLoader;
+import com.dianping.pigeon.log.Logger;
 import com.dianping.pigeon.log.LoggerLoader;
 import com.dianping.pigeon.monitor.Monitor;
 import com.dianping.pigeon.monitor.MonitorLoader;
@@ -26,7 +25,9 @@ import com.dianping.pigeon.remoting.common.exception.RejectedException;
 import com.dianping.pigeon.remoting.invoker.domain.InvokerContext;
 import com.dianping.pigeon.remoting.invoker.exception.RemoteInvocationException;
 import com.dianping.pigeon.remoting.invoker.exception.RequestTimeoutException;
+import com.dianping.pigeon.remoting.invoker.exception.ServiceDegradedException;
 import com.dianping.pigeon.remoting.invoker.exception.ServiceUnavailableException;
+import com.dianping.pigeon.remoting.invoker.process.filter.DegradationFilter;
 import com.dianping.pigeon.remoting.invoker.route.quality.RequestQualityManager;
 import com.dianping.pigeon.remoting.invoker.route.quality.RequestQualityManager.Quality;
 import com.dianping.pigeon.threadpool.DefaultThreadFactory;
@@ -53,8 +54,9 @@ public enum DegradationManager {
 	private static final String KEY_DEGRADE_PERCENT_MAX = "pigeon.invoker.degrade.percent.max";
 	private static final String KEY_DEGRADE_CHECK_SECONDS = "pigeon.invoker.degrade.check.seconds";
 	private static final String KEY_DEGRADE_CHECK_INTERVAL = "pigeon.invoker.degrade.check.interval";
-	private static final ExecutorService checkThreadPool = Executors.newFixedThreadPool(1, new DefaultThreadFactory(
-			"Pigeon-Client-Degrade-Checker"));
+	private static final String KEY_DEGRADE_LOG_ENABLE = "pigeon.invoker.degrade.log.enable";
+	private static final ExecutorService checkThreadPool = Executors.newFixedThreadPool(1,
+			new DefaultThreadFactory("Pigeon-Client-Degrade-Checker"));
 	private static final Random random = new Random();
 	private final Monitor monitor = MonitorLoader.getMonitor();
 
@@ -71,6 +73,7 @@ public enum DegradationManager {
 		configManager.getFloatValue(KEY_DEGRADE_PERCENT_MAX, 99.90f);
 		configManager.getIntValue(KEY_DEGRADE_CHECK_SECONDS, 10);
 		configManager.getIntValue(KEY_DEGRADE_CHECK_INTERVAL, 2);
+		configManager.getBooleanValue(KEY_DEGRADE_LOG_ENABLE, false);
 		checkThreadPool.execute(new Checker());
 	}
 
@@ -79,25 +82,25 @@ public enum DegradationManager {
 	}
 
 	public boolean needDegrade(InvokerContext context) {
-		if(degradationIsEnable(context)) {
+		if (degradationIsEnable(context)) {
 			if (configManager.getBooleanValue(KEY_DEGRADE_FORCE, false)) {
 				return true;
 			}
 
 			if (configManager.getBooleanValue(KEY_DEGRADE_AUTO, false)) {
 				if (!CollectionUtils.isEmpty(requestCountMap)) {
-					String requestUrl = getRequestUrl(context);
+					String requestUrl = getRequestUrl(context); 
 					Count count = requestCountMap.get(requestUrl);
 					if (count != null) {
 						if (count.getTotalValue() >= configManager.getIntValue(KEY_DEGRADE_THRESHOLD_TOTAL, 100)) {
-							if ((count.getTotalValue() - count.getDegradedValue()) > configManager.getIntValue(
-									KEY_DEGRADE_THRESHOLD_INVOKE, 2)
-									&& count.getFailedPercent() < configManager.getFloatValue(KEY_DEGRADE_RECOVER_PERCENT,
-									1)) {
+							if ((count.getTotalValue() - count.getDegradedValue()) > configManager
+									.getIntValue(KEY_DEGRADE_THRESHOLD_INVOKE, 2)
+									&& count.getFailedPercent() < configManager
+											.getFloatValue(KEY_DEGRADE_RECOVER_PERCENT, 1)) {
 								return random(count.getDegradedPercent()
 										- configManager.getIntValue(KEY_DEGRADE_RECOVER_INTERVAL, 10));
-							} else if (count.getFailedPercent() >= configManager.getFloatValue(KEY_DEGRADE_RECOVER_PERCENT,
-									1)) {
+							} else if (count.getFailedPercent() >= configManager
+									.getFloatValue(KEY_DEGRADE_RECOVER_PERCENT, 1)) {
 								return random(configManager.getFloatValue(KEY_DEGRADE_PERCENT_MAX, 99.90f));
 							}
 						}
@@ -113,13 +116,13 @@ public enum DegradationManager {
 	}
 
 	public boolean needFailureDegrade(InvokerContext context) {
-		return degradationIsEnable(context) &&
-				(configManager.getBooleanValue(KEY_DEGRADE_AUTO, false)
-						|| configManager.getBooleanValue(KEY_DEGRADE_FAILURE, false));
+		return degradationIsEnable(context) && (configManager.getBooleanValue(KEY_DEGRADE_AUTO, false)
+				|| configManager.getBooleanValue(KEY_DEGRADE_FAILURE, false));
 	}
 
 	private boolean degradationIsEnable(InvokerContext context) {
-		DegradationFilter.DegradeAction action = DegradationFilter.getDegradeMethodActions().get(getRequestUrl(context));
+		DegradationFilter.DegradeAction action = DegradationFilter.getDegradeMethodActions()
+				.get(getRequestUrl(context));
 		return action != null && action.getEnable();
 	}
 
@@ -128,15 +131,19 @@ public enum DegradationManager {
 	}
 
 	public void addFailedRequest(InvokerContext context, Throwable t) {
-		if (t instanceof ServiceUnavailableException
-				|| t instanceof RequestTimeoutException || t instanceof RemoteInvocationException
-				|| t instanceof RejectedException) {
+		if (t instanceof ServiceUnavailableException || t instanceof RequestTimeoutException
+				|| t instanceof RemoteInvocationException || t instanceof RejectedException) {
 			addRequest(context, t, false);
 		}
 	}
 
-	public void addDegradedRequest(InvokerContext context) {
+	public void addDegradedRequest(InvokerContext context, Throwable t) {
 		addRequest(context, null, true);
+		if (configManager.getBooleanValue(KEY_DEGRADE_LOG_ENABLE, false) && !(t instanceof ServiceDegradedException)) {
+			ServiceDegradedException ex = new ServiceDegradedException(getRequestUrl(context), t);
+			ex.setStackTrace(new StackTraceElement[] {});
+			monitor.logError(ex);
+		}
 	}
 
 	private void addRequest(InvokerContext context, Throwable t, boolean degraded) {

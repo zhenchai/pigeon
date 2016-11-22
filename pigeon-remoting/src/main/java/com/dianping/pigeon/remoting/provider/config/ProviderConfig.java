@@ -6,6 +6,7 @@ package com.dianping.pigeon.remoting.provider.config;
 
 import java.util.Map;
 
+import com.dianping.pigeon.remoting.provider.config.spring.PoolBean;
 import com.dianping.pigeon.util.ThriftUtils;
 import com.dianping.pigeon.util.VersionUtils;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
@@ -31,7 +32,16 @@ public class ProviderConfig<T> {
     private Map<String, ProviderMethodConfig> methods;
     private int actives = 0;
 
-    public boolean supported;
+    private boolean supported;
+    private PoolBean poolBean;
+
+    public PoolBean getPoolBean() {
+        return poolBean;
+    }
+
+    public void setPoolBean(PoolBean poolBean) {
+        this.poolBean = poolBean;
+    }
 
     public int getActives() {
         return actives;

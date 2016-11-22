@@ -5,14 +5,14 @@
 package com.dianping.pigeon.remoting.http.invoker;
 
 import java.net.ConnectException;
+import java.util.List;
 
-import com.dianping.pigeon.remoting.common.channel.Channel;
-import com.dianping.pigeon.remoting.invoker.process.ResponseProcessor;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpConnectionManager;
 import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
 import org.apache.commons.httpclient.params.HttpConnectionManagerParams;
 
+import com.dianping.pigeon.remoting.common.channel.Channel;
 import com.dianping.pigeon.remoting.common.codec.SerializerFactory;
 import com.dianping.pigeon.remoting.common.domain.InvocationRequest;
 import com.dianping.pigeon.remoting.common.domain.InvocationResponse;
@@ -20,9 +20,10 @@ import com.dianping.pigeon.remoting.common.exception.NetworkException;
 import com.dianping.pigeon.remoting.common.util.Constants;
 import com.dianping.pigeon.remoting.common.util.InvocationUtils;
 import com.dianping.pigeon.remoting.invoker.AbstractClient;
+import com.dianping.pigeon.remoting.invoker.client.ClientConfig;
 import com.dianping.pigeon.remoting.invoker.domain.ConnectInfo;
-
-import java.util.List;
+import com.dianping.pigeon.remoting.invoker.process.ResponseProcessor;
+import com.dianping.pigeon.util.TimeUtils;
 
 public class HttpInvokerClient extends AbstractClient {
 
@@ -33,17 +34,10 @@ public class HttpInvokerClient extends AbstractClient {
     private boolean isConnected = false;
     public static final String CONTENT_TYPE_SERIALIZED_OBJECT = "application/x-java-serialized-object";
 
-    public HttpInvokerClient(ConnectInfo connectInfo,
-                             ResponseProcessor responseProcessor,
-                             boolean heartbeated,
-                             int heartbeatTimeout,
-                             int clientThreshold,
-                             int heartbeatInterval) {
-        super(responseProcessor,
-                heartbeated,
-                heartbeatTimeout,
-                clientThreshold,
-                heartbeatInterval);
+    public HttpInvokerClient(ClientConfig clientConfig,
+                             ConnectInfo connectInfo,
+                             ResponseProcessor responseProcessor) {
+        super(clientConfig, responseProcessor);
 
         this.connectInfo = connectInfo;
         if (logger.isInfoEnabled()) {
@@ -77,7 +71,7 @@ public class HttpInvokerClient extends AbstractClient {
                 Constants.HEART_TASK_METHOD, null, SerializerFactory.SERIALIZE_HESSIAN,
                 Constants.MESSAGE_TYPE_HEART, 5000, null);
         request.setSequence(0);
-        request.setCreateMillisTime(System.currentTimeMillis());
+        request.setCreateMillisTime(TimeUtils.currentTimeMillis());
         request.setCallType(Constants.CALLTYPE_REPLY);
         InvocationResponse response = null;
         try {

@@ -6,24 +6,25 @@ package com.dianping.pigeon.remoting.invoker.process.filter;
 
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.dianping.pigeon.remoting.common.domain.generic.UnifiedRequest;
 import org.apache.commons.lang.StringUtils;
-import com.dianping.pigeon.log.Logger;
 
 import com.dianping.pigeon.config.ConfigChangeListener;
 import com.dianping.pigeon.config.ConfigManager;
 import com.dianping.pigeon.config.ConfigManagerLoader;
+import com.dianping.pigeon.log.Logger;
 import com.dianping.pigeon.log.LoggerLoader;
 import com.dianping.pigeon.registry.RegistryManager;
-import com.dianping.pigeon.remoting.common.domain.InvocationRequest;
-import com.dianping.pigeon.remoting.common.domain.InvocationResponse;
 import com.dianping.pigeon.remoting.common.domain.InvocationContext.TimePhase;
 import com.dianping.pigeon.remoting.common.domain.InvocationContext.TimePoint;
+import com.dianping.pigeon.remoting.common.domain.InvocationRequest;
+import com.dianping.pigeon.remoting.common.domain.InvocationResponse;
+import com.dianping.pigeon.remoting.common.domain.generic.UnifiedRequest;
 import com.dianping.pigeon.remoting.common.process.ServiceInvocationHandler;
 import com.dianping.pigeon.remoting.common.util.Constants;
 import com.dianping.pigeon.remoting.common.util.SecurityUtils;
 import com.dianping.pigeon.remoting.invoker.config.InvokerConfig;
 import com.dianping.pigeon.remoting.invoker.domain.InvokerContext;
+import com.dianping.pigeon.util.TimeUtils;
 
 /**
  * @author xiangwu
@@ -55,8 +56,9 @@ public class SecurityFilter extends InvocationInvokeFilter {
                         }
                     }
                 }
-                appSecrets.clear();
+                ConcurrentHashMap<String, String> old = appSecrets;
                 appSecrets = map;
+                old.clear();
             } catch (RuntimeException e) {
                 logger.error("error while parsing app secret configuration:" + config, e);
             }
@@ -87,7 +89,7 @@ public class SecurityFilter extends InvocationInvokeFilter {
     }
 
     private static int getCurrentTime() {
-        return (int) (System.currentTimeMillis() / 1000);
+        return (int) (TimeUtils.currentTimeMillis() / 1000);
     }
 
     @Override

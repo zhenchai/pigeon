@@ -22,6 +22,7 @@ import com.dianping.pigeon.remoting.provider.process.ProviderInterceptorFactory;
 import com.dianping.pigeon.remoting.provider.process.ProviderProcessInterceptor;
 import com.dianping.pigeon.remoting.provider.process.ProviderProcessInterceptorFactory;
 import com.dianping.pigeon.remoting.provider.process.statistics.ProviderStatisticsHolder;
+import com.dianping.pigeon.util.TimeUtils;
 
 public final class ProviderHelper {
 
@@ -51,7 +52,7 @@ public final class ProviderHelper {
 		InvocationResponse response = null;
 		if (Constants.REPLY_MANUAL && request.getCallType() != Constants.CALLTYPE_NOREPLY) {
 			response = ProviderUtils.createSuccessResponse(request, returnObj);
-			context.getTimeline().add(new TimePoint(TimePhase.B, System.currentTimeMillis()));
+			context.getTimeline().add(new TimePoint(TimePhase.B, TimeUtils.currentTimeMillis()));
 			ProviderChannel channel = context.getChannel();
 			MonitorTransaction transaction = null;
 			if (Constants.MONITOR_ENABLE) {
@@ -84,7 +85,7 @@ public final class ProviderHelper {
 							}
 						}
 						if (transaction != null) {
-							context.getTimeline().add(new TimePoint(TimePhase.E, System.currentTimeMillis()));
+							context.getTimeline().add(new TimePoint(TimePhase.E, TimeUtils.currentTimeMillis()));
 							try {
 								transaction.complete();
 							} catch (Throwable e) {

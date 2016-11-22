@@ -4,18 +4,17 @@
  */
 package com.dianping.pigeon.remoting.invoker;
 
-import com.dianping.pigeon.remoting.invoker.route.region.RegionPolicyManager;
 import com.dianping.pigeon.log.Logger;
-
 import com.dianping.pigeon.log.LoggerLoader;
 import com.dianping.pigeon.monitor.Monitor;
 import com.dianping.pigeon.monitor.MonitorLoader;
-import com.dianping.pigeon.registry.config.RegistryConfigLoader;
 import com.dianping.pigeon.remoting.common.codec.SerializerFactory;
 import com.dianping.pigeon.remoting.invoker.process.InvokerProcessHandlerFactory;
 import com.dianping.pigeon.remoting.invoker.process.ResponseProcessorFactory;
 import com.dianping.pigeon.remoting.invoker.route.balance.LoadBalanceManager;
+import com.dianping.pigeon.remoting.invoker.route.region.RegionPolicyManager;
 import com.dianping.pigeon.remoting.invoker.service.ServiceInvocationRepository;
+import com.dianping.pigeon.util.TimeUtils;
 import com.dianping.pigeon.util.VersionUtils;
 
 public final class InvokerBootStrap {
@@ -32,11 +31,11 @@ public final class InvokerBootStrap {
 		if (!isStartup) {
 			synchronized (InvokerBootStrap.class) {
 				if (!isStartup) {
-					RegistryConfigLoader.init();
 					ServiceInvocationRepository.getInstance().init();
 					InvokerProcessHandlerFactory.init();
 					SerializerFactory.init();
 					LoadBalanceManager.init();
+					TimeUtils.currentTimeMillis();
 					RegionPolicyManager.INSTANCE.init();
 					Monitor monitor = MonitorLoader.getMonitor();
 					if (monitor != null) {

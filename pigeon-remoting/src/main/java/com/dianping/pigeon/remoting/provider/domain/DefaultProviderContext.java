@@ -9,6 +9,7 @@ import java.util.concurrent.Future;
 import com.dianping.pigeon.remoting.common.domain.AbstractInvocationContext;
 import com.dianping.pigeon.remoting.common.domain.InvocationRequest;
 import com.dianping.pigeon.remoting.provider.service.method.ServiceMethod;
+import com.dianping.pigeon.util.TimeUtils;
 
 public class DefaultProviderContext extends AbstractInvocationContext implements ProviderContext {
 
@@ -24,7 +25,7 @@ public class DefaultProviderContext extends AbstractInvocationContext implements
 		super(request);
 		this.channel = channel;
 		getTimeline().add(new TimePoint(TimePhase.R, request.getCreateMillisTime()));
-		getTimeline().add(new TimePoint(TimePhase.R, System.currentTimeMillis()));
+		getTimeline().add(new TimePoint(TimePhase.R, TimeUtils.currentTimeMillis()));
 	}
 
 	public Throwable getServiceError() {

@@ -10,11 +10,10 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.lang.StringUtils;
-import com.dianping.pigeon.log.Logger;
 
-import com.dianping.pigeon.config.ConfigConstants;
 import com.dianping.pigeon.config.ConfigManager;
 import com.dianping.pigeon.config.ConfigManagerLoader;
+import com.dianping.pigeon.log.Logger;
 import com.dianping.pigeon.log.LoggerLoader;
 import com.dianping.pigeon.registry.RegistryManager;
 import com.dianping.pigeon.registry.exception.RegistryException;
@@ -41,9 +40,6 @@ public final class ServicePublisher {
 	private static ConfigManager configManager = ConfigManagerLoader.getConfigManager();
 
 	private static ServiceChangeListener serviceChangeListener = new DefaultServiceChangeListener();
-
-	private static boolean DEFAULT_NOTIFY_ENABLE = ConfigConstants.ENV_DEV.equalsIgnoreCase(configManager.getEnv()) ? false
-			: Constants.DEFAULT_NOTIFY_ENABLE;
 
 	private static boolean DEFAULT_HEARTBEAT_ENABLE = true;
 
@@ -111,6 +107,7 @@ public final class ServicePublisher {
 		publishService(providerConfig, true);
 	}
 
+	// atom
 	public static <T> void publishService(ProviderConfig<T> providerConfig, boolean forcePublish)
 			throws RegistryException {
 		String url = providerConfig.getUrl();
@@ -133,7 +130,7 @@ public final class ServicePublisher {
 				List<Server> servers = ProviderBootStrap.getServers(providerConfig);
 				int registerCount = 0;
 				for (Server server : servers) {
-					publishService(url, server.getRegistryUrl(url), server.getPort(), providerConfig.getServerConfig()
+					publishServiceToRegistry(url, server.getRegistryUrl(url), server.getPort(), providerConfig.getServerConfig()
 							.getGroup(), providerConfig.isSupported());
 					registerCount++;
 				}
@@ -145,7 +142,7 @@ public final class ServicePublisher {
 					}
 
 					boolean isNotify = configManager
-							.getBooleanValue(Constants.KEY_NOTIFY_ENABLE, DEFAULT_NOTIFY_ENABLE);
+							.getBooleanValue(Constants.KEY_NOTIFY_ENABLE, false);
 					if (isNotify && serviceChangeListener != null) {
 						serviceChangeListener.notifyServicePublished(providerConfig);
 					}
@@ -189,7 +186,7 @@ public final class ServicePublisher {
 		}
 	}
 
-	private synchronized static <T> void publishService(String url, String registryUrl, int port, String group, boolean support)
+	private synchronized static <T> void publishServiceToRegistry(String url, String registryUrl, int port, String group, boolean support)
 			throws RegistryException {
 		String ip = configManager.getLocalIp();
 		if (!canRegister(ip)) {
@@ -214,11 +211,11 @@ public final class ServicePublisher {
 		if (!autoRegisterEnable) {
 			weight = 0;
 		}
-		boolean enableOnlineTask = ConfigManagerLoader.getConfigManager().getBooleanValue("pigeon.online.task.enable",
+		/*boolean enableOnlineTask = ConfigManagerLoader.getConfigManager().getBooleanValue("pigeon.online.task.enable",
 				true);
 		if (!enableOnlineTask) {
 			weight = Constants.WEIGHT_DEFAULT;
-		}
+		}*/
 		if (serverWeightCache.containsKey(serverAddress)) {
 			weight = -1;
 		}
@@ -297,7 +294,7 @@ public final class ServicePublisher {
 				HeartBeatListener.unregisterHeartBeat(providerConfig);
 			}
 
-			boolean isNotify = configManager.getBooleanValue(Constants.KEY_NOTIFY_ENABLE, DEFAULT_NOTIFY_ENABLE);
+			boolean isNotify = configManager.getBooleanValue(Constants.KEY_NOTIFY_ENABLE, false);
 			if (isNotify && serviceChangeListener != null) {
 				serviceChangeListener.notifyServiceUnpublished(providerConfig);
 			}

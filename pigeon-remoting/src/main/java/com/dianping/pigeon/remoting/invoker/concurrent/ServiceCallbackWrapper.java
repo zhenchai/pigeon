@@ -29,6 +29,7 @@ import com.dianping.pigeon.remoting.invoker.domain.InvokerContext;
 import com.dianping.pigeon.remoting.invoker.process.DegradationManager;
 import com.dianping.pigeon.remoting.invoker.process.ExceptionManager;
 import com.dianping.pigeon.remoting.invoker.process.filter.DegradationFilter;
+import com.dianping.pigeon.util.TimeUtils;
 
 public class ServiceCallbackWrapper implements Callback {
 
@@ -55,7 +56,7 @@ public class ServiceCallbackWrapper implements Callback {
 	public void run() {
 		InvokerConfig<?> invokerConfig = invocationContext.getInvokerConfig();
 		MonitorTransaction transaction = null;
-		long currentTime = System.currentTimeMillis();
+		long currentTime = TimeUtils.currentTimeMillis();
 		String addr = null;
 		if (client != null) {
 			addr = client.getAddress();
@@ -69,9 +70,10 @@ public class ServiceCallbackWrapper implements Callback {
 			}
 			if (transaction != null) {
 				transaction.setStatusOk();
-				transaction.addData("CallType", invokerConfig.getCallType());
-				transaction.addData("Timeout", invokerConfig.getTimeout());
-				transaction.addData("Serialize", request.getSerialize());
+				transaction.logEvent("PigeonCall.callType", invokerConfig.getCallType(), "");
+				transaction.logEvent("PigeonCall.serialize", request.getSerialize() + "", "");
+				transaction.logEvent("PigeonCall.timeout", invokerConfig.getTimeout() + "", "");
+
 				if (response != null && response.getSize() > 0) {
 					String respSize = SizeMonitor.getInstance().getLogSize(response.getSize());
 					if (respSize != null) {
@@ -87,17 +89,20 @@ public class ServiceCallbackWrapper implements Callback {
 				msg.append("request callback timeout:").append(request);
 				Exception e = InvocationUtils.newTimeoutException(msg.toString());
 				e.setStackTrace(new StackTraceElement[] {});
+				InvocationResponse degradedResponse = null;
 				if (DegradationManager.INSTANCE.needFailureDegrade(invocationContext)) {
 					try {
-						DegradationFilter.degradeCall(invocationContext);
+						degradedResponse = DegradationFilter.degradeCall(invocationContext);
 					} catch (Throwable t) {
 						logger.warn("failure degrade in callback call type error: " + t.toString());
 					}
 				}
-				DegradationManager.INSTANCE.addFailedRequest(invocationContext, e);
-				ExceptionManager.INSTANCE.logRpcException(addr, invocationContext.getInvokerConfig().getUrl(),
-						invocationContext.getMethodName(), "request callback timeout", e, request, response,
-						transaction);
+				if (degradedResponse == null) {
+					DegradationManager.INSTANCE.addFailedRequest(invocationContext, e);
+					ExceptionManager.INSTANCE.logRpcException(addr, invocationContext.getInvokerConfig().getUrl(),
+							invocationContext.getMethodName(), "request callback timeout", e, request, response,
+							transaction);
+				}
 			}
 		} finally {
 			try {
@@ -108,17 +113,21 @@ public class ServiceCallbackWrapper implements Callback {
 					RpcException e = ExceptionManager.INSTANCE.logRemoteCallException(addr,
 							invocationContext.getInvokerConfig().getUrl(), invocationContext.getMethodName(),
 							"remote call error with callback", request, response, transaction);
+					InvocationResponse degradedResponse = null;
 					if (DegradationManager.INSTANCE.needFailureDegrade(invocationContext)) {
 						try {
-							DegradationFilter.degradeCall(invocationContext);
+							degradedResponse = DegradationFilter.degradeCall(invocationContext);
 						} catch (Throwable t) {
 							logger.warn("failure degrade in callback call type error: " + t.toString());
 						}
 					}
-					DegradationManager.INSTANCE.addFailedRequest(invocationContext, e);
+					if (degradedResponse == null) {
+						DegradationManager.INSTANCE.addFailedRequest(invocationContext, e);
+					}
 					completeTransaction(transaction);
-
-					this.callback.onFailure(e);
+					if (degradedResponse == null) {
+						this.callback.onFailure(e);
+					}
 				} else if (response.getMessageType() == Constants.MESSAGE_TYPE_SERVICE_EXCEPTION) {
 					Exception e = ExceptionManager.INSTANCE
 							.logRemoteServiceException("remote service biz error with callback", request, response);
@@ -139,7 +148,7 @@ public class ServiceCallbackWrapper implements Callback {
 
 	private void completeTransaction(MonitorTransaction transaction) {
 		if (transaction != null) {
-			invocationContext.getTimeline().add(new TimePoint(TimePhase.E, System.currentTimeMillis()));
+			invocationContext.getTimeline().add(new TimePoint(TimePhase.E, TimeUtils.currentTimeMillis()));
 			try {
 				transaction.complete();
 			} catch (Throwable e) {

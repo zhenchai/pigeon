@@ -8,52 +8,76 @@
 package com.dianping.pigeon.remoting.netty.invoker;
 
 import java.util.Map;
+import java.util.concurrent.Executors;
 
 import com.dianping.pigeon.config.ConfigManagerLoader;
-import com.dianping.pigeon.remoting.common.util.Constants;
 import com.dianping.pigeon.remoting.invoker.Client;
 import com.dianping.pigeon.remoting.invoker.ClientFactory;
+import com.dianping.pigeon.remoting.invoker.client.ClientConfig;
+import com.dianping.pigeon.remoting.invoker.client.ClientConfigFactory;
 import com.dianping.pigeon.remoting.invoker.domain.ConnectInfo;
 import com.dianping.pigeon.remoting.invoker.process.ResponseProcessor;
+import com.dianping.pigeon.threadpool.DefaultThreadFactory;
 import com.dianping.pigeon.util.CollectionUtils;
 import com.dianping.pigeon.remoting.invoker.process.ResponseProcessorFactory;
+import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
+import org.jboss.netty.channel.socket.nio.NioWorkerPool;
+import org.jboss.netty.util.HashedWheelTimer;
 
 /**
  *
  */
 public class NettyClientFactory implements ClientFactory {
 
-	public static final int CONNECT_TIMEOUT = ConfigManagerLoader.getConfigManager()
-			.getIntValue("pigeon.netty.connecttimeout", 2000);
+    private final static ResponseProcessor responseProcessor = ResponseProcessorFactory.selectProcessor();
 
-	public static final int WRITE_BUFFER_HIGH_WATER = ConfigManagerLoader.getConfigManager()
-			.getIntValue("pigeon.channel.writebuff.high", 35 * 1024 * 1024);
+    private final static ClientConfig clientConfig = ClientConfigFactory.createClientConfig(ConfigManagerLoader.getConfigManager());
 
-	public static final int WRITE_BUFFER_LOW_WATER = ConfigManagerLoader.getConfigManager()
-			.getIntValue("pigeon.channel.writebuff.low", 25 * 1024 * 1024);
+    private static volatile org.jboss.netty.channel.ChannelFactory channelFactory = null;
 
-	private final static ResponseProcessor responseProcessor = ResponseProcessorFactory.selectProcessor();
+    @Override
+    public boolean support(ConnectInfo connectInfo) {
+        Map<String, Integer> serviceNames = connectInfo.getServiceNames();
+        if (!CollectionUtils.isEmpty(serviceNames)) {
+            String name = serviceNames.keySet().iterator().next();
+            if (name.startsWith("@")) {
+                return false;
+            }
+        }
+        return true;
+    }
 
-	@Override
-	public boolean support(ConnectInfo connectInfo) {
-		Map<String, Integer> serviceNames = connectInfo.getServiceNames();
-		if (!CollectionUtils.isEmpty(serviceNames)) {
-			String name = serviceNames.keySet().iterator().next();
-			if (name.startsWith("@")) {
-				return false;
-			}
-		}
-		return true;
-	}
+    @Override
+    public Client createClient(ConnectInfo connectInfo) {
 
-	@Override
-	public Client createClient(ConnectInfo connectInfo) {
-		return new NettyClient(connectInfo, CONNECT_TIMEOUT, WRITE_BUFFER_HIGH_WATER, WRITE_BUFFER_LOW_WATER,
-				Constants.getChannelPoolInitialSize(), Constants.getChannelPoolNormalSize(),
-				Constants.getChannelPoolMaxActive(), Constants.getChannelPoolMaxWait(),
-				Constants.getChannelPoolTimeBetweenCheckerMillis(), responseProcessor,
-				Constants.getInvokerHeartbeatEnable(), Constants.getInvokerHeartbeatTimeout(),
-				Constants.getDefaultInvokerClientDeadthreshold(), Constants.getInvokerHeartbeatInterval());
-	}
+        return new NettyClient(clientConfig, getChannelFactory(), connectInfo, responseProcessor);
+    }
+
+    public org.jboss.netty.channel.ChannelFactory getChannelFactory() {
+        if (channelFactory == null) {
+
+            synchronized (NettyClientFactory.class) {
+                if (channelFactory == null) {
+                    channelFactory = createChannelFactory();
+                }
+            }
+
+        }
+
+        return channelFactory;
+    }
+
+    private org.jboss.netty.channel.ChannelFactory createChannelFactory() {
+        return new NioClientSocketChannelFactory(
+                Executors.newCachedThreadPool(
+                        new DefaultThreadFactory("Pigeon-Netty-Client-Boss")),
+                clientConfig.getBossThreadPoolCount(),
+                new NioWorkerPool(
+                        Executors.newCachedThreadPool(
+                                new DefaultThreadFactory("Pigeon-Netty-Client-Worker")),
+                        clientConfig.getWorkerThreadPoolCount()),
+                new HashedWheelTimer(new DefaultThreadFactory("Pigeon-Netty-Client-Timer")));
+
+    }
 
 }

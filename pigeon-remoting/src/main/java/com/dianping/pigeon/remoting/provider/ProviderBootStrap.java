@@ -10,16 +10,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.dianping.pigeon.log.Logger;
-
 import com.dianping.pigeon.config.ConfigManager;
 import com.dianping.pigeon.config.ConfigManagerLoader;
 import com.dianping.pigeon.extension.ExtensionLoader;
+import com.dianping.pigeon.log.Logger;
 import com.dianping.pigeon.log.LoggerLoader;
 import com.dianping.pigeon.monitor.Monitor;
 import com.dianping.pigeon.monitor.MonitorLoader;
 import com.dianping.pigeon.registry.RegistryManager;
-import com.dianping.pigeon.registry.config.RegistryConfigLoader;
 import com.dianping.pigeon.remoting.common.codec.SerializerFactory;
 import com.dianping.pigeon.remoting.common.util.Constants;
 import com.dianping.pigeon.remoting.provider.config.ProviderConfig;
@@ -28,6 +26,7 @@ import com.dianping.pigeon.remoting.provider.listener.ShutdownHookListener;
 import com.dianping.pigeon.remoting.provider.process.ProviderProcessHandlerFactory;
 import com.dianping.pigeon.remoting.provider.publish.ServicePublisher;
 import com.dianping.pigeon.util.ClassUtils;
+import com.dianping.pigeon.util.TimeUtils;
 import com.dianping.pigeon.util.VersionUtils;
 
 public final class ProviderBootStrap {
@@ -46,9 +45,9 @@ public final class ProviderBootStrap {
 		if (!isInitialized) {
 			LoggerLoader.init();
 			ConfigManager configManager = ConfigManagerLoader.getConfigManager();
-			RegistryConfigLoader.init();
 			ProviderProcessHandlerFactory.init();
 			SerializerFactory.init();
+			TimeUtils.currentTimeMillis();
 			ClassUtils.loadClasses("com.dianping.pigeon");
 			Monitor monitor = MonitorLoader.getMonitor();
 			if (monitor != null) {
@@ -60,8 +59,8 @@ public final class ProviderBootStrap {
 			Runtime.getRuntime().addShutdownHook(shutdownHook);
 			ServerConfig config = new ServerConfig();
 			config.setProtocol(Constants.PROTOCOL_HTTP);
-			String poolStrategy = ConfigManagerLoader.getConfigManager().getStringValue(
-					"pigeon.provider.pool.strategy", "shared");
+			String poolStrategy = ConfigManagerLoader.getConfigManager().getStringValue("pigeon.provider.pool.strategy",
+					"shared");
 			if ("server".equals(poolStrategy)) {
 				int corePoolSize = configManager.getIntValue("pigeon.provider.http.corePoolSize", 5);
 				int maxPoolSize = configManager.getIntValue("pigeon.provider.http.maxPoolSize", 300);
@@ -78,8 +77,7 @@ public final class ProviderBootStrap {
 						server.start(config);
 						httpServer = server;
 						serversMap.put(server.getProtocol() + server.getPort(), server);
-						logger.warn("pigeon " + server + "[version:" + VersionUtils.VERSION
-								+ "] has been started");
+						logger.warn("pigeon " + server + "[version:" + VersionUtils.VERSION + "] has been started");
 					}
 				}
 			}
@@ -105,8 +103,7 @@ public final class ProviderBootStrap {
 							s.start(serverConfig);
 							s.addService(providerConfig);
 							serversMap.put(s.getProtocol() + serverConfig.getPort(), s);
-							logger.warn("pigeon " + s + "[version:" + VersionUtils.VERSION
-									+ "] has been started");
+							logger.warn("pigeon " + s + "[version:" + VersionUtils.VERSION + "] has been started");
 							break;
 						}
 					}

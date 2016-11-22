@@ -16,6 +16,7 @@ import com.dianping.pigeon.remoting.invoker.config.annotation.Reference;
 import com.dianping.pigeon.remoting.provider.config.ProviderConfig;
 import com.dianping.pigeon.remoting.provider.config.ServerConfig;
 import com.dianping.pigeon.remoting.provider.config.annotation.Service;
+import com.dianping.pigeon.remoting.provider.config.spring.ServiceInitializeListener;
 import com.dianping.pigeon.util.ClassUtils;
 import com.dianping.pigeon.util.LangUtils;
 import org.apache.commons.lang.StringUtils;
@@ -35,8 +36,8 @@ import java.lang.reflect.Modifier;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-public class AnnotationBean implements DisposableBean, BeanFactoryPostProcessor, BeanPostProcessor,
-		ApplicationContextAware {
+public class AnnotationBean extends ServiceInitializeListener implements DisposableBean,
+		BeanFactoryPostProcessor, BeanPostProcessor, ApplicationContextAware {
 
 	private static final Logger logger = LoggerLoader.getLogger(AnnotationBean.class);
 

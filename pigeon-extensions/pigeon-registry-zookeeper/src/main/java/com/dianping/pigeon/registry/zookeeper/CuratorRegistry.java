@@ -1,25 +1,28 @@
 package com.dianping.pigeon.registry.zookeeper;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
-import com.dianping.pigeon.registry.util.HeartBeatSupport;
-import com.dianping.pigeon.util.VersionUtils;
-import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang.StringUtils;
-import com.dianping.pigeon.log.Logger;
-import org.apache.zookeeper.KeeperException.NodeExistsException;
 import org.apache.zookeeper.KeeperException.BadVersionException;
 import org.apache.zookeeper.KeeperException.NoNodeException;
+import org.apache.zookeeper.KeeperException.NodeExistsException;
+import org.apache.zookeeper.data.Stat;
 
 import com.dianping.pigeon.config.ConfigManager;
 import com.dianping.pigeon.config.ConfigManagerLoader;
+import com.dianping.pigeon.log.Logger;
 import com.dianping.pigeon.log.LoggerLoader;
 import com.dianping.pigeon.registry.Registry;
 import com.dianping.pigeon.registry.RegistryManager;
 import com.dianping.pigeon.registry.exception.RegistryException;
 import com.dianping.pigeon.registry.util.Constants;
+import com.dianping.pigeon.registry.util.HeartBeatSupport;
 import com.dianping.pigeon.util.CollectionUtils;
-import org.apache.zookeeper.data.Stat;
+import com.dianping.pigeon.util.VersionUtils;
+import com.google.common.collect.ImmutableMap;
 
 public class CuratorRegistry implements Registry {
 
@@ -29,32 +32,28 @@ public class CuratorRegistry implements Registry {
 
 	private CuratorClient client;
 
-	private Properties properties;
-
 	private volatile boolean inited = false;
 
 	private final boolean delEmptyNode = configManager.getBooleanValue("pigeon.registry.delemptynode", true);
 
 	@Override
-	public void init(Properties properties) {
-		this.properties = properties;
+	public void init() {
 		if (!inited) {
 			synchronized (this) {
 				if (!inited) {
 					try {
-						String zkAddress = properties.getProperty(Constants.KEY_REGISTRY_ADDRESS);
-
-						if(StringUtils.isBlank(zkAddress)) {
-							zkAddress = configManager.getStringValue(Constants.KEY_REGISTRY_ADDRESS);
+						String zkAddress = configManager.getStringValue(Constants.KEY_REGISTRY_ADDRESS);
+						if (StringUtils.isBlank(zkAddress)) {
+							throw new IllegalArgumentException("zookeeper address is required");
 						}
-
 						logger.info("start to initialize zookeeper client:" + zkAddress);
 						client = new CuratorClient(zkAddress);
 						logger.info("succeed to initialize zookeeper client:" + zkAddress);
+						inited = true;
 					} catch (Exception ex) {
 						logger.error("failed to initialize zookeeper client", ex);
+						throw new RuntimeException(ex);
 					}
-					inited = true;
 				}
 			}
 		}
@@ -68,11 +67,6 @@ public class CuratorRegistry implements Registry {
 	@Override
 	public String getName() {
 		return Constants.REGISTRY_CURATOR_NAME;
-	}
-
-	@Override
-	public String getValue(String key) {
-		return properties.getProperty(key);
 	}
 
 	@Override
@@ -90,8 +84,8 @@ public class CuratorRegistry implements Registry {
 	}
 
 	@Override
-	public String getServiceAddress(String remoteAppkey, String serviceName, String group,
-									boolean fallbackDefaultGroup) throws RegistryException {
+	public String getServiceAddress(String remoteAppkey, String serviceName, String group, boolean fallbackDefaultGroup)
+			throws RegistryException {
 		// mtthrift service, pigeon zk registry do nothing
 		return "";
 	}
@@ -133,11 +127,11 @@ public class CuratorRegistry implements Registry {
 				logger.info("registered service to persistent node: " + servicePath);
 			}
 		} catch (Throwable e) {
-			if(e instanceof BadVersionException || e instanceof NodeExistsException) {
+			if (e instanceof BadVersionException || e instanceof NodeExistsException) {
 				try {
 					Thread.sleep(500);
 				} catch (InterruptedException ie) {
-					//ignore
+					// ignore
 				}
 				registerPersistentNode(serviceName, group, serviceAddress, weight);
 			} else {
@@ -201,11 +195,11 @@ public class CuratorRegistry implements Registry {
 				}
 			}
 		} catch (Throwable e) {
-			if(e instanceof BadVersionException) {
+			if (e instanceof BadVersionException) {
 				try {
 					Thread.sleep(500);
 				} catch (InterruptedException ie) {
-					//ignore
+					// ignore
 				}
 				unregisterPersistentNode(serviceName, group, serviceAddress);
 			} else {
@@ -387,13 +381,15 @@ public class CuratorRegistry implements Registry {
 	}
 
 	@Override
-	public String getServiceAddress(String remoteAppkey, String serviceName, String group, boolean fallbackDefaultGroup, boolean needListener) throws RegistryException {
+	public String getServiceAddress(String remoteAppkey, String serviceName, String group, boolean fallbackDefaultGroup,
+			boolean needListener) throws RegistryException {
 		// blank
 		return "";
 	}
 
 	@Override
-	public String getServiceAddress(String serviceName, String group, boolean fallbackDefaultGroup, boolean needListener) throws RegistryException {
+	public String getServiceAddress(String serviceName, String group, boolean fallbackDefaultGroup,
+			boolean needListener) throws RegistryException {
 		try {
 			String path = Utils.getServicePath(serviceName, group);
 			String address = client.get(path, needListener);
@@ -471,15 +467,15 @@ public class CuratorRegistry implements Registry {
 			if (info != null) {
 				Map<String, Boolean> infoMap = Utils.getProtocolInfoMap(info);
 				Boolean support = infoMap.get(serviceName);
-				if(support != null) {
+				if (support != null) {
 					return support;
 				}
 			}
 
 			return false;
 		} catch (Throwable e) {
-			logger.info("failed to get protocol:" + serviceName
-					+ "of host:" + serviceAddress + ", caused by:" + e.getMessage());
+			logger.info("failed to get protocol:" + serviceName + "of host:" + serviceAddress + ", caused by:"
+					+ e.getMessage());
 			throw new RegistryException(e);
 		}
 	}
@@ -505,12 +501,11 @@ public class CuratorRegistry implements Registry {
 				try {
 					Thread.sleep(500);
 				} catch (InterruptedException ie) {
-					//ignore
+					// ignore
 				}
 				setSupportNewProtocol(serviceAddress, serviceName, support);
 			} else {
-				logger.info("failed to set protocol:" + serviceName
-						+ "of host:" + serviceAddress + " to:" + support
+				logger.info("failed to set protocol:" + serviceName + "of host:" + serviceAddress + " to:" + support
 						+ ", caused by:" + e.getMessage());
 				throw new RegistryException(e);
 			}
@@ -519,11 +514,11 @@ public class CuratorRegistry implements Registry {
 	}
 
 	@Override
-	public void unregisterSupportNewProtocol(String serviceAddress, String serviceName,
-											 boolean support) throws RegistryException {
+	public void unregisterSupportNewProtocol(String serviceAddress, String serviceName, boolean support)
+			throws RegistryException {
 		try {
 			String protocolPath = Utils.getProtocolPath(serviceAddress);
-			if(client.exists(protocolPath, false)) {
+			if (client.exists(protocolPath, false)) {
 				Stat stat = new Stat();
 				String info = client.getWithNodeExistsEx(protocolPath, stat);
 				Map<String, Boolean> infoMap = Utils.getProtocolInfoMap(info);
@@ -541,12 +536,12 @@ public class CuratorRegistry implements Registry {
 				try {
 					Thread.sleep(500);
 				} catch (InterruptedException ie) {
-					//ignore
+					// ignore
 				}
 				unregisterSupportNewProtocol(serviceAddress, serviceName, support);
 			} else {
-				logger.info("failed to del protocol:" + serviceName
-						+ "of host:" + serviceAddress + ", caused by:" + e.getMessage());
+				logger.info("failed to del protocol:" + serviceName + "of host:" + serviceAddress + ", caused by:"
+						+ e.getMessage());
 				throw new RegistryException(e);
 			}
 
