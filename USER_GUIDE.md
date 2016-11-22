@@ -21,16 +21,31 @@ Pigeon是一个分布式服务通信框架（RPC），在大众点评内部广�
 
 ## 依赖
 
-Pigeon依赖JDK1.6+
+Pigeon依赖JDK1.7+
 
 pom依赖定义：
 ```xml
 <dependency>
     <groupId>com.dianping</groupId>
 	<artifactId>pigeon</artifactId>
-	<version>RELEASE</version>
+	<version>${pigeon.version}</version>
 </dependency>
 ```
+
+pom里加入以下仓库依赖：
+```xml
+<repositories>
+    <repository>
+        <id>github-dianping-maven-repo</id>
+        <url>https://raw.githubusercontent.com/dianping/maven-repo/master</url>
+        <snapshots>
+        <enabled>true</enabled>
+        <updatePolicy>always</updatePolicy>
+    </snapshots>
+    </repository>
+</repositories>
+```
+
 pigeon在运行时可能会依赖以下jar包，如果有必要，需要应用自行加上以下jar(版本建议高于或等于以下基础版本)：
 ```xml
 <!-- 监控框架依赖，下面的cat依赖是可选的，如果不依赖cat则默认不会有监控功能，如果想接入大众点评的监控框架cat（已经开源），需增加以下依赖（pigeon-monitor-cat代码在https://github.com/wu-xiang/pigeon-monitor-cat） -->
@@ -57,18 +72,38 @@ pigeon在运行时可能会依赖以下jar包，如果有必要，需要应用�
     <version>0.5.3</version>
 </dependency>
 
-<!-- 加入spring，版本根据自身需要设置 -->
+<!-- 加入spring，版本根据自身需要设置，spring.version可以是大多数spring版本如3.2.9.RELEASE -->
 <dependency>
     <groupId>org.springframework</groupId>
     <artifactId>spring-context</artifactId>
-    <version>2.5.6</version>
+    <version>${spring.version}</version>
 </dependency>
 
-<!-- 如果是非tomcat项目需要自行加入servlet-api的jar -->
+<!-- 如果是非tomcat项目需要自行加入servlet-api的jar，servlet.version可以是2.5-20081211 -->
 <dependency>
     <groupId>org.mortbay.jetty</groupId>
     <artifactId>servlet-api</artifactId>
-    <version>2.5-20081211</version>
+    <version>${servlet.version}</version>
+</dependency>
+
+<!-- 需要自行加入swift的jar，swift.version可以是0.17.0或更高版本 -->
+<dependency>
+	<groupId>com.facebook.swift</groupId>
+	<artifactId>swift-annotations</artifactId>
+	<version>${swift.version}</version>
+	<optional>true</optional>
+</dependency>
+<dependency>
+	<groupId>com.facebook.swift</groupId>
+	<artifactId>swift-codec</artifactId>
+	<version>${swift.version}</version>
+	<optional>true</optional>
+</dependency>
+<dependency>
+	<groupId>com.facebook.swift</groupId>
+	<artifactId>swift-generator</artifactId>
+	<version>${swift.version}</version>
+	<optional>true</optional>
 </dependency>
 ```
 ## 准备工作
@@ -77,7 +112,7 @@ pigeon在运行时可能会依赖以下jar包，如果有必要，需要应用�
 
 ### 通过maven构建项目
 ```bash
-git clone git地址 pigeon-parent
+git clone https://github.com/dianping/pigeon.git pigeon-parent
 
 cd pigeon-parent
 
