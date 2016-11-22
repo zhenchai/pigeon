@@ -37,9 +37,9 @@ public class JarJsonServlet extends ServiceServlet {
         for (Map.Entry<String, ProviderConfig<?>> entry : serviceProviders.entrySet()) {
             String serviceName = entry.getKey();
             ServicePath servicePath = pathMap.get(serviceName);
-            if(servicePath!=null){
+            if (servicePath != null) {
                 paths.add(servicePath);
-            }else{
+            } else {
                 servicePath = new ServicePath();
                 servicePath.setService(serviceName);
                 String group = configManager.getGroup();
@@ -128,10 +128,10 @@ public class JarJsonServlet extends ServiceServlet {
         } catch (Throwable t) {
             logger.info(t);
         }
-        if(jarFilePath==null)
+        if (jarFilePath == null)
             return null;
         List<MavenCoordinate> coordinates = jarMap.get(jarFilePath);
-        if(coordinates==null){
+        if (coordinates == null) {
             coordinates = new LinkedList<MavenCoordinate>();
             JarFile jarFile = null;
             try {
@@ -142,32 +142,32 @@ public class JarJsonServlet extends ServiceServlet {
                     if (entry.getName().endsWith("pom.properties")) {
                         MavenCoordinate coordinate = new MavenCoordinate();
                         InputStream in = null;
-                        try{
+                        try {
                             in = serviceInterface.getClassLoader().getResourceAsStream(entry.getName());
                             Properties p = new Properties();
                             p.load(in);
                             coordinate.setVersion(p.getProperty("version"));
                             coordinate.setArtifactId(p.getProperty("artifactId"));
                             coordinate.setGroupId(p.getProperty("groupId"));
-                        }catch (IOException e){
+                        } catch (IOException e) {
                             logger.info(e);
                             return null;
-                        }finally {
-                            if(in!=null){
+                        } finally {
+                            if (in != null) {
                                 in.close();
                             }
                         }
-                        try{
+                        try {
                             in = serviceInterface.getClassLoader().getResourceAsStream(entry.getName());
                             BufferedReader reader = new BufferedReader(new InputStreamReader(in));
                             reader.readLine();
                             coordinate.setTime(reader.readLine());
                             in.close();
-                        }catch (IOException e){
+                        } catch (IOException e) {
                             logger.info(e);
                             return null;
-                        }finally {
-                            if(in!=null)
+                        } finally {
+                            if (in != null)
                                 in.close();
                         }
                         coordinates.add(coordinate);
