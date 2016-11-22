@@ -1,5 +1,7 @@
 package com.dianping.pigeon.util;
 
+import java.util.concurrent.TimeUnit;
+
 public class TimeUtils {
 
 	public static long currentTimeMillis() {
@@ -22,9 +24,8 @@ public class TimeUtils {
 				public void run() {
 					while (true) {
 						try {
-							Thread.sleep(rate);
+							TimeUnit.MICROSECONDS.sleep(rate);
 						} catch (InterruptedException e) {
-							e.printStackTrace();
 						}
 						now = System.currentTimeMillis();
 					}
@@ -38,6 +39,6 @@ public class TimeUtils {
 			return now;
 		}
 
-		public static final MillisecondClock CLOCK = new MillisecondClock(1);
+		public static final MillisecondClock CLOCK = new MillisecondClock(500);
 	}
 }

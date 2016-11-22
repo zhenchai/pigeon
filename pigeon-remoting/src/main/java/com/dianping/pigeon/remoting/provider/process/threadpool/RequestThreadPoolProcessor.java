@@ -143,41 +143,46 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
 
         String apiPoolConfig = configManager.getStringValue(KEY_PROVIDER_POOL_API_CONFIG, "");
         refreshApiPoolConfig(apiPoolConfig);
+
+        logger.info("init pool config success!");
     }
 
     private static synchronized void refreshPoolConfig(String poolConfig) throws Throwable {
         if (StringUtils.isNotBlank(poolConfig)) {
-            PoolBean[] poolBeen = (PoolBean[]) jacksonSerializer.toObject(PoolBean[].class, poolConfig);
-            Map<String, PoolBean> _poolNameMapping = Maps.newConcurrentMap();
+            PoolBean[] poolBeen = (PoolBean[])jacksonSerializer.toObject(PoolBean[].class, poolConfig);
+            Map<String, PoolBean> newPoolNameMapping = Maps.newConcurrentMap();
 
             for (PoolBean poolBean : poolBeen) {
-                if (poolBean.checkNotNull()) {
-                    _poolNameMapping.put(poolBean.getPoolName(), poolBean);
+                if(poolBean.validate()) {
+                    newPoolNameMapping.put(poolBean.getPoolName(), poolBean);
                 } else {//报异常,保持原状
                     throw new RuntimeException("pool config error! please check: " + poolBean);
                 }
             }
 
-            if (_poolNameMapping.size() != poolBeen.length) {//报异常,保持原状
+            if(newPoolNameMapping.size() != poolBeen.length) {//报异常,保持原状
                 throw new RuntimeException("conflict pool name exists, please check!");
             } else {
                 List<PoolBean> poolBeenToClose = Lists.newLinkedList();
                 for (Map.Entry<String, PoolBean> oldPoolBeanEntry : poolNameMapping.entrySet()) {
                     String oldPoolName = oldPoolBeanEntry.getKey();
                     PoolBean oldPoolBean = oldPoolBeanEntry.getValue();
-                    PoolBean _poolBean = _poolNameMapping.get(oldPoolName);
-                    if (oldPoolBean.equals(_poolBean)) {
-                        _poolNameMapping.remove(oldPoolName);
-                        _poolNameMapping.put(oldPoolName, oldPoolBean);
+                    PoolBean newPoolBean = newPoolNameMapping.get(oldPoolName);
+                    if (newPoolBean != null) {
+                        oldPoolBean.setCorePoolSize(newPoolBean.getCorePoolSize());
+                        oldPoolBean.setMaxPoolSize(newPoolBean.getMaxPoolSize());
+                        oldPoolBean.setWorkQueueSize(newPoolBean.getWorkQueueSize());
+                        newPoolNameMapping.put(oldPoolName, oldPoolBean);
                     } else {
                         poolBeenToClose.add(oldPoolBean);
                     }
                 }
-                poolNameMapping = _poolNameMapping;
+                poolNameMapping = newPoolNameMapping;
                 for (PoolBean poolBeanToClose : poolBeenToClose) {
                     poolBeanToClose.closeThreadPool();
                 }
             }
+            logger.info("refresh pool config success!");
         }
     }
 
@@ -185,6 +190,7 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
         if (StringUtils.isNotBlank(servicePoolConfig)) {
             Map<String, String> _servicePoolConfigMapping = (Map) jacksonSerializer.toObject(Map.class, servicePoolConfig);
             apiPoolConfigMapping = new ConcurrentHashMap<>(_servicePoolConfigMapping);
+            logger.info("refresh api pool mapping success!");
         }
     }
 
@@ -532,6 +538,7 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
                         poolBean.closeThreadPool();
                     }
                     poolNameMapping = Maps.newConcurrentMap();
+                    logger.info("close pool config success!");
                 }
             } else if (key.endsWith(KEY_PROVIDER_POOL_CONFIG)) {
                 if (configManager.getBooleanValue(KEY_PROVIDER_POOL_CONFIG_ENABLE, false)) {
@@ -551,10 +558,13 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
                 }
             } else if (key.endsWith("pigeon.provider.pool.slow.enable")) {
                 enableSlowPool = Boolean.valueOf(value);
+                logger.info("set slow pool to " + enableSlowPool);
             } else if (key.endsWith("pigeon.timeout.cancelratio")) {
                 cancelRatio = Float.valueOf(value);
+                logger.info("set cancel ratio to " + cancelRatio);
             } else if (key.endsWith("pigeon.provider.pool.ratio.coresize")) {
                 DEFAULT_POOL_RATIO_CORE = Float.valueOf(value);
+                logger.info("set default pool ratio core to " + DEFAULT_POOL_RATIO_CORE);
             } else if (StringUtils.isNotBlank(sharedPoolCoreSizeKey) && key.endsWith(sharedPoolCoreSizeKey)) {
                 int size = Integer.valueOf(value);
                 if (size != sharedRequestProcessThreadPool.getExecutor().getCorePoolSize() && size >= 0) {
@@ -571,7 +581,7 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
                             oldPool.getExecutor().awaitTermination(5, TimeUnit.SECONDS);
                             oldPool = null;
                         } catch (Throwable e) {
-                            logger.warn("error when shuting down old shared pool", e);
+                            logger.warn("error when shutting down old shared pool", e);
                         }
                         if (logger.isInfoEnabled()) {
                             logger.info("changed shared pool, key:" + key + ", value:" + value);
@@ -596,7 +606,7 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
                             oldPool.getExecutor().awaitTermination(5, TimeUnit.SECONDS);
                             oldPool = null;
                         } catch (Throwable e) {
-                            logger.warn("error when shuting down old shared pool", e);
+                            logger.warn("error when shutting down old shared pool", e);
                         }
                         if (logger.isInfoEnabled()) {
                             logger.info("changed shared pool, key:" + key + ", value:" + value);
@@ -621,7 +631,7 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
                             oldPool.getExecutor().awaitTermination(5, TimeUnit.SECONDS);
                             oldPool = null;
                         } catch (Throwable e) {
-                            logger.warn("error when shuting down old shared pool", e);
+                            logger.warn("error when shutting down old shared pool", e);
                         }
                         if (logger.isInfoEnabled()) {
                             logger.info("changed shared pool, key:" + key + ", value:" + value);
@@ -644,6 +654,7 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
                                 }
                                 poolBean.setCorePoolSize(coreSize);
                             }
+                            logger.info("changed core size of spring pool: " + poolBeanName + ", key: " + key + ", value: " + value);
                         } catch (RuntimeException e) {
                             logger.error("error while changing spring poolBean, key:" + key + ", value:" + value, e);
                         }
@@ -663,6 +674,7 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
                                 }
                                 poolBean.setMaxPoolSize(maxSize);
                             }
+                            logger.info("changed max size of spring pool: " + poolBeanName + ", key: " + key + ", value: " + value);
                         } catch (RuntimeException e) {
                             logger.error("error while changing spring poolBean, key:" + key + ", value:" + value, e);
                         }
@@ -682,6 +694,7 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
                                 }
                                 poolBean.setWorkQueueSize(queueSize);
                             }
+                            logger.info("changed queue size of spring pool: " + poolBeanName + ", key: " + key + ", value: " + value);
                         } catch (RuntimeException e) {
                             logger.error("error while changing spring poolBean, key:" + key + ", value:" + value, e);
                         }

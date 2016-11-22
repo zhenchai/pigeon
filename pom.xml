@@ -41,8 +41,9 @@
 		<groovy.version>2.3.9</groovy.version>
 		<commons-codec.version>1.9</commons-codec.version>
 		<jetty-servlet-api.version>2.5-20081211</jetty-servlet-api.version>
-		<freemarker.version>2.3.19</freemarker.version>
+		<freemarker.version>2.3.22</freemarker.version>
 		<slf4j.version>1.7.12</slf4j.version>
+		<disruptor.version>3.3.6</disruptor.version>
 	</properties>
 
 	<modules>
@@ -115,7 +116,7 @@
 			</roles>
 		</developer>
 	</developers>
-	
+
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
@@ -163,6 +164,11 @@
 				<groupId>org.apache.logging.log4j</groupId>
 				<artifactId>log4j-core</artifactId>
 				<version>${log4j-core.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.lmax</groupId>
+				<artifactId>disruptor</artifactId>
+				<version>${disruptor.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>io.netty</groupId>
@@ -391,7 +397,7 @@
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
-	
+
 	<build>
 		<pluginManagement>
 			<plugins>
@@ -454,7 +460,7 @@
 					<charset>UTF-8</charset>
 					<encoding>UTF-8</encoding>
 					<docencoding>UTF-8</docencoding>
-					<excludePackageNames>com.alibaba.com.*</excludePackageNames>
+					<excludePackageNames>com.dianping.*</excludePackageNames>
 					<links>
 						<link>http://docs.oracle.com/javase/6/docs/api</link>
 					</links>
@@ -660,8 +666,8 @@
 			</plugin>
 		</plugins>
 	</reporting>
-	
-	 <distributionManagement>
+
+	<distributionManagement>
 		<repository>
 			<id>dianping.repo</id>
 			<name>Dian Ping internal repository for released artifacts</name>
@@ -673,5 +679,5 @@
 			<url>http://mvn.dianpingoa.com/dianping-snapshots</url>
 		</snapshotRepository>
 	</distributionManagement>
-	
+
 </project>

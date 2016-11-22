@@ -17,7 +17,8 @@ public class WeightBasedRegionPolicy implements RegionPolicy {
 
     public final static WeightBasedRegionPolicy INSTANCE = new WeightBasedRegionPolicy();
 
-    private WeightBasedRegionPolicy(){}
+    private WeightBasedRegionPolicy() {
+    }
 
     public static final String NAME = "weightBased";
 
@@ -33,16 +34,17 @@ public class WeightBasedRegionPolicy implements RegionPolicy {
 
     private List<Client> getRegionActiveClients(List<Client> clientList, InvocationRequest request) {
         // 分region存储clients
-        Map<Region, List<Client>> regionClients = new HashMap<Region, List<Client>>();
+        Map<Region, List<Client>> regionClientsMap = new HashMap<Region, List<Client>>();
         List<Region> regionArrays = Lists.newArrayList(regionPolicyManager.getRegionArray());
 
-        for(Region region : regionArrays) {
-            regionClients.put(region, new ArrayList<Client>());
+        for (Region region : regionArrays) {
+            regionClientsMap.put(region, new ArrayList<Client>());
         }
 
-        for(Client client : clientList) {
-            if(regionClients.containsKey(client.getRegion())) {
-                regionClients.get(client.getRegion()).add(client);
+        for (Client client : clientList) {
+            List<Client> regionClients = regionClientsMap.get(client.getRegion());
+            if (regionClients != null) {
+                regionClients.add(client);
             }
         }
 
@@ -50,8 +52,8 @@ public class WeightBasedRegionPolicy implements RegionPolicy {
         Integer weightSum = 0;
         Set<Region> regionSet = new HashSet<Region>();
 
-        for(Region region : regionClients.keySet()) {
-            if(regionClients.get(region).size() > 0) {
+        for (Region region : regionClientsMap.keySet()) {
+            if (regionClientsMap.get(region).size() > 0) {
                 weightSum += region.getWeight();
                 regionSet.add(region);
             }
@@ -67,7 +69,7 @@ public class WeightBasedRegionPolicy implements RegionPolicy {
 
         for (Region region : regionSet) {
             int weight = region.getWeight();
-            List<Client> regionClientList = regionClients.get(region);
+            List<Client> regionClientList = regionClientsMap.get(region);
 
             if (m <= n && n < m + weight) {
 

@@ -160,7 +160,7 @@ public final class Constants {
     public static final int DEFAULT_CHANNEL_POOL_MAX_WAIT = 2000;
     public static final int DEFAULT_CHANNEL_POOL_TIME_BETWEEN_CHECKER_MILLIS = 2000;
     public static final String DEFAULT_PROCESS_TYPE = "threadpool";
-    public static final boolean DEFAULT_NOTIFY_ENABLE = true;
+    public static final boolean DEFAULT_NOTIFY_ENABLE = false;
     public static final boolean DEFAULT_TEST_ENABLE = true;
     public static final int DEFAULT_WEIGHT_STARTDELAY = 30000;
     public static final int DEFAULT_PROVIDER_HEARTBEAT_INTERNAL = 60000;
