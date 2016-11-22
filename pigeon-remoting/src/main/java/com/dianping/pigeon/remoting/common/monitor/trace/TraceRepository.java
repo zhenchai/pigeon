@@ -4,7 +4,7 @@ package com.dianping.pigeon.remoting.common.monitor.trace;
  * @author qi.yin
  *         2016/11/21  上午12:36.
  */
-public interface AllTraceData<M extends MonitorData> {
+public interface TraceRepository<M extends MonitorData> {
 
     void start(M monitorData);
 
@@ -14,5 +14,5 @@ public interface AllTraceData<M extends MonitorData> {
 
     void reset();
 
-    AllTraceData copy();
+    TraceRepository copy();
 }

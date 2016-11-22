@@ -1,17 +1,18 @@
 package com.dianping.pigeon.remoting.common.monitor.trace;
 
 import com.dianping.pigeon.util.MapUtils;
+import com.dianping.pigeon.util.Pair;
 import com.dianping.pigeon.util.TimeUtils;
 
 /**
  * @author qi.yin
  *         2016/11/17  下午3:12.
  */
-public class InvokerAllTraceData extends AbstractAllTraceData<InvokerMonitorData, InvokerTraceData> {
+public class InvokerTraceRepository extends AbstractTraceRepository<InvokerMonitorData, InvokerTraceData> {
 
     public void start(InvokerMonitorData monitorData) {
         InvokerTraceData traceStatsData = MapUtils.getOrCreate(traceDatas,
-                new KeyPair<SourceKey, DestinationKey>(monitorData.getSrcKey(), monitorData.getDstKey()),
+                new Pair<SourceKey, DestinationKey>(monitorData.getSrcKey(), monitorData.getDstKey()),
                 InvokerTraceData.class);
 
         traceStatsData.incTotalCount();
@@ -20,7 +21,7 @@ public class InvokerAllTraceData extends AbstractAllTraceData<InvokerMonitorData
     public void addData(InvokerMonitorData monitorData) {
 
         InvokerTraceData traceStatsData = MapUtils.getOrCreate(traceDatas,
-                new KeyPair<SourceKey, DestinationKey>(monitorData.getSrcKey(), monitorData.getDstKey()),
+                new Pair<SourceKey, DestinationKey>(monitorData.getSrcKey(), monitorData.getDstKey()),
                 InvokerTraceData.class);
 
         traceStatsData.setCallMethod(monitorData.getCallMethod());
@@ -31,7 +32,7 @@ public class InvokerAllTraceData extends AbstractAllTraceData<InvokerMonitorData
 
     public void complete(InvokerMonitorData monitorData) {
         InvokerTraceData traceStatsData = MapUtils.getOrCreate(traceDatas,
-                new KeyPair<SourceKey, DestinationKey>(monitorData.getSrcKey(), monitorData.getDstKey()),
+                new Pair<SourceKey, DestinationKey>(monitorData.getSrcKey(), monitorData.getDstKey()),
                 InvokerTraceData.class);
 
         long elapsed = TimeUtils.currentTimeMillis() - monitorData.getStartMillisTime();
@@ -46,14 +47,14 @@ public class InvokerAllTraceData extends AbstractAllTraceData<InvokerMonitorData
 
     public void degrade(InvokerMonitorData monitorData) {
         InvokerTraceData traceStatsData = MapUtils.getOrCreate(traceDatas,
-                new KeyPair<SourceKey, DestinationKey>(monitorData.getSrcKey(), monitorData.getDstKey()),
+                new Pair<SourceKey, DestinationKey>(monitorData.getSrcKey(), monitorData.getDstKey()),
                 InvokerTraceData.class);
 
         traceStatsData.incDegradedCount();
     }
 
     @Override
-    public AbstractAllTraceData<InvokerMonitorData, InvokerTraceData> createAllTraceData() {
-        return new InvokerAllTraceData();
+    public AbstractTraceRepository<InvokerMonitorData, InvokerTraceData> createAllTraceData() {
+        return new InvokerTraceRepository();
     }
 }
