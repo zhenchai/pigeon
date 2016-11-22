@@ -30,7 +30,7 @@ public class ApplicationTraceData {
         providerTraceData.start(monitorData);
     }
 
-    public void trace(ProviderMonitorData monitorData){
+    public void trace(ProviderMonitorData monitorData) {
         traceKeys.set(monitorData.getDstKey());
     }
 
@@ -58,6 +58,16 @@ public class ApplicationTraceData {
     public void reset() {
         invokerTraceData.reset();
         providerTraceData.reset();
+        startMillis = TimeUtils.currentTimeMillis();
+    }
+
+    public ApplicationTraceData copy() {
+        ApplicationTraceData traceData = new ApplicationTraceData(appName);
+
+        traceData.setInvokerTraceData((InvokerAllTraceData) invokerTraceData.copy());
+        traceData.setProviderTraceData((ProviderAllTraceData) providerTraceData.copy());
+
+        return traceData;
     }
 
     public String getAppName() {
@@ -74,6 +84,14 @@ public class ApplicationTraceData {
 
     public ProviderAllTraceData getProviderTraceData() {
         return providerTraceData;
+    }
+
+    public void setInvokerTraceData(InvokerAllTraceData invokerTraceData) {
+        this.invokerTraceData = invokerTraceData;
+    }
+
+    public void setProviderTraceData(ProviderAllTraceData providerTraceData) {
+        this.providerTraceData = providerTraceData;
     }
 
     public SourceKey getSourceKey() {

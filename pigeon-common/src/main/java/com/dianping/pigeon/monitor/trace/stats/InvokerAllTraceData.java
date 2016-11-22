@@ -27,7 +27,7 @@ public class InvokerAllTraceData extends AbstractAllTraceData<InvokerMonitorData
         traceStatsData.setCallMethod(monitorData.getCallMethod());
         traceStatsData.setSerialize(monitorData.getSerialize());
         traceStatsData.setTimeout(monitorData.getTimeout());
-        traceStatsData.setIsDegraded(monitorData.isDegraded());
+        traceStatsData.setDegraded(monitorData.isDegraded());
         traceStatsData.setRegion(monitorData.getRegion());
     }
 
@@ -46,4 +46,8 @@ public class InvokerAllTraceData extends AbstractAllTraceData<InvokerMonitorData
         }
     }
 
+    @Override
+    public AbstractAllTraceData<InvokerMonitorData, InvokerTraceData> createAllTraceData() {
+        return new InvokerAllTraceData();
+    }
 }

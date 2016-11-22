@@ -46,4 +46,8 @@ public class ProviderAllTraceData extends AbstractAllTraceData<ProviderMonitorDa
         }
     }
 
+    @Override
+    public AbstractAllTraceData<ProviderMonitorData, ProviderTraceData> createAllTraceData() {
+        return new ProviderAllTraceData();
+    }
 }

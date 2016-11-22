@@ -1,6 +1,8 @@
 package com.dianping.pigeon.monitor.trace.stats;
 
 
+import java.util.concurrent.atomic.AtomicLong;
+
 /**
  * @author qi.yin
  *         2016/11/17  下午1:18.
@@ -10,6 +12,8 @@ public class InvokerTraceData extends AbstractTraceData {
     public InvokerTraceData() {
 
     }
+
+    private AtomicLong degradedCount = new AtomicLong();
 
     private byte callMethod;
 

@@ -6,14 +6,14 @@ import com.dianping.pigeon.registry.exception.RegistryException;
 
 public interface Registry {
 
-	void init();
+    void init();
 
     boolean isEnable();
 
     String getName();
 
-	// for invoker
-	String getServiceAddress(String serviceName) throws RegistryException;
+    // for invoker
+    String getServiceAddress(String serviceName) throws RegistryException;
 
     // for invoker
     String getServiceAddress(String serviceName, String group) throws RegistryException;
@@ -100,8 +100,8 @@ public interface Registry {
     String getServiceAddress(String serviceName, String group,
                              boolean fallbackDefaultGroup, boolean needListener) throws RegistryException;
 
-    void setClientAddress(String clientAddress);
+    void setConsoleAddress(String consoleAddress);
 
-    void delClientAddress(String clientAddress);
+    void unregisterConsoleAddress(String consoleAddress);
 
 }

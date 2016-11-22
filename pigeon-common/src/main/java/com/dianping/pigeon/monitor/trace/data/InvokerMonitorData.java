@@ -36,11 +36,13 @@ public class InvokerMonitorData extends AbstractMonitorData {
 
     @Override
     public void complete() {
-        if (isCompleted.compareAndSet(false, true)) {
+        if (!isCompleted()) {
             super.complete();
+            setCompleted(true);
             this.traceData.complete(this);
         }
     }
+
 
     @Override
     public void add() {

@@ -19,9 +19,13 @@ public class TraceStatsJsonServlet extends HttpServlet {
     private final JacksonSerializer jacksonSerializer = new JacksonSerializer();
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        ApplicationTraceData traceStatsData = MonitorDataFactory.getTraceData();
-        String traceStatsJson = jacksonSerializer.serializeObject(traceStatsData);
-        response.getWriter().print(traceStatsJson);
+        ApplicationTraceData traceData = MonitorDataFactory.getTraceData();
+
+        ApplicationTraceData old = traceData.copy();
+        traceData.reset();
+
+        String traceDataJson = jacksonSerializer.serializeObject(old);
+        response.getWriter().print(traceDataJson);
     }
 
     @Override

@@ -16,4 +16,5 @@ public interface AllTraceData<M extends MonitorData> {
 
     void reset();
 
+    AllTraceData copy();
 }

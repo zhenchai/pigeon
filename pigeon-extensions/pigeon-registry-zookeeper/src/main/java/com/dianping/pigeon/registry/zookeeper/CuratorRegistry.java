@@ -549,8 +549,8 @@ public class CuratorRegistry implements Registry {
 	}
 
     @Override
-    public void setClientAddress(String clientAddress) {
-        String clientPath = Utils.getClientPath(clientAddress);
+    public void setConsoleAddress(String consoleAddress) {
+        String clientPath = Utils.getClientPath(consoleAddress);
         try {
             client.set(clientPath, null);
         } catch (Throwable t) {
@@ -559,8 +559,8 @@ public class CuratorRegistry implements Registry {
     }
 
     @Override
-    public void delClientAddress(String clientAddress) {
-        String clientPath = Utils.getClientPath(clientAddress);
+    public void unregisterConsoleAddress(String consoleAddress) {
+        String clientPath = Utils.getClientPath(consoleAddress);
         try {
             client.delete(clientPath);
         } catch (Throwable t) {

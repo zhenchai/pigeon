@@ -11,7 +11,7 @@ import java.util.concurrent.ConcurrentMap;
  */
 public abstract class AbstractAllTraceData<M extends MonitorData, T extends AbstractTraceData> implements AllTraceData<M> {
 
-    protected ConcurrentMap<KeyPair<SourceKey, DestinationKey>, T> traceDatas =
+    protected volatile ConcurrentMap<KeyPair<SourceKey, DestinationKey>, T> traceDatas =
             new ConcurrentHashMap<KeyPair<SourceKey, DestinationKey>, T>();
 
     public AbstractAllTraceData() {
@@ -20,10 +20,25 @@ public abstract class AbstractAllTraceData<M extends MonitorData, T extends Abst
 
     @Override
     public void reset() {
-
+        this.traceDatas = new ConcurrentHashMap<KeyPair<SourceKey, DestinationKey>, T>();
     }
+
+    @Override
+    public AllTraceData copy() {
+        AbstractAllTraceData<M,T> allTraceData = createAllTraceData();
+
+        allTraceData.setTraceDatas(traceDatas);
+        return allTraceData;
+    }
+
+    public abstract AbstractAllTraceData<M,T> createAllTraceData();
 
     public ConcurrentMap<KeyPair<SourceKey, DestinationKey>, T> getTraceDatas() {
         return traceDatas;
     }
+
+    public void setTraceDatas(ConcurrentMap<KeyPair<SourceKey, DestinationKey>, T> traceDatas) {
+        this.traceDatas = traceDatas;
+    }
+
 }

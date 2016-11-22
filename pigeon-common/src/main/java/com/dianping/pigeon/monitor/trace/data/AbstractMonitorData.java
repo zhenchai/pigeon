@@ -27,7 +27,7 @@ public abstract class AbstractMonitorData implements MonitorData {
 
     protected long startMillisTime;
 
-    protected AtomicBoolean isCompleted = new AtomicBoolean(false);
+    protected boolean completed;
 
     public AbstractMonitorData(ApplicationTraceData traceData) {
         this.traceData = traceData;
@@ -101,4 +101,11 @@ public abstract class AbstractMonitorData implements MonitorData {
         this.startMillisTime = startMillisTime;
     }
 
+    public boolean isCompleted() {
+        return completed;
+    }
+
+    public void setCompleted(boolean completed) {
+        this.completed = completed;
+    }
 }
