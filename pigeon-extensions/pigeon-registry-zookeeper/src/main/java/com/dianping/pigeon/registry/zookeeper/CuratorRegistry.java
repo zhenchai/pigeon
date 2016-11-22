@@ -547,4 +547,25 @@ public class CuratorRegistry implements Registry {
 
 		}
 	}
+
+    @Override
+    public void setConsoleAddress(String consoleAddress) {
+        String clientPath = Utils.getClientPath(consoleAddress);
+        try {
+            client.set(clientPath, null);
+        } catch (Throwable t) {
+            logger.info("failed to set clientPath " + clientPath, t);
+        }
+    }
+
+    @Override
+    public void unregisterConsoleAddress(String consoleAddress) {
+        String clientPath = Utils.getClientPath(consoleAddress);
+        try {
+            client.delete(clientPath);
+        } catch (Throwable t) {
+            logger.info("failed to delete clientPath " + clientPath, t);
+        }
+
+    }
 }

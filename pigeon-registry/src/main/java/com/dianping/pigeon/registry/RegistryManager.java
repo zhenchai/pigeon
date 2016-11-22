@@ -31,7 +31,6 @@ import com.dianping.pigeon.registry.util.Utils;
 import com.dianping.pigeon.util.VersionUtils;
 
 public class RegistryManager {
-
 	private static final Logger logger = LoggerLoader.getLogger(RegistryManager.class);
 
 	private static volatile boolean isInit = false;
@@ -737,6 +736,19 @@ public class RegistryManager {
 
 		return addr;
 	}
+
+    public void setConsoleAddress(String consoleAddress) {
+        if (registry != null) {
+            registry.setConsoleAddress(consoleAddress);
+        }
+
+    }
+
+    public void unregisterConsoleAddress(String consoleAddress) {
+        if (registry != null) {
+            registry.unregisterConsoleAddress(consoleAddress);
+        }
+    }
 
 	private class InnerConfigChangeListener implements ConfigChangeListener {
 

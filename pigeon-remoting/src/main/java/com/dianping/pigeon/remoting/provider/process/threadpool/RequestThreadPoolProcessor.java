@@ -13,8 +13,12 @@ import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import com.dianping.pigeon.remoting.common.monitor.trace.ProviderMonitorData;
 import com.dianping.pigeon.config.ConfigManager;
+import com.dianping.pigeon.remoting.common.monitor.trace.ApplicationKey;
+import com.dianping.pigeon.remoting.common.monitor.trace.MethodKey;
 import com.dianping.pigeon.remoting.common.codec.json.JacksonSerializer;
+import com.dianping.pigeon.remoting.common.monitor.trace.MonitorDataFactory;
 import com.dianping.pigeon.remoting.provider.config.spring.PoolBean;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -196,6 +200,9 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
     public Future<InvocationResponse> doProcessRequest(final InvocationRequest request,
                                                        final ProviderContext providerContext) {
         requestContextMap.put(request, providerContext);
+
+        doMonitorData(request, providerContext);
+
         Callable<InvocationResponse> requestExecutor = new Callable<InvocationResponse>() {
 
             @Override
@@ -235,6 +242,14 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
         // }
     }
 
+    private void doMonitorData(InvocationRequest request, ProviderContext providerContext) {
+        ProviderMonitorData monitorData = MonitorDataFactory.newProviderMonitorData(new ApplicationKey(request.getApp()),
+                new MethodKey(request.getServiceName(), request.getMethodName()));
+        providerContext.setMonitorData(monitorData);
+        monitorData.start();
+    }
+
+
     private void checkRequest(final ThreadPool pool, final InvocationRequest request) {
         GatewayProcessFilter.checkRequest(request);
     }
@@ -269,14 +284,14 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
             String poolName = apiPoolConfigMapping.get(methodKey);
             if (StringUtils.isNotBlank(poolName)) { // 方法级别
                 poolBean = poolNameMapping.get(poolName);
-                if(poolBean != null) {
+                if (poolBean != null) {
                     pool = poolBean.getRefreshedThreadPool();
                 }
             } else { // 服务级别
                 poolName = apiPoolConfigMapping.get(serviceKey);
                 if (StringUtils.isNotBlank(poolName)) {
                     poolBean = poolNameMapping.get(poolName);
-                    if(poolBean != null) {
+                    if (poolBean != null) {
                         pool = poolBean.getRefreshedThreadPool();
                     }
                 }

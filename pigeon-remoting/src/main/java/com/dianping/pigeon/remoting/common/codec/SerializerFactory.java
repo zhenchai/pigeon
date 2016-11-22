@@ -28,28 +28,6 @@ public final class SerializerFactory {
 
     private static final Logger logger = LoggerLoader.getLogger(SerializerFactory.class);
 
-    // 序列化类型---》HESSIAN序列化
-    public static final byte SERIALIZE_HESSIAN = 2;
-    public static final byte SERIALIZE_JAVA = 3;
-    public static final byte SERIALIZE_PROTO = 5;
-    public static final byte SERIALIZE_HESSIAN1 = 6;
-    public static final byte SERIALIZE_JSON = 7;
-    public static final byte SERIALIZE_FST = 8;
-    public static final byte SERIALIZE_PROTOBUF = 9;
-
-    public static final byte SERIALIZE_THRIFT = 10;
-
-    private static final byte UNIFIED_SERIALIZE_THRIFT = 1;
-
-    public static final String HESSIAN = "hessian";
-    public static final String JAVA = "java";
-    public static final String HESSIAN1 = "hessian1";
-    public static final String JSON = "json";
-    public static final String PROTO = "proto";
-    public static final String FST = "fst";
-    public static final String PROTOBUF = "protobuf";
-    public static final String THRIFT = "thrift";
-
     private static volatile boolean isInitialized = false;
 
     private final static ConcurrentHashMap<String, Byte> serializerTypes = new ConcurrentHashMap<String, Byte>();
@@ -66,14 +44,14 @@ public final class SerializerFactory {
         if (!isInitialized) {
             synchronized (SerializerFactory.class) {
                 if (!isInitialized) {
-                    registerSerializer(JAVA, SERIALIZE_JAVA, new JavaSerializer());
-                    registerSerializer(HESSIAN, SERIALIZE_HESSIAN, new HessianSerializer());
-                    registerSerializer(HESSIAN1, SERIALIZE_HESSIAN1, new Hessian1Serializer());
-                    registerSerializer(PROTO, SERIALIZE_PROTO, new ProtostuffSerializer());
-                    registerSerializer(THRIFT, SERIALIZE_THRIFT, new ThriftSerializer());
+                    registerSerializer(SerializerType.JAVA, new JavaSerializer());
+                    registerSerializer(SerializerType.HESSIAN, new HessianSerializer());
+                    registerSerializer(SerializerType.HESSIAN1, new Hessian1Serializer());
+                    registerSerializer(SerializerType.PROTO, new ProtostuffSerializer());
+                    registerSerializer(SerializerType.THRIFT, new ThriftSerializer());
 
                     try {
-                        registerSerializer(FST, SERIALIZE_FST, new FstSerializer());
+                        registerSerializer(SerializerType.FST, new FstSerializer());
                     } catch (Throwable t) {
                         logger.warn("failed to initialize fst serializer:" + t.getMessage());
                     }
@@ -86,7 +64,7 @@ public final class SerializerFactory {
                     }
                     if (supportJackson) {
                         try {
-                            registerSerializer(JSON, SERIALIZE_JSON, new JacksonSerializer());
+                            registerSerializer(SerializerType.JSON, new JacksonSerializer());
                         } catch (Throwable t) {
                             logger.warn("failed to initialize jackson serializer:" + t.getMessage());
                         }
@@ -115,18 +93,18 @@ public final class SerializerFactory {
         }
     }
 
-    public static void registerSerializer(String serializeName, byte serializerType, Serializer serializer) {
+    public static void registerSerializer(SerializerType serializerType, Serializer serializer) {
         if (serializer == null) {
             throw new IllegalArgumentException("the serializer is null");
         }
 
         try {
-            serializerTypes.putIfAbsent(serializeName, serializerType);
-            serializers.putIfAbsent(serializerType, serializer);
+            serializerTypes.putIfAbsent(serializerType.getName(), serializerType.getCode());
+            serializers.putIfAbsent(serializerType.getCode(), serializer);
         } catch (Exception e) {
             logger.error("register serializer failed!", e);
-            serializers.remove(serializerType, serializer);
-            serializerTypes.remove(serializeName, serializerType);
+            serializers.remove(serializerType.getCode(), serializer);
+            serializerTypes.remove(serializerType.getName(), serializerType);
         }
     }
 
@@ -140,16 +118,16 @@ public final class SerializerFactory {
     }
 
     public static byte convertToUnifiedSerialize(byte serializerType) {
-        if (serializerType == SERIALIZE_THRIFT) {
-            return UNIFIED_SERIALIZE_THRIFT;
+        if (SerializerType.isThrift(serializerType)) {
+            return SerializerType.INTERNAL_THRIFT.getCode();
         } else {
             throw new IllegalArgumentException("Invalid serializer type :" + serializerType);
         }
     }
 
     public static byte convertToSerialize(byte serializerType) {
-        if (serializerType == UNIFIED_SERIALIZE_THRIFT) {
-            return SERIALIZE_THRIFT;
+        if (SerializerType.isInternalThrift(serializerType)) {
+            return SerializerType.THRIFT.getCode();
         } else {
             throw new IllegalArgumentException("Invalid serializer type:" + serializerType);
         }

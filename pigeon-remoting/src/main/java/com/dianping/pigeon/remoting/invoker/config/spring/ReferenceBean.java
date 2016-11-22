@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.dianping.pigeon.remoting.common.codec.SerializerType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
@@ -39,7 +40,7 @@ public class ReferenceBean implements FactoryBean {
 
     private String interfaceName;
 
-    private String serialize = Constants.SERIALIZE_HESSIAN;
+    private String serialize = SerializerType.HESSIAN.getName();
 
     private String callType = Constants.CALL_SYNC;
 
@@ -293,7 +294,7 @@ public class ReferenceBean implements FactoryBean {
         if (mock != null) {
 
             // 检查是否实现了interface
-            if (! objType.isAssignableFrom(mock.getClass())) {
+            if (!objType.isAssignableFrom(mock.getClass())) {
                 throw new IllegalStateException("The mock implemention class "
                         + mock.getClass().getName() + " not implement interface " + objType.getName());
             }
@@ -303,7 +304,7 @@ public class ReferenceBean implements FactoryBean {
     private void checkRemoteAppkey() {
         if (configManager.getBooleanValue("pigeon.remote.appkey.check", false)) {
             if (StringUtils.isNotBlank(remoteAppKey)) {
-                if (SerializerFactory.getSerialize(serialize) != SerializerFactory.SERIALIZE_THRIFT) {
+                if (SerializerType.isThrift(serialize)) {
                     remoteAppKey = "";
                     logger.info("not thrift serialize, set remoteAppKey to null");
                 }

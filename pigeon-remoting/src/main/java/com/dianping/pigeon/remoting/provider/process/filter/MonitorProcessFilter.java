@@ -8,6 +8,7 @@ import java.io.Serializable;
 import java.util.Calendar;
 import java.util.Map;
 
+import com.dianping.pigeon.remoting.common.codec.SerializerType;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.util.CollectionUtils;
 
@@ -18,7 +19,6 @@ import com.dianping.pigeon.log.LoggerLoader;
 import com.dianping.pigeon.monitor.Monitor;
 import com.dianping.pigeon.monitor.MonitorLoader;
 import com.dianping.pigeon.monitor.MonitorTransaction;
-import com.dianping.pigeon.remoting.common.codec.SerializerFactory;
 import com.dianping.pigeon.remoting.common.domain.InvocationContext.TimePhase;
 import com.dianping.pigeon.remoting.common.domain.InvocationContext.TimePoint;
 import com.dianping.pigeon.remoting.common.domain.InvocationRequest;
@@ -102,7 +102,7 @@ public class MonitorProcessFilter implements ServiceInvocationFilter<ProviderCon
                         transaction.addData("Protocol", channel.getProtocol());
                     }
 
-                    if (request.getSerialize() == SerializerFactory.SERIALIZE_THRIFT) {
+                    if (SerializerType.isThrift(request.getSerialize())) {
                         monitor.logEvent("PigeonService.protocal", request.getApp(), fromIp);
                     }
                 }

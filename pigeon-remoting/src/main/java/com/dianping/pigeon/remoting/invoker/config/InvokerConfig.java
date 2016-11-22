@@ -6,6 +6,9 @@ package com.dianping.pigeon.remoting.invoker.config;
 
 import java.util.Map;
 
+import com.dianping.pigeon.remoting.common.codec.SerializerType;
+import com.dianping.pigeon.remoting.common.domain.CallMethod;
+import com.dianping.pigeon.remoting.common.domain.CallType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
@@ -33,11 +36,11 @@ public class InvokerConfig<T> {
     public static final String PROTOCOL_HTTP = Constants.PROTOCOL_HTTP;
     public static final String PROTOCOL_DEFAULT = Constants.PROTOCOL_DEFAULT;
 
-    public static final String SERIALIZE_HESSIAN = SerializerFactory.HESSIAN;
-    public static final String SERIALIZE_JAVA = SerializerFactory.JAVA;
-    public static final String SERIALIZE_PROTO = SerializerFactory.PROTO;
-    public static final String SERIALIZE_JSON = SerializerFactory.JSON;
-    public static final String SERIALIZE_FST = SerializerFactory.FST;
+    public static final String SERIALIZE_HESSIAN = SerializerType.HESSIAN.getName();
+    public static final String SERIALIZE_JAVA = SerializerType.JAVA.getName();
+    public static final String SERIALIZE_PROTO = SerializerType.PROTO.getName();
+    public static final String SERIALIZE_JSON = SerializerType.JSON.getName();
+    public static final String SERIALIZE_FST = SerializerType.FST.getName();
 
     private ConfigManager configManager = ConfigManagerLoader.getConfigManager();
 
@@ -47,9 +50,11 @@ public class InvokerConfig<T> {
 
     private String version;
 
+    private byte callMethod = CallMethod.SYNC.getCode();
+
     private String callType = Constants.CALL_SYNC;
 
-    private byte serialize = SerializerFactory.SERIALIZE_HESSIAN;
+    private byte serialize = SerializerType.HESSIAN.getCode();
 
     private int timeout = configManager.getIntValue(Constants.KEY_INVOKER_TIMEOUT, Constants.DEFAULT_INVOKER_TIMEOUT);
 
@@ -201,7 +206,7 @@ public class InvokerConfig<T> {
         return retries;
     }
 
-    public int getRetries(String methodName){
+    public int getRetries(String methodName) {
         InvokerMethodConfig methodConfig = getMethod(methodName);
 
         if (methodConfig != null && methodConfig.getRetries() > 0) {
@@ -323,7 +328,26 @@ public class InvokerConfig<T> {
         }
         if (!StringUtils.isBlank(callType)) {
             this.callType = callType.trim();
+            this.callMethod = CallMethod.getCallMethod(this.callType).getCode();
         }
+    }
+
+    public byte getCallMethod(String methodName) {
+        InvokerMethodConfig methodConfig = getMethod(methodName);
+
+        if (methodConfig != null && methodConfig.getCallMethod() != 0) {
+            return methodConfig.getCallMethod();
+        }
+
+        return callMethod;
+    }
+
+    public byte getCallMethod() {
+        return callMethod;
+    }
+
+    public void setCallMethod(byte callMethod) {
+        this.callMethod = callMethod;
     }
 
     /**
@@ -342,11 +366,11 @@ public class InvokerConfig<T> {
         }
         this.serialize = SerializerFactory.getSerialize(serialize);
 
-        if (this.getSerialize() == SerializerFactory.SERIALIZE_THRIFT) {
+        if (SerializerType.isThrift(this.getSerialize())) {
             if (!ThriftUtils.isSupportedThrift(serviceInterface)) {
                 logger.error("Service interface " + serviceInterface.getName() +
                         " do not support thrift serialize, so select default serialize hessian.");
-                this.serialize = SerializerFactory.SERIALIZE_HESSIAN;
+                this.serialize = SerializerType.HESSIAN.getCode();
             }
         }
     }

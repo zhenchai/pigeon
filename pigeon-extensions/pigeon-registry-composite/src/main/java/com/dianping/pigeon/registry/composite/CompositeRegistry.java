@@ -546,6 +546,30 @@ public class CompositeRegistry implements Registry {
 		return addr;
 	}
 
+
+    @Override
+    public void setConsoleAddress(String consoleAddress) {
+        for (Registry registry : registryList) {
+            try {
+                registry.setConsoleAddress(consoleAddress);
+            } catch (Throwable t) {
+                logger.info("failed to set console address from registry: " + registry.getName(), t);
+            }
+        }
+    }
+
+    @Override
+    public void unregisterConsoleAddress(String consoleAddress) {
+        for (Registry registry : registryList) {
+            try {
+                registry.unregisterConsoleAddress(consoleAddress);
+            } catch (Throwable t) {
+                logger.info("failed to unregister console address from registry: " + registry.getName(), t);
+            }
+        }
+
+    }
+
 	private String mergeAddress(String address, String anotherAddress) {
 		Set<String> result = Sets.newHashSet();
 
@@ -608,15 +632,15 @@ public class CompositeRegistry implements Registry {
 				}
 			}
 		}
+        @Override
+        public void onKeyAdded(String key, String value) {
 
-		@Override
-		public void onKeyAdded(String key, String value) {
+        }
 
-		}
+        @Override
+        public void onKeyRemoved(String key) {
 
-		@Override
-		public void onKeyRemoved(String key) {
+        }
+    }
 
-		}
-	}
 }

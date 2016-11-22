@@ -1,5 +1,5 @@
 /**
-s * Dianping.com Inc.
+ * s * Dianping.com Inc.
  * Copyright (c) 2003-${year} All Rights Reserved.
  */
 package com.dianping.pigeon.remoting.provider.process.filter;
@@ -32,12 +32,10 @@ import com.dianping.pigeon.util.TimeUtils;
 
 public class BusinessProcessFilter implements ServiceInvocationFilter<ProviderContext> {
 
-	private static final Logger logger = LoggerLoader.getLogger(BusinessProcessFilter.class);
-	private static final String KEY_TIMEOUT_RESET = "pigeon.timeout.reset";
+    private static final Logger logger = LoggerLoader.getLogger(BusinessProcessFilter.class);
 
-	public BusinessProcessFilter() {
-		ConfigManagerLoader.getConfigManager().getBooleanValue(KEY_TIMEOUT_RESET, true);
-	}
+    private static final String KEY_TIMEOUT_RESET = "pigeon.timeout.reset";
+
 
 	@Override
 	public InvocationResponse invoke(ServiceInvocationHandler handler, ProviderContext invocationContext)
@@ -67,12 +65,12 @@ public class BusinessProcessFilter implements ServiceInvocationFilter<ProviderCo
 			if (method == null) {
 				method = ServiceMethodFactory.getMethod(request);
 			}
-			if (Constants.REPLY_MANUAL && request.getCallType() == Constants.CALLTYPE_REPLY) {
-				request.setCallType(Constants.CALLTYPE_MANUAL);
-			}
-			if (Constants.REPLY_MANUAL) {
-				ProviderHelper.setContext(invocationContext);
-			}
+            if (Constants.REPLY_MANUAL) {
+                if (request.getCallType() == Constants.CALLTYPE_REPLY) {
+                    request.setCallType(Constants.CALLTYPE_MANUAL);
+                }
+                ProviderHelper.setContext(invocationContext);
+            }
 			invocationContext.getTimeline().add(new TimePoint(TimePhase.M, TimeUtils.currentTimeMillis()));
 			Object returnObj = null;
 			try {

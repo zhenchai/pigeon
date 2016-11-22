@@ -50,7 +50,7 @@ public abstract class AbstractEncoder extends OneToOneEncoder {
                 }
 
                 return codecEvent;
-            } catch (IOException e) {
+            } catch (Exception e) {
                 SerializationException se = new SerializationException(e);
 
                 try {

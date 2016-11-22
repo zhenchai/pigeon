@@ -11,9 +11,12 @@ import java.util.concurrent.Future;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.dianping.pigeon.extension.ExtensionLoader;
+import com.dianping.pigeon.remoting.common.codec.SerializerType;
+import com.dianping.pigeon.remoting.http.adapter.HttpAdapter;
+import com.dianping.pigeon.remoting.http.adapter.HttpAdapterFactory;
 import org.apache.commons.lang.StringUtils;
 
-import com.dianping.pigeon.extension.ExtensionLoader;
 import com.dianping.pigeon.log.Logger;
 import com.dianping.pigeon.log.LoggerLoader;
 import com.dianping.pigeon.remoting.common.codec.Serializer;
@@ -22,8 +25,6 @@ import com.dianping.pigeon.remoting.common.domain.InvocationRequest;
 import com.dianping.pigeon.remoting.common.domain.InvocationResponse;
 import com.dianping.pigeon.remoting.common.util.Constants;
 import com.dianping.pigeon.remoting.http.HttpUtils;
-import com.dianping.pigeon.remoting.http.adapter.HttpAdapter;
-import com.dianping.pigeon.remoting.http.adapter.HttpAdapterFactory;
 import com.dianping.pigeon.remoting.provider.Server;
 import com.dianping.pigeon.remoting.provider.domain.DefaultProviderContext;
 import com.dianping.pigeon.remoting.provider.domain.ProviderContext;
@@ -77,7 +78,7 @@ public class HttpServerHandler implements HttpHandler {
 			}
 
 			if (!request.getMethod().equalsIgnoreCase("POST")) {
-				if (SerializerFactory.SERIALIZE_JSON == Byte.parseByte(serialize)) {
+				if (SerializerType.isJson(Byte.parseByte(serialize))) {
 					response.setStatus(200);
 				} else {
 					response.setStatus(500);

@@ -14,14 +14,7 @@ import com.dianping.pigeon.remoting.common.process.ServiceInvocationFilter;
 import com.dianping.pigeon.remoting.common.process.ServiceInvocationHandler;
 import com.dianping.pigeon.remoting.common.util.Constants;
 import com.dianping.pigeon.remoting.invoker.config.InvokerConfig;
-import com.dianping.pigeon.remoting.invoker.process.filter.ClusterInvokeFilter;
-import com.dianping.pigeon.remoting.invoker.process.filter.ContextPrepareInvokeFilter;
-import com.dianping.pigeon.remoting.invoker.process.filter.DegradationFilter;
-import com.dianping.pigeon.remoting.invoker.process.filter.GatewayInvokeFilter;
-import com.dianping.pigeon.remoting.invoker.process.filter.InvocationInvokeFilter;
-import com.dianping.pigeon.remoting.invoker.process.filter.RemoteCallInvokeFilter;
-import com.dianping.pigeon.remoting.invoker.process.filter.RemoteCallMonitorInvokeFilter;
-import com.dianping.pigeon.remoting.invoker.process.filter.SecurityFilter;
+import com.dianping.pigeon.remoting.invoker.process.filter.*;
 
 public final class InvokerProcessHandlerFactory {
 
@@ -36,6 +29,7 @@ public final class InvokerProcessHandlerFactory {
 			if (Constants.MONITOR_ENABLE) {
 				registerBizProcessFilter(new RemoteCallMonitorInvokeFilter());
 			}
+			registerBizProcessFilter(new TraceFilter());
 			registerBizProcessFilter(new DegradationFilter());
 			registerBizProcessFilter(new ClusterInvokeFilter());
 			registerBizProcessFilter(new GatewayInvokeFilter());

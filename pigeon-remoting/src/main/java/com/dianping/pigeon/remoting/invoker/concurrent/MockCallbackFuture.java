@@ -2,10 +2,10 @@ package com.dianping.pigeon.remoting.invoker.concurrent;
 
 import com.dianping.pigeon.log.Logger;
 import com.dianping.pigeon.log.LoggerLoader;
+import com.dianping.pigeon.remoting.common.monitor.trace.InvokerMonitorData;
 import com.dianping.pigeon.remoting.invoker.domain.InvokerContext;
 import com.dianping.pigeon.remoting.invoker.proxy.MockProxyWrapper;
 
-import java.lang.reflect.Method;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -24,16 +24,23 @@ public class MockCallbackFuture extends ServiceFutureImpl {
     @Override
     public Object get(long timeoutMillis) throws InterruptedException, ExecutionException {
         // 此刻执行mock逻辑或脚本
+        boolean isSuccess = true;
         try {
             return mockProxyWrapper.invoke(
                     invocationContext.getMethodName(),
                     invocationContext.getParameterTypes(),
                     invocationContext.getArguments());
         } catch (Throwable t) {
-            if(!(t instanceof RuntimeException)) {
+            isSuccess = false;
+            if (!(t instanceof RuntimeException)) {
                 t = new RuntimeException(t);
             }
             throw (RuntimeException) t;
+        } finally {
+            InvokerMonitorData monitorData = (InvokerMonitorData) invocationContext.getMonitorData();
+            monitorData.setIsSuccess(isSuccess);
+            monitorData.complete();
         }
+
     }
 }

@@ -7,6 +7,7 @@ import java.util.concurrent.Future;
 import com.dianping.pigeon.log.Logger;
 import com.dianping.pigeon.log.LoggerLoader;
 import com.dianping.pigeon.remoting.common.codec.SerializerFactory;
+import com.dianping.pigeon.remoting.common.codec.SerializerType;
 import com.dianping.pigeon.remoting.common.domain.InvocationRequest;
 import com.dianping.pigeon.remoting.common.domain.InvocationResponse;
 import com.dianping.pigeon.remoting.common.channel.Channel;
@@ -26,217 +27,217 @@ import com.dianping.pigeon.remoting.invoker.service.ServiceInvocationRepository;
 
 public class InvokerUtils {
 
-	private static ServiceInvocationRepository invocationRepository = ServiceInvocationRepository.getInstance();
+    private static ServiceInvocationRepository invocationRepository = ServiceInvocationRepository.getInstance();
 
-	private static final Logger logger = LoggerLoader.getLogger(InvokerUtils.class);
+    private static final Logger logger = LoggerLoader.getLogger(InvokerUtils.class);
 
-	public static InvocationResponse sendRequest(Client client, InvocationRequest request, Callback callback) {
-		if (request.getCallType() == Constants.CALLTYPE_REPLY) {
-			RemoteInvocationBean invocationBean = new RemoteInvocationBean();
-			invocationBean.request = request;
-			invocationBean.callback = callback;
-			callback.setRequest(request);
-			callback.setClient(client);
-			invocationRepository.put(request.getSequence(), invocationBean);
-		}
-		InvocationResponse response = null;
-		try {
-			response = client.write(request);
-		} catch (NetworkException e) {
-			invocationRepository.remove(request.getSequence());
-			logger.warn("network exception ocurred:" + request, e);
-			throw e;
-		} finally {
-			if (response != null) {
-				invocationRepository.remove(request.getSequence());
-			}
-		}
-		return response;
-	}
-
-
-        public static void sendRequest(Client client, Channel channel, InvocationRequest request, Callback callback) {
-            if (request.getCallType() == Constants.CALLTYPE_REPLY) {
-                RemoteInvocationBean invocationBean = new RemoteInvocationBean();
-                invocationBean.request = request;
-                invocationBean.callback = callback;
-                callback.setRequest(request);
-                callback.setClient(client);
-                invocationRepository.put(request.getSequence(), invocationBean);
-            }
-            try {
-                channel.write(request);
-            } catch (NetworkException e) {
+    public static InvocationResponse sendRequest(Client client, InvocationRequest request, Callback callback) {
+        if (request.getCallType() == Constants.CALLTYPE_REPLY) {
+            RemoteInvocationBean invocationBean = new RemoteInvocationBean();
+            invocationBean.request = request;
+            invocationBean.callback = callback;
+            callback.setRequest(request);
+            callback.setClient(client);
+            invocationRepository.put(request.getSequence(), invocationBean);
+        }
+        InvocationResponse response = null;
+        try {
+            response = client.write(request);
+        } catch (NetworkException e) {
+            invocationRepository.remove(request.getSequence());
+            logger.warn("network exception ocurred:" + request, e);
+            throw e;
+        } finally {
+            if (response != null) {
                 invocationRepository.remove(request.getSequence());
-                logger.warn("network exception ocurred:" + request, e);
-                throw e;
             }
         }
+        return response;
+    }
 
-	public static InvocationRequest createRemoteCallRequest(InvokerContext invokerContext,
-			InvokerConfig<?> invokerConfig) {
-		InvocationRequest request = invokerContext.getRequest();
-		if (request == null) {
-			if (invokerConfig.getSerialize() == SerializerFactory.SERIALIZE_THRIFT) {
-				request = new GenericRequest(invokerContext);
-			} else {
-				request = InvocationUtils.newRequest(invokerContext);
-			}
-			invokerContext.setRequest(request);
-		}
-		return request;
-	}
 
-	public static InvocationResponse createNoReturnResponse() {
-		return new NoReturnResponse();
-	}
+    public static void sendRequest(Client client, Channel channel, InvocationRequest request, Callback callback) {
+        if (request.getCallType() == Constants.CALLTYPE_REPLY) {
+            RemoteInvocationBean invocationBean = new RemoteInvocationBean();
+            invocationBean.request = request;
+            invocationBean.callback = callback;
+            callback.setRequest(request);
+            callback.setClient(client);
+            invocationRepository.put(request.getSequence(), invocationBean);
+        }
+        try {
+            channel.write(request);
+        } catch (NetworkException e) {
+            invocationRepository.remove(request.getSequence());
+            logger.warn("network exception ocurred:" + request, e);
+            throw e;
+        }
+    }
 
-	public static InvocationResponse createDefaultResponse(Object defaultResult) {
-		return new NoReturnResponse(defaultResult);
-	}
+    public static InvocationRequest createRemoteCallRequest(InvokerContext invokerContext,
+                                                            InvokerConfig<?> invokerConfig) {
+        InvocationRequest request = invokerContext.getRequest();
+        if (request == null) {
+            if (SerializerType.isThrift(invokerConfig.getSerialize())) {
+                request = new GenericRequest(invokerContext);
+            } else {
+                request = InvocationUtils.newRequest(invokerContext);
+            }
+            invokerContext.setRequest(request);
+        }
+        return request;
+    }
 
-	public static InvocationResponse createThrowableResponse(Throwable e) {
-		InvocationResponse response = new NoReturnResponse(e);
-		response.setMessageType(Constants.MESSAGE_TYPE_EXCEPTION);
-		return response;
-	}
+    public static InvocationResponse createNoReturnResponse() {
+        return new NoReturnResponse();
+    }
 
-	public static InvocationResponse createFutureResponse(Future serviceFuture) {
-		FutureResponse resp = new FutureResponse();
-		resp.setServiceFuture(serviceFuture);
-		return resp;
-	}
+    public static InvocationResponse createDefaultResponse(Object defaultResult) {
+        return new NoReturnResponse(defaultResult);
+    }
 
-	public static boolean isHeartErrorResponse(InvocationResponse response) {
-		return response != null && response.getMessageType() == Constants.MESSAGE_TYPE_HEART
-				&& response.getCause() != null;
-	}
+    public static InvocationResponse createThrowableResponse(Throwable e) {
+        InvocationResponse response = new NoReturnResponse(e);
+        response.setMessageType(Constants.MESSAGE_TYPE_EXCEPTION);
+        return response;
+    }
 
-	public static RuntimeException toApplicationRuntimeException(InvocationResponse response) {
-		Throwable t = toApplicationException(response);
-		if (t instanceof RuntimeException) {
-			return (RuntimeException) t;
-		} else {
-			return new ApplicationException(t);
-		}
-	}
+    public static InvocationResponse createFutureResponse(Future serviceFuture) {
+        FutureResponse resp = new FutureResponse();
+        resp.setServiceFuture(serviceFuture);
+        return resp;
+    }
 
-	public static Exception toApplicationException(InvocationResponse response) {
-		Object responseReturn = response.getReturn();
-		if (responseReturn == null) {
-			return new ApplicationException(response.getCause());
-		} else if (responseReturn instanceof RpcException) {
-			return new ApplicationException((RpcException) responseReturn);
-		} else if (responseReturn instanceof Exception) {
-			return (Exception) responseReturn;
-		} else if (responseReturn instanceof Throwable) {
-			return new RemoteInvocationException((Throwable) responseReturn);
-		} else if (responseReturn instanceof Map) {
-			Map errors = (Map) responseReturn;
-			String detailMessage = (String) errors.get("detailMessage");
-			StackTraceElement[] stackTrace = (StackTraceElement[]) errors.get("stackTrace");
-			ApplicationException e = new ApplicationException(detailMessage);
-			e.setStackTrace(stackTrace);
-			return e;
-		} else {
-			return new ApplicationException(responseReturn.toString());
-		}
-	}
+    public static boolean isHeartErrorResponse(InvocationResponse response) {
+        return response != null && response.getMessageType() == Constants.MESSAGE_TYPE_HEART
+                && response.getCause() != null;
+    }
 
-	public static RpcException toRpcException(InvocationResponse response) {
-		Throwable e = null;
-		Object responseReturn = response.getReturn();
-		if (responseReturn == null) {
-			return new RemoteInvocationException(response.getCause());
-		} else if (responseReturn instanceof Throwable) {
-			e = (Throwable) responseReturn;
-		} else if (responseReturn instanceof Map) {
-			Map errors = (Map) responseReturn;
-			String detailMessage = (String) errors.get("detailMessage");
-			StackTraceElement[] stackTrace = (StackTraceElement[]) errors.get("stackTrace");
-			e = new RemoteInvocationException(detailMessage);
-			e.setStackTrace(stackTrace);
-		} else {
-			e = new RemoteInvocationException(responseReturn.toString());
-		}
-		if (!(e instanceof RpcException)) {
-			return new RemoteInvocationException(e);
-		}
-		return (RpcException) e;
-	}
+    public static RuntimeException toApplicationRuntimeException(InvocationResponse response) {
+        Throwable t = toApplicationException(response);
+        if (t instanceof RuntimeException) {
+            return (RuntimeException) t;
+        } else {
+            return new ApplicationException(t);
+        }
+    }
 
-	static class NoReturnResponse implements InvocationResponse {
+    public static Exception toApplicationException(InvocationResponse response) {
+        Object responseReturn = response.getReturn();
+        if (responseReturn == null) {
+            return new ApplicationException(response.getCause());
+        } else if (responseReturn instanceof RpcException) {
+            return new ApplicationException((RpcException) responseReturn);
+        } else if (responseReturn instanceof Exception) {
+            return (Exception) responseReturn;
+        } else if (responseReturn instanceof Throwable) {
+            return new RemoteInvocationException((Throwable) responseReturn);
+        } else if (responseReturn instanceof Map) {
+            Map errors = (Map) responseReturn;
+            String detailMessage = (String) errors.get("detailMessage");
+            StackTraceElement[] stackTrace = (StackTraceElement[]) errors.get("stackTrace");
+            ApplicationException e = new ApplicationException(detailMessage);
+            e.setStackTrace(stackTrace);
+            return e;
+        } else {
+            return new ApplicationException(responseReturn.toString());
+        }
+    }
 
-		/**
-		 * serialVersionUID
-		 */
-		private static final long serialVersionUID = 4348389641787057819L;
+    public static RpcException toRpcException(InvocationResponse response) {
+        Throwable e = null;
+        Object responseReturn = response.getReturn();
+        if (responseReturn == null) {
+            return new RemoteInvocationException(response.getCause());
+        } else if (responseReturn instanceof Throwable) {
+            e = (Throwable) responseReturn;
+        } else if (responseReturn instanceof Map) {
+            Map errors = (Map) responseReturn;
+            String detailMessage = (String) errors.get("detailMessage");
+            StackTraceElement[] stackTrace = (StackTraceElement[]) errors.get("stackTrace");
+            e = new RemoteInvocationException(detailMessage);
+            e.setStackTrace(stackTrace);
+        } else {
+            e = new RemoteInvocationException(responseReturn.toString());
+        }
+        if (!(e instanceof RpcException)) {
+            return new RemoteInvocationException(e);
+        }
+        return (RpcException) e;
+    }
 
-		private long invokerRequestTime;
+    static class NoReturnResponse implements InvocationResponse {
 
-		private long invokerResponseTime;
+        /**
+         * serialVersionUID
+         */
+        private static final long serialVersionUID = 4348389641787057819L;
 
-		private long providerRequestTime;
+        private long invokerRequestTime;
 
-		private long providerResponseTime;
+        private long invokerResponseTime;
 
-		private Object result;
+        private long providerRequestTime;
 
-		private int messageType = Constants.MESSAGE_TYPE_SERVICE;
+        private long providerResponseTime;
 
-		public NoReturnResponse() {
-		}
+        private Object result;
 
-		public NoReturnResponse(Object defaultResult) {
-			this.result = defaultResult;
-		}
+        private int messageType = Constants.MESSAGE_TYPE_SERVICE;
 
-		public long getInvokerRequestTime() {
-			return invokerRequestTime;
-		}
+        public NoReturnResponse() {
+        }
 
-		public void setInvokerRequestTime(long invokerRequestTime) {
-			this.invokerRequestTime = invokerRequestTime;
-		}
+        public NoReturnResponse(Object defaultResult) {
+            this.result = defaultResult;
+        }
 
-		public long getInvokerResponseTime() {
-			return invokerResponseTime;
-		}
+        public long getInvokerRequestTime() {
+            return invokerRequestTime;
+        }
 
-		public void setInvokerResponseTime(long invokerResponseTime) {
-			this.invokerResponseTime = invokerResponseTime;
-		}
+        public void setInvokerRequestTime(long invokerRequestTime) {
+            this.invokerRequestTime = invokerRequestTime;
+        }
 
-		public long getProviderRequestTime() {
-			return providerRequestTime;
-		}
+        public long getInvokerResponseTime() {
+            return invokerResponseTime;
+        }
 
-		public void setProviderRequestTime(long providerRequestTime) {
-			this.providerRequestTime = providerRequestTime;
-		}
+        public void setInvokerResponseTime(long invokerResponseTime) {
+            this.invokerResponseTime = invokerResponseTime;
+        }
 
-		public long getProviderResponseTime() {
-			return providerResponseTime;
-		}
+        public long getProviderRequestTime() {
+            return providerRequestTime;
+        }
 
-		public void setProviderResponseTime(long providerResponseTime) {
-			this.providerResponseTime = providerResponseTime;
-		}
+        public void setProviderRequestTime(long providerRequestTime) {
+            this.providerRequestTime = providerRequestTime;
+        }
 
-		@Override
-		public void setMessageType(int messageType) {
-			this.messageType = messageType;
-		}
+        public long getProviderResponseTime() {
+            return providerResponseTime;
+        }
 
-		@Override
-		public int getMessageType() {
-			return messageType;
-		}
+        public void setProviderResponseTime(long providerResponseTime) {
+            this.providerResponseTime = providerResponseTime;
+        }
 
-		@Override
-		public String getCause() {
-			return null;
-		}
+        @Override
+        public void setMessageType(int messageType) {
+            this.messageType = messageType;
+        }
+
+        @Override
+        public int getMessageType() {
+            return messageType;
+        }
+
+        @Override
+        public String getCause() {
+            return null;
+        }
 
         @Override
         public Object getReturn() {

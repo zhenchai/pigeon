@@ -12,6 +12,7 @@ import org.apache.commons.lang.StringUtils;
 import com.dianping.pigeon.config.ConfigManager;
 import com.dianping.pigeon.config.ConfigManagerLoader;
 import com.dianping.pigeon.remoting.common.codec.SerializerFactory;
+import com.dianping.pigeon.remoting.common.codec.SerializerType;
 import com.dianping.pigeon.remoting.common.domain.InvocationRequest;
 import com.dianping.pigeon.remoting.common.domain.InvocationResponse;
 import com.dianping.pigeon.remoting.common.domain.generic.UnifiedRequest;
@@ -42,7 +43,7 @@ public final class ProviderUtils {
         response.setSequence(seq);
         response.setSerialize(serialization);
         response.setMessageType(Constants.MESSAGE_TYPE_EXCEPTION);
-        if (serialization == SerializerFactory.SERIALIZE_JSON) {
+        if (SerializerType.isJson(serialization)) {
             response.setReturn(LangUtils.getFullStackTrace(e));
         } else {
             response.setReturn(exceptionTranslator.translate(e));
@@ -67,7 +68,7 @@ public final class ProviderUtils {
         response.setSequence(request.getSequence());
         response.setSerialize(serialize);
         response.setMessageType(Constants.MESSAGE_TYPE_EXCEPTION);
-        if (serialize == SerializerFactory.SERIALIZE_JSON) {
+        if (SerializerType.isJson(serialize)) {
             response.setReturn(LangUtils.getFullStackTrace(e));
         } else {
             response.setReturn(exceptionTranslator.translate(e));
@@ -84,7 +85,7 @@ public final class ProviderUtils {
         response.setServiceName(request.getServiceName());
         response.setMethodName(request.getMethodName());
         response.setMessageType(Constants.MESSAGE_TYPE_EXCEPTION);
-        if (serialize == SerializerFactory.SERIALIZE_JSON) {
+        if (SerializerType.isJson(serialize)) {
             response.setReturn(LangUtils.getFullStackTrace(e));
         } else {
             response.setReturn(exceptionTranslator.translate(e));
@@ -120,9 +121,9 @@ public final class ProviderUtils {
         response.setSequence(request.getSequence());
         response.setSerialize(serialize);
         response.setMessageType(Constants.MESSAGE_TYPE_SERVICE_EXCEPTION);
-        if (serialize == SerializerFactory.SERIALIZE_JSON) {
+        if (SerializerType.isJson(serialize)){
             response.setReturn(LangUtils.getFullStackTrace(e));
-        } else {
+        }else{
             response.setReturn(e);
         }
 
@@ -138,7 +139,7 @@ public final class ProviderUtils {
         response.setMessageType(Constants.MESSAGE_TYPE_SERVICE_EXCEPTION);
         response.setServiceName(request.getServiceName());
         response.setMethodName(request.getMethodName());
-        if (serialize == SerializerFactory.SERIALIZE_JSON) {
+        if (SerializerType.isJson(serialize)) {
             response.setReturn(LangUtils.getFullStackTrace(e));
         } else {
             response.setReturn(e);

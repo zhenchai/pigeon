@@ -12,6 +12,7 @@ import com.dianping.pigeon.log.LoggerLoader;
 import com.dianping.pigeon.monitor.Monitor;
 import com.dianping.pigeon.monitor.MonitorLoader;
 import com.dianping.pigeon.monitor.MonitorTransaction;
+import com.dianping.pigeon.remoting.common.monitor.trace.InvokerMonitorData;
 import com.dianping.pigeon.remoting.common.domain.InvocationContext.TimePhase;
 import com.dianping.pigeon.remoting.common.domain.InvocationContext.TimePoint;
 import com.dianping.pigeon.remoting.common.domain.InvocationRequest;
@@ -61,6 +62,7 @@ public class ServiceCallbackWrapper implements Callback {
 		if (client != null) {
 			addr = client.getAddress();
 		}
+		boolean isSuccess = false;
 		try {
 			setResponseContext(response);
 			if (Constants.MONITOR_ENABLE) {
@@ -108,6 +110,7 @@ public class ServiceCallbackWrapper implements Callback {
 			try {
 				if (response.getMessageType() == Constants.MESSAGE_TYPE_SERVICE) {
 					completeTransaction(transaction);
+					isSuccess = true;
 					this.callback.onSuccess(response.getReturn());
 				} else if (response.getMessageType() == Constants.MESSAGE_TYPE_EXCEPTION) {
 					RpcException e = ExceptionManager.INSTANCE.logRemoteCallException(addr,
@@ -143,6 +146,9 @@ public class ServiceCallbackWrapper implements Callback {
 			} catch (Throwable e) {
 				logger.error("error while executing service callback", e);
 			}
+			InvokerMonitorData monitorData = (InvokerMonitorData) invocationContext.getMonitorData();
+			monitorData.setIsSuccess(isSuccess);
+			monitorData.complete();
 		}
 	}
 
