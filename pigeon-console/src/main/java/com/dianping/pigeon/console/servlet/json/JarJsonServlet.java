@@ -151,24 +151,41 @@ public class JarJsonServlet extends ServiceServlet {
                             coordinate.setGroupId(p.getProperty("groupId"));
                         } catch (IOException e) {
                             logger.info(e);
-                            return null;
+                            break;
                         } finally {
                             if (in != null) {
-                                in.close();
+                                try{
+                                    in.close();
+                                }catch (IOException e){
+                                    logger.info(e);
+                                }
                             }
                         }
+                        BufferedReader reader = null;
                         try {
                             in = serviceInterface.getClassLoader().getResourceAsStream(entry.getName());
-                            BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+                            reader = new BufferedReader(new InputStreamReader(in));
                             reader.readLine();
                             coordinate.setTime(reader.readLine());
                             in.close();
                         } catch (IOException e) {
                             logger.info(e);
-                            return null;
+                            break;
                         } finally {
-                            if (in != null)
-                                in.close();
+                            if (reader != null) {
+                                try{
+                                    reader.close();
+                                }catch (IOException e){
+                                    logger.info(e);
+                                }
+                            }
+                            if (in != null) {
+                                try{
+                                    in.close();
+                                }catch (IOException e){
+                                    logger.info(e);
+                                }
+                            }
                         }
                         coordinates.add(coordinate);
                     }
@@ -177,6 +194,13 @@ public class JarJsonServlet extends ServiceServlet {
             } catch (IOException e) {
                 logger.info(e);
                 return null;
+            }finally {
+                if(jarFile!=null)
+                    try {
+                        jarFile.close();
+                    } catch (IOException e) {
+                        logger.info(e);
+                    }
             }
         }
         for (MavenCoordinate coordinate : coordinates) {
