@@ -134,7 +134,7 @@ public class PoolBean {
                     } else {
                         setCorePoolSize(threadPool.getExecutor().getCorePoolSize());
                         setMaxPoolSize(threadPool.getExecutor().getMaximumPoolSize());
-                        logger.warn("poolBean: " + poolName + " core or max arg is unreasonable, please check!");
+                        logger.warn("poolBean: " + poolName + " core or max size is unreasonable, please check!");
                     }
                 }
             }
@@ -158,7 +158,7 @@ public class PoolBean {
                     } else {
                         setWorkQueueSize(threadPool.getExecutor().getQueue().size()
                                 + threadPool.getExecutor().getQueue().remainingCapacity());
-                        logger.warn("poolBean: " + poolName + " queue arg is unreasonable, please check!");
+                        logger.warn("poolBean: " + poolName + " queue size is unreasonable, please check!");
                     }
                 }
             }
