@@ -1,8 +1,8 @@
 package com.dianping.pigeon.console.servlet.json;
 
-import com.dianping.pigeon.monitor.trace.stats.ApplicationTraceData;
+import com.dianping.pigeon.remoting.common.monitor.trace.ApplicationTraceData;
 import com.dianping.pigeon.remoting.common.codec.json.JacksonSerializer;
-import com.dianping.pigeon.remoting.common.monitor.MonitorDataFactory;
+import com.dianping.pigeon.remoting.common.monitor.trace.MonitorDataFactory;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;

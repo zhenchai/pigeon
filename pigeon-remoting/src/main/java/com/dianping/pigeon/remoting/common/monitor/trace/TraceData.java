@@ -1,4 +1,4 @@
-package com.dianping.pigeon.monitor.trace.stats;
+package com.dianping.pigeon.remoting.common.monitor.trace;
 
 
 /**

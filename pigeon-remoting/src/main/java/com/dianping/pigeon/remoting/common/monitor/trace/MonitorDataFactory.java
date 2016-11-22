@@ -1,11 +1,6 @@
-package com.dianping.pigeon.remoting.common.monitor;
+package com.dianping.pigeon.remoting.common.monitor.trace;
 
 import com.dianping.pigeon.config.ConfigManagerLoader;
-import com.dianping.pigeon.monitor.trace.data.InvokerMonitorData;
-import com.dianping.pigeon.monitor.trace.data.ProviderMonitorData;
-import com.dianping.pigeon.monitor.trace.stats.ApplicationTraceData;
-import com.dianping.pigeon.monitor.trace.stats.DestinationKey;
-import com.dianping.pigeon.monitor.trace.stats.SourceKey;
 
 /**
  * @author qi.yin

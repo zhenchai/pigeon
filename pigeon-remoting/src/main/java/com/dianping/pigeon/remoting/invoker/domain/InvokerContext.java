@@ -4,7 +4,7 @@
  */
 package com.dianping.pigeon.remoting.invoker.domain;
 
-import com.dianping.pigeon.monitor.trace.data.InvokerMonitorData;
+import com.dianping.pigeon.remoting.common.monitor.trace.InvokerMonitorData;
 import com.dianping.pigeon.remoting.common.domain.InvocationContext;
 import com.dianping.pigeon.remoting.invoker.Client;
 import com.dianping.pigeon.remoting.invoker.config.InvokerConfig;

@@ -4,7 +4,7 @@
  */
 package com.dianping.pigeon.remoting.common.domain;
 
-import com.dianping.pigeon.monitor.trace.data.MonitorData;
+import com.dianping.pigeon.remoting.common.monitor.trace.MonitorData;
 
 import java.io.Serializable;
 import java.util.ArrayList;

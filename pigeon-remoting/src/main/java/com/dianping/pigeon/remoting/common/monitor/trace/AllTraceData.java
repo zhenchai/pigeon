@@ -1,6 +1,4 @@
-package com.dianping.pigeon.monitor.trace.stats;
-
-import com.dianping.pigeon.monitor.trace.data.MonitorData;
+package com.dianping.pigeon.remoting.common.monitor.trace;
 
 /**
  * @author qi.yin

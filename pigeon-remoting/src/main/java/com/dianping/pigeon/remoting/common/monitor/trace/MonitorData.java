@@ -1,4 +1,4 @@
-package com.dianping.pigeon.monitor.trace.data;
+package com.dianping.pigeon.remoting.common.monitor.trace;
 
 /**
  * @author qi.yin

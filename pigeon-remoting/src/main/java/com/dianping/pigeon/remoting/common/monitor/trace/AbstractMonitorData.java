@@ -1,11 +1,6 @@
-package com.dianping.pigeon.monitor.trace.data;
+package com.dianping.pigeon.remoting.common.monitor.trace;
 
-import com.dianping.pigeon.monitor.trace.stats.ApplicationTraceData;
-import com.dianping.pigeon.monitor.trace.stats.DestinationKey;
-import com.dianping.pigeon.monitor.trace.stats.SourceKey;
 import com.dianping.pigeon.util.TimeUtils;
-
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * @author qi.yin

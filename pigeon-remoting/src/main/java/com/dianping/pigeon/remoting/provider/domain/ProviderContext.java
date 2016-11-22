@@ -6,7 +6,7 @@ package com.dianping.pigeon.remoting.provider.domain;
 
 import java.util.concurrent.Future;
 
-import com.dianping.pigeon.monitor.trace.data.ProviderMonitorData;
+import com.dianping.pigeon.remoting.common.monitor.trace.ProviderMonitorData;
 import com.dianping.pigeon.remoting.common.domain.InvocationContext;
 import com.dianping.pigeon.remoting.provider.service.method.ServiceMethod;
 

@@ -1,8 +1,4 @@
-package com.dianping.pigeon.monitor.trace.data;
-
-import com.dianping.pigeon.monitor.trace.stats.ApplicationTraceData;
-import com.dianping.pigeon.monitor.trace.stats.DestinationKey;
-import com.dianping.pigeon.monitor.trace.stats.SourceKey;
+package com.dianping.pigeon.remoting.common.monitor.trace;
 
 /**
  * @author qi.yin

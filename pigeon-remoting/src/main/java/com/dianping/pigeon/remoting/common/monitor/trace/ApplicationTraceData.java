@@ -1,7 +1,5 @@
-package com.dianping.pigeon.monitor.trace.stats;
+package com.dianping.pigeon.remoting.common.monitor.trace;
 
-import com.dianping.pigeon.monitor.trace.data.InvokerMonitorData;
-import com.dianping.pigeon.monitor.trace.data.ProviderMonitorData;
 import com.dianping.pigeon.util.TimeUtils;
 
 /**

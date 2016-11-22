@@ -1,6 +1,6 @@
 package com.dianping.pigeon.remoting.provider.process.filter;
 
-import com.dianping.pigeon.monitor.trace.data.ProviderMonitorData;
+import com.dianping.pigeon.remoting.common.monitor.trace.ProviderMonitorData;
 import com.dianping.pigeon.remoting.common.domain.InvocationRequest;
 import com.dianping.pigeon.remoting.common.domain.InvocationResponse;
 import com.dianping.pigeon.remoting.common.process.ServiceInvocationFilter;

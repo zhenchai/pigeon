@@ -2,7 +2,7 @@ package com.dianping.pigeon.remoting.invoker.concurrent;
 
 import com.dianping.pigeon.log.Logger;
 import com.dianping.pigeon.log.LoggerLoader;
-import com.dianping.pigeon.monitor.trace.data.InvokerMonitorData;
+import com.dianping.pigeon.remoting.common.monitor.trace.InvokerMonitorData;
 import com.dianping.pigeon.remoting.invoker.domain.InvokerContext;
 import com.dianping.pigeon.remoting.invoker.proxy.MockProxyWrapper;
 
