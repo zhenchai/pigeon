@@ -5,6 +5,7 @@ import java.io.Serializable;
 import java.util.Map;
 
 import com.dianping.pigeon.config.ConfigManagerLoader;
+import com.dianping.pigeon.remoting.common.domain.*;
 import com.dianping.pigeon.remoting.common.util.Constants;
 import com.dianping.pigeon.remoting.common.util.InvocationUtils;
 import com.dianping.pigeon.remoting.invoker.config.InvokerConfig;
@@ -80,10 +81,10 @@ public class GenericRequest implements UnifiedRequest {
                 this.serialize = invokerConfig.getSerialize();
                 this.timeout = invokerConfig.getTimeout(invokerContext.getMethodName());
                 this.setVersion(invokerConfig.getVersion());
-                if (Constants.CALL_ONEWAY.equalsIgnoreCase(invokerConfig.getCallType())) {
-                    this.setCallType(Constants.CALLTYPE_NOREPLY);
+                if (CallMethod.isOneway(invokerConfig.getCallType())) {
+                    this.setCallType(com.dianping.pigeon.remoting.common.domain.CallType.NOREPLY.getCode());
                 } else {
-                    this.setCallType(Constants.CALLTYPE_REPLY);
+                    this.setCallType(com.dianping.pigeon.remoting.common.domain.CallType.REPLY.getCode());
                 }
             }
             this.methodName = invokerContext.getMethodName();

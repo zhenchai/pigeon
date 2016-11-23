@@ -28,10 +28,10 @@ import com.dianping.pigeon.util.ThriftUtils;
 
 public class InvokerConfig<T> {
     private static final Logger logger = LoggerLoader.getLogger(InvokerConfig.class);
-    public static final String CALL_SYNC = Constants.CALL_SYNC;
-    public static final String CALL_CALLBACK = Constants.CALL_CALLBACK;
-    public static final String CALL_ONEWAY = Constants.CALL_ONEWAY;
-    public static final String CALL_FUTURE = Constants.CALL_FUTURE;
+    public static final String CALL_SYNC = CallMethod.SYNC.getName();
+    public static final String CALL_CALLBACK = CallMethod.CALLBACK.getName();
+    public static final String CALL_ONEWAY = CallMethod.ONEWAY.getName();
+    public static final String CALL_FUTURE =CallMethod.FUTURE.getName();
 
     public static final String PROTOCOL_HTTP = Constants.PROTOCOL_HTTP;
     public static final String PROTOCOL_DEFAULT = Constants.PROTOCOL_DEFAULT;
@@ -52,7 +52,7 @@ public class InvokerConfig<T> {
 
     private byte callMethod = CallMethod.SYNC.getCode();
 
-    private String callType = Constants.CALL_SYNC;
+    private String callType = CallMethod.SYNC.getName();
 
     private byte serialize = SerializerType.HESSIAN.getCode();
 
@@ -319,12 +319,11 @@ public class InvokerConfig<T> {
      * @param callType the callType to set
      */
     public void setCallType(String callType) {
-        if (!Constants.CALL_SYNC.equalsIgnoreCase(callType) && !Constants.CALL_CALLBACK.equalsIgnoreCase(callType)
-                && !Constants.CALL_FUTURE.equalsIgnoreCase(callType)
-                && !Constants.CALL_ONEWAY.equalsIgnoreCase(callType)) {
+        if (!CallMethod.isSync(callType) && !CallMethod.isCallback(callType)
+                && !CallMethod.isFuture(callType) && !CallMethod.isOneway(callType)) {
 
-            throw new IllegalArgumentException("Pigeon call mode only support[" + Constants.CALL_SYNC + ", "
-                    + Constants.CALL_CALLBACK + ", " + Constants.CALL_FUTURE + ", " + Constants.CALL_ONEWAY + "].");
+            throw new IllegalArgumentException("Pigeon call mode only support[" + CallMethod.SYNC.getName() + ", "
+                    + CallMethod.CALLBACK.getName() + ", " + CallMethod.FUTURE.getName() + ", " + CallMethod.ONEWAY.getName() + "].");
         }
         if (!StringUtils.isBlank(callType)) {
             this.callType = callType.trim();
@@ -388,7 +387,8 @@ public class InvokerConfig<T> {
     public void setCallback(InvocationCallback callback) {
         this.callback = callback;
         if (callback != null) {
-            setCallType(InvokerConfig.CALL_CALLBACK);
+            setCallType(CallMethod.CALLBACK.getName());
+            setCallMethod(CallMethod.CALLBACK.getCode());
         }
     }
 

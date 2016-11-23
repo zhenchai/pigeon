@@ -13,6 +13,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import com.dianping.pigeon.config.ConfigManagerLoader;
 import com.dianping.pigeon.log.Logger;
 import com.dianping.pigeon.log.LoggerLoader;
+import com.dianping.pigeon.remoting.common.domain.CallMethod;
 import com.dianping.pigeon.remoting.common.domain.InvocationRequest;
 import com.dianping.pigeon.remoting.common.domain.InvocationResponse;
 import com.dianping.pigeon.remoting.common.process.ServiceInvocationHandler;
@@ -95,7 +96,7 @@ public class ForkingCluster implements Cluster {
 		if (ret instanceof Throwable) {
 			throw (Throwable) ret;
 		} else if ((ret instanceof FutureResponse)
-				&& Constants.CALL_FUTURE.equalsIgnoreCase(invokerConfig.getCallType())) {
+				&& CallMethod.isFuture(invokerConfig.getCallType())) {
 			FutureFactory.setFuture(((FutureResponse) ret).getServiceFuture());
 		} else if (ret == null) {
 			throw InvocationUtils.newTimeoutException("timeout while waiting forking response:" + request);

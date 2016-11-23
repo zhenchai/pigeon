@@ -14,9 +14,9 @@ public class ApplicationTraceData {
 
     private static transient final ThreadLocal<TraceKey> traceKeys = new ThreadLocal<TraceKey>();
 
-    private InvokerAllTraceData invokerTraceData = new InvokerAllTraceData();
+    private InvokerTraceRepository invokerTraceData = new InvokerTraceRepository();
 
-    private ProviderAllTraceData providerTraceData = new ProviderAllTraceData();
+    private ProviderTraceRepository providerTraceData = new ProviderTraceRepository();
 
 
     public ApplicationTraceData(String appName) {
@@ -66,8 +66,8 @@ public class ApplicationTraceData {
     public ApplicationTraceData copy() {
         ApplicationTraceData traceData = new ApplicationTraceData(appName);
 
-        traceData.setInvokerTraceData((InvokerAllTraceData) invokerTraceData.copy());
-        traceData.setProviderTraceData((ProviderAllTraceData) providerTraceData.copy());
+        traceData.setInvokerTraceData((InvokerTraceRepository) invokerTraceData.copy());
+        traceData.setProviderTraceData((ProviderTraceRepository) providerTraceData.copy());
 
         return traceData;
     }
@@ -80,19 +80,19 @@ public class ApplicationTraceData {
         return startMillis;
     }
 
-    public InvokerAllTraceData getInvokerTraceData() {
+    public InvokerTraceRepository getInvokerTraceData() {
         return invokerTraceData;
     }
 
-    public ProviderAllTraceData getProviderTraceData() {
+    public ProviderTraceRepository getProviderTraceData() {
         return providerTraceData;
     }
 
-    public void setInvokerTraceData(InvokerAllTraceData invokerTraceData) {
+    public void setInvokerTraceData(InvokerTraceRepository invokerTraceData) {
         this.invokerTraceData = invokerTraceData;
     }
 
-    public void setProviderTraceData(ProviderAllTraceData providerTraceData) {
+    public void setProviderTraceData(ProviderTraceRepository providerTraceData) {
         this.providerTraceData = providerTraceData;
     }
 

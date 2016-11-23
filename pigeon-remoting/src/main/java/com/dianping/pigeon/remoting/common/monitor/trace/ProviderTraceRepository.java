@@ -1,17 +1,18 @@
 package com.dianping.pigeon.remoting.common.monitor.trace;
 
 import com.dianping.pigeon.util.MapUtils;
+import com.dianping.pigeon.util.Pair;
 import com.dianping.pigeon.util.TimeUtils;
 
 /**
  * @author qi.yin
  *         2016/11/17  下午3:12.
  */
-public class ProviderAllTraceData extends AbstractAllTraceData<ProviderMonitorData, ProviderTraceData> {
+public class ProviderTraceRepository extends AbstractTraceRepository<ProviderMonitorData, ProviderTraceData> {
 
     public void start(ProviderMonitorData monitorData) {
         ProviderTraceData traceStatsData = MapUtils.getOrCreate(traceDatas,
-                new KeyPair<SourceKey, DestinationKey>(monitorData.getSrcKey(), monitorData.getDstKey()),
+                new Pair<SourceKey, DestinationKey>(monitorData.getSrcKey(), monitorData.getDstKey()),
                 ProviderTraceData.class);
 
         traceStatsData.incTotalCount();
@@ -20,7 +21,7 @@ public class ProviderAllTraceData extends AbstractAllTraceData<ProviderMonitorDa
     public void addData(ProviderMonitorData monitorData) {
 
         ProviderTraceData traceStatsData = MapUtils.getOrCreate(traceDatas,
-                new KeyPair<SourceKey, DestinationKey>(monitorData.getSrcKey(), monitorData.getDstKey()),
+                new Pair<SourceKey, DestinationKey>(monitorData.getSrcKey(), monitorData.getDstKey()),
                 ProviderTraceData.class);
 
         traceStatsData.setCallType(monitorData.getCallType());
@@ -31,7 +32,7 @@ public class ProviderAllTraceData extends AbstractAllTraceData<ProviderMonitorDa
     public void complete(ProviderMonitorData monitorData) {
 
         ProviderTraceData traceStatsData = MapUtils.getOrCreate(traceDatas,
-                new KeyPair<SourceKey, DestinationKey>(monitorData.getSrcKey(), monitorData.getDstKey()),
+                new Pair<SourceKey, DestinationKey>(monitorData.getSrcKey(), monitorData.getDstKey()),
                 ProviderTraceData.class);
 
         long elapsed = TimeUtils.currentTimeMillis() - monitorData.getStartMillisTime();
@@ -46,7 +47,7 @@ public class ProviderAllTraceData extends AbstractAllTraceData<ProviderMonitorDa
     }
 
     @Override
-    public AbstractAllTraceData<ProviderMonitorData, ProviderTraceData> createAllTraceData() {
-        return new ProviderAllTraceData();
+    public AbstractTraceRepository<ProviderMonitorData, ProviderTraceData> createAllTraceData() {
+        return new ProviderTraceRepository();
     }
 }
