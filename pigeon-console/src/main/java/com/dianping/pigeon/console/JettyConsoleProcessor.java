@@ -59,7 +59,6 @@ public class JettyConsoleProcessor implements JettyHttpServerProcessor {
 
 
         JarJsonServlet jarJsonServlet = new JarJsonServlet(serverConfig, port);
-        context.addServlet(new ServletHolder(jarJsonServlet), "/jars.json");
         context.addServlet(new ServletHolder(jarJsonServlet), "/jars");
 
         TraceStatsJsonServlet statsJsonServlet = new TraceStatsJsonServlet();

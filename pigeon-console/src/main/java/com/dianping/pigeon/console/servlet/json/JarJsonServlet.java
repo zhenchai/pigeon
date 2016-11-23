@@ -6,6 +6,7 @@ import com.dianping.pigeon.console.domain.MavenCoordinate;
 import com.dianping.pigeon.console.domain.ServicePath;
 import com.dianping.pigeon.console.domain.ServicePaths;
 import com.dianping.pigeon.console.servlet.ServiceServlet;
+import com.dianping.pigeon.remoting.invoker.config.InvokerConfig;
 import com.dianping.pigeon.remoting.provider.config.ProviderConfig;
 import com.dianping.pigeon.remoting.provider.config.ServerConfig;
 
@@ -31,46 +32,58 @@ public class JarJsonServlet extends ServiceServlet {
         super(serverConfig, port);
     }
 
-    private ServicePaths getServicePaths() {
-        List<ServicePath> paths = new LinkedList<ServicePath>();
+    private List<ServicePath> getProviderServicePaths() {
+        List<ServicePath> paths = new LinkedList<>();
         Map<String, ProviderConfig<?>> serviceProviders = getServiceProviders();
         for (Map.Entry<String, ProviderConfig<?>> entry : serviceProviders.entrySet()) {
             String serviceName = entry.getKey();
-            ServicePath servicePath = pathMap.get(serviceName);
-            if (servicePath != null) {
-                paths.add(servicePath);
-            } else {
-                servicePath = new ServicePath();
-                servicePath.setService(serviceName);
-                String group = configManager.getGroup();
-                servicePath.setGroup(group);
-                ProviderConfig<?> providerConfig = entry.getValue();
-                Class<?> serviceInterface = providerConfig.getServiceInterface();
-                URL url = serviceInterface.getResource(serviceInterface.getSimpleName() + ".class");
-                if (url != null) {
-                    String path = url.getFile();
-                    servicePath.setPath(trimPath(path));
-                }
-                MavenCoordinate coordinate = getCoordinate(serviceInterface);
-                if (coordinate != null) {
-                    servicePath.setGroupId(coordinate.getGroupId());
-                    servicePath.setArtifactId(coordinate.getArtifactId());
-                    servicePath.setVersion(coordinate.getVersion());
-                    servicePath.setTime(coordinate.getTime());
-                }
-                pathMap.put(serviceName, servicePath);
-                paths.add(servicePath);
-            }
+            ProviderConfig<?> providerConfig = entry.getValue();
+            Class<?> serviceInterface  = providerConfig.getServiceInterface();
+            paths.add(getServicePath(serviceName,serviceInterface));
         }
-        ServicePaths servicePaths = new ServicePaths();
-        servicePaths.setPaths(paths);
-        return servicePaths;
+        return paths;
+    }
+
+
+    private List<ServicePath> getInvokerServicePaths(){
+        List<ServicePath> paths = new LinkedList<>();
+        Set<InvokerConfig<?>> invokerConfigs = getInvokerConfigs().keySet();
+        for(InvokerConfig<?> invokerConfig : invokerConfigs){
+            String serviceName = invokerConfig.getUrl();
+            Class<?> serviceInterface = invokerConfig.getServiceInterface();
+            paths.add(getServicePath(serviceName,serviceInterface));
+        }
+        return paths;
+    }
+
+    private ServicePath getServicePath(String serviceName,Class<?> serviceInterface){
+        ServicePath servicePath = pathMap.get(serviceName);
+        if(servicePath == null){
+            servicePath = new ServicePath();
+            servicePath.setService(serviceName);
+            servicePath.setGroup(configManager.getGroup());
+            URL url = serviceInterface.getResource(serviceInterface.getSimpleName() + ".class");
+            if (url != null) {
+                String path = url.getFile();
+                servicePath.setPath(trimPath(path));
+            }
+            MavenCoordinate coordinate = getCoordinate(serviceInterface);
+            if (coordinate != null) {
+                servicePath.setGroupId(coordinate.getGroupId());
+                servicePath.setArtifactId(coordinate.getArtifactId());
+                servicePath.setVersion(coordinate.getVersion());
+                servicePath.setTime(coordinate.getTime());
+            }
+            pathMap.put(serviceName, servicePath);
+        }
+        return servicePath;
     }
 
     @Override
     protected boolean initServicePage(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        ServicePaths paths = null;
-        paths = getServicePaths();
+        ServicePaths paths = new ServicePaths();
+        paths.setInvokerPaths(getInvokerServicePaths());
+        paths.setProviderPaths(getProviderServicePaths());
         this.model = paths;
         return true;
     }
