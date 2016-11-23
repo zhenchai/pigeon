@@ -33,11 +33,11 @@ public class DefaultThreadPool implements ThreadPool {
 	}
 
 	public DefaultThreadPool(String poolName, int corePoolSize, int maximumPoolSize) {
-
 		this(poolName, corePoolSize, maximumPoolSize, new SynchronousQueue<Runnable>());
 	}
 
-	public DefaultThreadPool(String poolName, int corePoolSize, int maximumPoolSize, BlockingQueue<Runnable> workQueue) {
+	public DefaultThreadPool(String poolName, int corePoolSize, int maximumPoolSize,
+			BlockingQueue<Runnable> workQueue) {
 		this(poolName, corePoolSize, maximumPoolSize, workQueue, new AbortPolicy());
 	}
 
@@ -55,6 +55,7 @@ public class DefaultThreadPool implements ThreadPool {
 		this.factory = new DefaultThreadFactory(this.name);
 		this.executor = new ThreadPoolExecutor(corePoolSize, maximumPoolSize, 30, TimeUnit.SECONDS, workQueue,
 				this.factory, handler);
+		this.executor.prestartAllCoreThreads();
 	}
 
 	public void execute(Runnable run) {
@@ -71,6 +72,14 @@ public class DefaultThreadPool implements ThreadPool {
 
 	public ThreadPoolExecutor getExecutor() {
 		return this.executor;
+	}
+
+	public void prestartAllCoreThreads() {
+		this.executor.prestartAllCoreThreads();
+	}
+
+	public void allowCoreThreadTimeOut(boolean value) {
+		this.executor.allowCoreThreadTimeOut(value);
 	}
 
 }
