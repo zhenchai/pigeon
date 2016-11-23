@@ -876,7 +876,8 @@ pigeon支持客户端调用某个服务接口时，对整个服务的超时时�
 ### 配置服务方法级别的最大并发数
 pigeon支持服务端对某个服务接口的方法的最大并发数进行配置，这样可以隔离每个服务方法的访问，防止某些方法执行太慢导致服务端线程池全部卡住的问题。
 
-只需要设置useSharedPool为false，pigeon就会为每个方法设置独立的线程池执行请求。如果想单独设置某个方法的最大并发数，需要设置这个方法的actives属性。
+1、客户端spring配置
+只需要设置useSharedPool为false，pigeon就会为每个方法设置独立的线程池执行请求。
 
 如果并发超过设置的最大并发数，服务端会抛出
 ```java
@@ -884,50 +885,174 @@ com.dianping.pigeon.remoting.common.exception.RejectedException
 ```
 异常，客户端也会收到这个异常。
 ```xml
-<beans xmlns="http://www.springframework.org/schema/beans"
-    	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-    	xmlns:context="http://www.springframework.org/schema/context"
-    	xmlns:tx="http://www.springframework.org/schema/tx"     
-    	xmlns:pigeon="http://code.dianping.com/schema/pigeon"
-	    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
-	    http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-2.5.xsd
-	    http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-2.5.xsd
-	    http://code.dianping.com/schema/pigeon http://code.dianping.com/schema/pigeon/pigeon-service-2.0.xsd"
-	    default-autowire="byName">
-	    
-	<!-- 如果下面的每个服务的useSharedPool设置为false，则共享池几个参数可以设置小一点 -->
-	<pigeon:server id="pigeonServer" corePoolSize="${pigeon-test.sharedpool.coresize}" port="${pigeon-test.port}" maxPoolSize="${pigeon-test.sharedpool.maxsize}" workQueueSize="${pigeon-test.sharedpool.queuesize}" />
-	<!-- useSharedPool设置为false代表每个方法会使用独立的线程池，方法级别的actives属性代表该方法的最大请求并发数-->
-	<pigeon:service useSharedPool="${pigeon-test.sharedpool.use}" server="pigeonServer" url="http://service.dianping.com/com.dianping.pigeon.demo.EchoService" interface="com.dianping.pigeon.demo.EchoService" ref="defaultEchoServiceImpl">
-    	<pigeon:method name="echo" actives="${pigeon-test.methodpool.actives.echo}" />
-	    <pigeon:method name="echo2" actives="${pigeon-test.methodpool.actives.echo2}" />
-	</pigeon:service>
-	<!-- 服务级别的actives属性代表该服务的最大请求并发数，该服务将采用独立线程池，这个服务如果配置method，则actives属性无效-->
-	<pigeon:service useSharedPool="false" server="pigeonServer" url="http://service.dianping.com/com.dianping.pigeon.demo.UserService" actives="100" interface="com.dianping.pigeon.demo.UserService" ref="defaultEchoServiceImpl">
-	</pigeon:service>
-
-</beans>
+<!-- 定义pool -->
+<pigeon:pool id="poolS"
+corePoolSize="${tena.test.core.size}"
+maxPoolSize="${tena.test.max.size}"
+workQueueSize="${tena.test.queue.size}" />
+<pigeon:pool id="poolM"
+corePoolSize="${pigeon-benchmark.isolation.core.size}"
+maxPoolSize="${pigeon-benchmark.isolation.max.size}"
+workQueueSize="${pigeon-benchmark.isolation.queue.size}" />
+ 
+<!-- 引用pool -->
+<pigeon:service interface="com.dianping.pigeon.benchmark.service.HelloService"
+url="com.dianping.pigeon.benchmark.service.HelloService"
+pool="poolS" useSharedPool="false" ref="helloService">
+    <pigeon:method name="sayHello" pool="poolM" actives="20" /><!-- actives无效 -->
+    <pigeon:method name="returnNull" actives="50" />
+</pigeon:service>
+<pigeon:service interface="com.dianping.pigeon.benchmark.service.TestService"
+url="com.dianping.pigeon.benchmark.service.TestService"
+pool="poolS" actives="50" useSharedPool="false" ref="testService"><!-- actives无效 -->
+    <pigeon:method name="sendLong" pool="poolM" />
+    <pigeon:method name="sendStr" actives="20" />
+</pigeon:service>
 ```
-以上配置里actives、workQueueSize、corePoolSize、maxPoolSize，如果使用点评的lion配置框架，均可以通过lion动态在线设置实时生效
+需要设置useSharedPool为false，pool定义中的corePoolSize、maxPoolSize、workQueueSize均可动态改变生效
+
+2、配置中心统一配置
+a、首先需要在应用lion里配置开关打开，例如xxx-service项目要配置以下lion配置：
+xxx-service.pigeon.provider.pool.config.enable=true
+b、配置应用的自定义pool(与方法2中的pool无关)，添加配置项：
+xxx-service.pigeon.provider.pool.config
+内容为json格式的pool对象数组，如下：
+```
+[ {
+ "poolName" : "pool1",
+ "corePoolSize" : 50,
+ "maxPoolSize" : 100,
+ "workQueueSize" : 101
+}, {
+ "poolName" : "pool2",
+ "corePoolSize" : 1,
+ "maxPoolSize" : 2,
+ "workQueueSize" : 33
+}, {
+ "poolName" : "pool3",
+ "corePoolSize" : 0,
+ "maxPoolSize" : 1,
+ "workQueueSize" : 1
+} ]
+```
+c、配置应用的接口与使用的自定义pool的映射，支持服务或方法级别，添加而配置项：
+pigeon-benchmark.pigeon.provider.pool.api.config
+内容为json格式的映射对象，如下：
+```
+{
+ "com.dianping.pigeon.benchmark.service.HelloService#statistics" : "pool1",
+ "com.dianping.pigeon.benchmark.service.EchoService" : "pool2",
+ "com.dianping.pigeon.benchmark.service.TestService" : "pool3"
+}
+```
+d、以上a、b、c的配置项都可以动态生效。
+
+3、管理端配置
+服务隔离的配置也可通过管理端进行
 
 ### 限制某个客户端应用的最大并发数
-pigeon也支持在服务端配置某个客户端应用的最大并发数
-1. 首先需要在应用lion里配置开关打开，例如deal-service项目要配置以下lion配置：
-```
-deal-service.pigeon.provider.applimit.enable=true
-```
-2. 配置客户端应用对应的最大并发数：
-```
-pigeon.provider.applimit=tuangou-web:100,xxx:50,yyy:100
-```
-
-上面的客户端应用名称是标准统一的项目名称，以CMDB里为准。
-并发数一般看是pigeon服务端线程池最大并发多少，比如500个最大并发，根据这个数字再看业务上平时一般客户端应用的比例来决定每个应用大概的最大并发数。
+1、应用级限流
+pigeon支持在服务端配置某个客户端应用的最大请求QPS
+首先需要在应用lion里配置开关打开，例如deal-service项目要配置以下lion配置： deal-service.pigeon.provider.applimit.enable=true
+配置客户端应用对应的最大QPS： pigeon.provider.applimit=tuangou-web:100,xxx:50,yyy:100 如果客户端请求QPS超过了设置的阀值，服务端会返回com.dianping.pigeon.remoting.common.exception.RejectedException给客户端，客户端会收到RejectedException
+2、配置某个接口方法对应的客户端应用的最大QPS:
+首先打开开关：xxx-service.pigeon.provider.methodapplimit.enable=true
+增加配置项：xxx-service.pigeon.provider.methodapplimit
+配置内容为json格式：{ "api#method" : { "app1": 100, "app2": 50} }
+例如：{ "http://service.dianping.com/com.dianping.pigeon.demo.EchoService#echo": { "account-service": 2000, "deal-server": 5000} }
 以上配置第一次配置了之后，均可以通过lion动态在线设置实时生效
 
-## 服务预热
+## 服务降级
+pigeon在调用端提供了服务降级功能支持
+应用调用远端的服务接口如果在最近一段时间内出现连续的调用失败，失败率超过一定阀值，可以自动触发或手工触发降级，调用端直接返回默认对象或抛出异常，不会将调用请求发到服务提供方，如果服务提供方恢复可用，客户端可以自动或手工解除降级
+1、配置接口的降级策略
+例如xxx-service项目，有http://service.dianping.com/com.dianping.pigeon.demo.EchoService这个服务，包含3个方法：
+```
+String echo(String input);
+User getUserDetail(String userName);
+User[] getUserDetailArray(String[] usernames);
+```
+2、配置可降级的方法
+要配置以下lion配置：
+a、增加lion配置：xxx-service.pigeon.invoker.degrade.methods配置为：
+```
+http://service.dianping.com/com.dianping.pigeon.demo.EchoService#echo=a,http://service.dianping.com/com.dianping.pigeon.demo.EchoService#getUserDetail=b,http://service.dianping.com/com.dianping.pigeon.demo.EchoService#getUserDetailArray=c
+```
+上述配置内容包含多个方法的降级策略a、b、c。如果某此调用需要降级，而降级策略没有配置则不降级，进行正常调用流程。
 
-pigeon提供了客户端服务预热功能，当某个服务端机器重启后，客户端会接收到该事件，客户端的请求将会把更多的请求发送到该服务的其他机器，只会发送少量请求到重启的服务端机器，然后逐渐会将发送给该机器的请求增加，经过几十秒的预热过程后，直到与其他机器请求数差不多。
+b、增加lion配置：pigeon-test.pigeon.invoker.degrade.method.return.a对应echo方法的默认返回，配置为：
+```
+{"returnClass":"java.lang.String","content":"echo,input"}
+```
+如果不想返回默认值，而是抛出一个降级异常（pigeon默认会抛出com.dianping.pigeon.remoting.invoker.exception.ServiceDegradedException），配置为：
+```
+{"throwException":"true"}
+```
+c、增加lion配置：pigeon-test.pigeon.invoker.degrade.method.return.b对应getUserDetail方法的默认返回，配置为：
+```
+{"returnClass":"com.dianping.pigeon.demo.User","content":"{\"username\":\"user-1\"}"}
+```
+d、增加lion配置：pigeon-test.pigeon.invoker.degrade.method.return.c对应getUserDetailArray方法的默认返回，配置为：
+```
+{"returnClass":"[Lcom.dianping.pigeon.demo.UserService$User;","content":"[{\"username\":\"array-1\"},{\"username\":\"array-2\"}]"}
+```
+这里返回对象是数组，如果是返回集合，也类似，例如返回一个LinkedList：
+```
+{"returnClass":"java.util.LinkedList","content":"[{\"@class\":\"com.dianping.pigeon.demo.UserService$User\",\"username\":\"list-1\"},{\"username\":\"list-2\"}]"}
+```
+
+e、使用groovy脚本的方式，增加lion配置:pigeon-test.pigeon.invoker.degrade.method.return.a，其中content对应echo方法的默认groovy脚本，配置为：
+可以执行任意脚本，例如抛出异常：
+```
+{"useGroovyScript":"true", "content":"throw new RuntimeException('test groovy degrade');"}
+```
+或者返回对象：
+```
+{"useGroovyScript":"true", "content":"return new com.dianping.pigeon.remoting.test.Person(name:'zhangsan',age:1);"}
+```
+注意！脚本的最后一条执行语句，必须返回方法的返回值类型或抛出异常。
+
+f、除了上述几种使用lion配置降级策略的方式，pigeon还提供了一种使用mock类的降级配置方式。
+例如我们想修改pigeon-test.pigeon.invoker.degrade.method.return.a的降级策略方式为mock方式，只需修改配置为：
+{"useMockClass":"true"}
+打开mock开关，然后在spring的xml配置中添加mock类的引用对象：
+```xml
+<bean id="echoService" class="com.dianping.pigeon.remoting.invoker.config.spring.ReferenceBean" init-method="init">
+    <property name="url" value="com.dianping.pigeon.benchmark.service.EchoService" />
+    <property name="interfaceName" value="com.dianping.pigeon.benchmark.service.EchoService" />
+    <property name="mock" ref="echoServiceMock" /><!-- 添加mock类的引用 -->
+</bean>
+
+<!-- 必须实现EchoService接口 -->
+<bean id="echoServiceMock" class="com.dianping.pigeon.benchmark.service.EchoServiceMock"/>
+```
+g、若想在开启了降级总开关的基础上，开启或关闭部分接口的降级开关，可在json配置中添加配置项"enable":"false"或"enable":"true"，不填写则缺省为true
+例如
+```
+{"enable":"false", "useGroovyScript":"true", "content":"if (new Random().nextInt(2) < 1) { return 'normal'; } else { throw new RuntimeException('test groovy degrade'); }"}
+```
+
+h、降级配置方式的优先级为：mock > groovy script > json exception > json default value
+
+3、强制降级开关
+强制降级开关只是在远程服务大量超时或其他不可用情况时，紧急时候进行设置，开启后，调用端会根据上述降级策略直接返回默认值或抛出降级异常，当远程服务恢复后，建议关闭此开关
+提供了pigeon.invoker.degrade.force配置开关，例如xxx-service项目要配置以下lion配置：
+xxx-service.pigeon.invoker.degrade.force=true，默认为false
+
+4、失败降级开关
+失败降级开关便于客户端在服务端出现非业务异常(比如网络失败，超时，无可用节点等)时进行降级容错，而在出现业务异常(比如登录用户名密码错误)时不需要降级。
+提供了pigeon.invoker.degrade.failure配置开关，例如xxx-service项目要配置以下lion配置：
+xxx-service.pigeon.invoker.degrade.failure=true，默认为false
+
+5、自动降级开关
+自动降级开关是在调用端设置，开启自动降级后，调用端如果调用某个服务出现连续的超时或不可用，当一段时间内（10秒内）失败率超过一定阀值（默认1%）会触发自动降级，调用端会根据上述降级策略直接返回默认值或抛出降级异常
+当服务端恢复后，调用端会自动解除降级模式，再次发起请求到远程服务
+提供了pigeon.invoker.degrade.auto配置开关，例如xxx-service项目要配置以下lion配置：
+xxx-service.pigeon.invoker.degrade.auto=true，默认为false
+
+6、降级开关的优先级(在同时打开的时候的有效性)
+强制降级 > 自动降级 > 失败降级
+其中自动降级包含失败降级策略
 
 ## 配置客户端调用模式
 
@@ -1052,9 +1177,220 @@ InvokerHelper.setCallback(new InvocationCallback(){...});
 * failsafe：调用服务的一个节点失败后不会抛出异常，返回null，后续版本会考虑按配置默认值返回
 * forking：同时调用服务的所有可用节点，返回调用最快的节点结果数据
 
+### 客户端多连接
+pigeon 客户端默认使用的单连接，2.9.0及以后的版本支持多连接配置，多连接对性能有一定的提升，目前多连接配置是应用级别。
+配置方式：增加pigeon.channel.pool.normal.size配置，默认值为1，最大可配置到5。一般如果有需要配置到2即可。
+如果是lion配置，需要设置xxx-service.pigeon.channel.pool.normal.size配置
+
+### 异步编程
+如果要追求最好的单机性能，需要通过pigeon进行异步编程。
+1、客户端调用方式选择future或callback方式。 可以参考前面的“配置客户端调用模式”说明
+2、服务端一般业务场景都采用多线程实现并发，如果要实现异步编程，需要使用事件驱动callback模式。一般可以在IO调用的callback里回写服务调用结果，服务端需要加lion配置xxx.pigeon.provider.reply.manual为true（xxx为应用app name）
+pigeon服务里如果有任何IO操作，需要该IO操作支持callback编程，IO操作常见的有缓存访问（支持callback调用）、数据库访问（正在开发callback调用支持）、pigeon服务调用（支持callback调用） 例如在一个pigeon服务里调用了cache操作，需要在cache框架也支持callback模式，然后在callback里调用pigeon的api去回写最终返回客户端的结果
+```
+@Service
+public class XXXDefaultService implements XXXService {
+ 
+    public XXXDefaultService() {
+    }
+ 
+    @Autowired
+    private CacheService cacheService;
+ 
+    @Override
+    public String get(CacheKey cacheKey) {
+        cacheService.asyncGet(cacheKey, new CacheCallback<String>() {
+ 
+            private ProviderContext providerContext = ProviderHelper.getContext();
+ 
+            @Override
+            public void onSuccess(String result) {
+                ProviderHelper.writeSuccessResponse(providerContext, result);
+            }
+ 
+            @Override
+            public void onFailure(String msg, Throwable e) {
+                ProviderHelper.writeFailureResponse(providerContext, new RuntimeException(msg));
+            }
+ 
+        });
+        return null;
+    }
+ 
+    @Override
+    public Map<CacheKey, String> batchGet(List<CacheKey> cacheKeys) {
+        cacheService.asyncBatchGet(cacheKeys, new CacheCallback<Map<CacheKey, String>>() {
+ 
+            private ProviderContext providerContext = ProviderHelper.getContext();
+ 
+            @Override
+            public void onSuccess(Map<CacheKey, String> result) {
+                ProviderHelper.writeSuccessResponse(providerContext, result);
+            }
+ 
+            @Override
+            public void onFailure(String msg, Throwable e) {
+                ProviderHelper.writeFailureResponse(providerContext, new RuntimeException(msg));
+            }
+ 
+        });
+        return null;
+    }
+ 
+}
+```
+
+### ZooKeeper协议格式
+1、服务地址配置：每个服务都有一个全局唯一的url代表服务名称，比如我们有一个服务： http://service.dianping.com/com.dianping.pigeon.demo.EchoService 服务名称url格式不固定，只要求是字符串在公司内部唯一即可。 Pigeon服务端每次启动后会将自身ip:port注册到ZooKeeper集群中。 在ZooKeeper中pigeon服务具体格式是这样的： pigeon服务都会写到/DP/SERVER节点下： /DP/SERVER/http:^^service.dianping.com^com.dianping.pigeon.demo.EchoService 的值为：192.168.93.1:4088,192.168.93.2:4088 多台服务器就是逗号分隔，客户端只需要拿到这个值就能知道这个服务的服务器地址列表。
+2、服务权重配置：pigeon服务还会写到/DP/WEIGHT/192.168.93.1:4088这个节点，值为1代表权重，如果为0代表这台机器暂时不提供服务，目前只有1和0两种值。
+3、服务所属应用配置：pigeon服务还会写到/DP/APP/192.168.93.1:4088这个节点，值为这个服务所属的应用名，这个应用名是读取本地classpath下META-INF/app.properties里的app.name值。
+客户端需要拿到服务对应的地址列表、每个地址对应的权重weight，就可以自己实现负载均衡策略去调其中一台服务器。
+
+### 安全性
+1、基于token的认证 pigeon支持基于token的认证方式，token认证在pigeon的http和tcp协议层面都同时支持，如果开启token认证，客户端请求中必须设置pigeon规范的token，否则请求将被拒绝
+
+对于服务端：
+a、打开token认证开关，token认证开关默认是关闭的，需要服务提供方自行打开，在lion里配置key，如xxx-service这个应用：
+配置xxx-service.pigeon.provider.token.enable，内容为true
+
+b、需要定义每个客户端的密钥，在配置中心lion里配置key：xxx-service.pigeon.provider.token.app.secrets，内容如： 
+xxx-web:r3wzPd4azsHEhgDI69jubmV,yyy-service:45etwFsfFsHEdrg9ju3 
+分别代表xxx-web和yyy-service的密钥，针对每个应用配置不同的密钥，密钥需要严格管理，不能泄露，目前限定密钥长度必须不少于16个字符
+
+c、如果服务提供方希望客户端在http header里设置token，可以在lion里配置xxx-service.pigeon.console.token.header为true，否则默认可以是url里带上token
+
+d、客户端需要带上timestamp到服务端，在服务端会对timestamp进行校验，默认只接受时差2分钟以内的请求，如果要调整可以设置： 
+xxx-service.pigeon.provider.token.timestamp.diff，默认为120（单位秒）
+
+e、如果服务提供方只希望http客户端进行认证，而不希望默认的tcp客户端做认证（老业务），需要配置
+xxx-service.pigeon.provider.token.protocol.default.enable为false
+
+对于客户端：
+a、对于使用pigeon java客户端的应用，只需要配置所依赖的服务的密钥，在配置中心lion里配置key，如xxx-web这个应用：
+配置xxx-web.pigeon.invoker.token.app.secrets，内容如： 
+xxx-service:r3wzPd4azsHEhgDI69jubmV,yyy-service:45etwFsfFsHEdrg9ju3 
+分别代表访问xxx-service和yyy-service的密钥，针对每个服务端配置不同的密钥，密钥需要严格管理，不能泄露，这个配置不要跟服务端配置共享，应严格独立管理
+
+b、对于未使用pigeon java客户端的应用，如果通过HTTP GET方式请求，需要根据服务提供方提供的密钥，生成token，具体规则如下： 
+如果服务提供方允许url带token传递，可以按以下url格式来发出请求 
+```
+http://pigeon.dper.com/xxx-service/invoke.json?app=xxx-web&token=v5cg4EUS4c8wIjOC70VwvvgxZzg&timestamp=1458447031&url=http://service.dianping.com/com.dianping.pigeon.demo.EchoService&method=echo&parameterTypes=java.lang.String&parameters=scott 
+```
+url里必须再带上timestamp，timestamp=1458447031 url里也必须带上app=xxx-web，以便在服务端进行认证
+
+其中token生成规则是： 
+```
+String token = SecurityUtils.encrypt(data, secret) 
+```
+data字符串组成：服务名url + "#" + 服务方法名 + "#" + timestamp（目前为简单起见未加入请求参数等），例如调用http://service.dianping.com/com.dianping.pigeon.demo.EchoService这个服务的echo方法： 
+```
+http://service.dianping.com/com.dianping.pigeon.demo.EchoService#echo#1458442458 
+```
+timestamp是System.currentTimeMillis()/1000，也就是到秒 
+secret就是这个服务提供方给的密钥，例如上面的r3wzPd4azsHEhgDI69jubmV 
+
+
+c、如果服务提供方必须要求客户端将token等放在header里，以上url简化为： 
+```
+http://pigeon.dper.com/xxx-service/invoke.json?url=http://service.dianping.com/com.dianping.pigeon.demo.EchoService&method=echo&parameterTypes=java.lang.String&parameters=scott 
+```
+在header里必须有两个key： 
+Timestamp,内容为上述类似的System.currentTimeMillis()/1000值，例如：1458447031 
+
+Authorization，内容格式例如：
+pigeon=xxx-web:v5cg4EUS4c8wIjOC70VwvvgxZzg 
+pigeon=为必须填的字符串，xxx-service代表客户端app名称，冒号:后边的字符串为token值
+
+
+d、SecurityUtils.encrypt方法可以参考下面代码，内部采用HmacSHA1算法，通过密钥对某个字符串进行签名，然后转换为base64编码：
+```
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+import org.apache.commons.codec.binary.Base64;
+ 
+public class SecurityUtils {
+ 
+    private static final String HMAC_SHA1_ALGORITHM = "HmacSHA1";
+ 
+    public static String encrypt(String data, String secret) throws SecurityException {
+        String result;
+        try {
+            // get an hmac_sha1 key from the raw key bytes
+            SecretKeySpec signingKey = new SecretKeySpec(key.getBytes(), HMAC_SHA1_ALGORITHM);
+ 
+            // get an hmac_sha1 Mac instance and initialize with the signing key
+            Mac mac = Mac.getInstance(HMAC_SHA1_ALGORITHM);
+            mac.init(signingKey);
+ 
+            // compute the hmac on input data bytes
+            byte[] rawHmac = mac.doFinal(data.getBytes());
+ 
+            // base64-encode the hmac
+            result = Base64.encodeBase64URLSafeString(rawHmac);
+        } catch (Exception e) {
+            throw new SecurityException("Failed to generate HMAC : " + e.getMessage());
+        }
+        return result;
+    }
+ 
+}
+```
+e、如果是其他语言客户端，请参考以上逻辑自行加入认证token等信息
+以上涉及lion的所有配置都是可以随时修改、动态生效
+
+2、基于ip的认证 
+a、默认是关闭的，需要打开，对于xxx-service这个应用来说，可以在lion配置
+xxx-service.pigeon.provider.access.ip.enable为true 
+
+b、分为3个配置：
+判断逻辑是先判断白名单(xxx-service.pigeon.provider.access.ip.whitelist配置，ip网段逗号分隔)是否匹配来源ip前缀，如果匹配，直接返回true允许访问 
+如果不匹配，去黑名单（xxx-service.pigeon.provider.access.ip.blacklist配置，ip网段逗号分隔）找是否匹配来源ip前缀，黑名单里匹配到了，直接返回false不允许访问 
+如果都没找到，返回xxx-service.pigeon.provider.access.ip.default值，默认是true，代表默认是允许访问
+
+### 自定义服务发布策略
+如果在服务发布的过程中，想根据一些环境信息采用不同的服务发布策略，例如在北京发布服务时，屏蔽或过滤一些服务。
+需要实现一个`com.dianping.pigeon.remoting.provider.publish.PublishPolicy`接口，采用jdk的ServiceLoader方式加载。下面将给出一个使用示例。
+1、建议继承com.dianping.pigeon.remoting.provider.publish.AbstractPublishPolicy抽象类。例如：
+```
+package com.dianping.pigeon.benchmark.customize;
+ 
+import com.dianping.pigeon.config.ConfigManagerLoader;
+import com.dianping.pigeon.remoting.provider.config.ProviderConfig;
+import com.dianping.pigeon.remoting.provider.publish.AbstractPublishPolicy;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+ 
+/**
+ * Created by chenchongze on 16/11/3.
+ */
+public class MyPublishPolicy extends AbstractPublishPolicy {
+ 
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
+ 
+    @Override
+    public void doAddService(ProviderConfig providerConfig) {
+        if (isBeijingHost(ConfigManagerLoader.getConfigManager().getLocalIp(), providerConfig.getUrl())) {
+            logger.warn("do not publish service: " + providerConfig);
+            return;
+        } else {
+            super.doAddService(providerConfig);
+        }
+    }
+ 
+    private boolean isBeijingHost(String localIp, String serviceName) {
+        // 判断本地机器是不是北京的(例如可以用lion的region判断接口)，同时服务名包含“Test”字符串
+        return localIp.startsWith("172") && serviceName.contains("Test");
+    }
+}
+```
+2、在项目的resources资源文件`META-INF/services/`下，新建`com.dianping.pigeon.remoting.provider.publish.PublishPolicy`文件。
+注意是`src/main/resources/META-INF/services/`文件夹，而不是webapps下的那个META-INF。
+在`com.dianping.pigeon.remoting.provider.publish.PublishPolicy`文件中写入实现类，Demo中为：
+com.dianping.pigeon.benchmark.customize.MyPublishPolicy
+
 ## Pigeon 常见问题
 ### 如何传递自定义参数
-
+使用com.dianping.pigeon.remoting.common.util.ContextUtils类的接口
 #### 简单的客户端A->服务端B的一级调用链路的参数传递
 客户端：
 ```java
@@ -1094,74 +1430,94 @@ ContextUtils.getGlobalContext("key1");
 
 ### 如何指定固定ip:port访问pigeon服务
 
-客户端可以配置只连某台服务器进行pigeon服务调试，比如alpha环境可以在你的classpath下配置config/pigeon_alpha.properties文件（如果是beta环境设置pigeon_qa.properties，如果是dev环境设置pigeon_dev.properties），实现只访问192.168.0.1:4040提供的pigeon服务：
+客户端可以配置只连某台服务器进行pigeon服务调试，比如qa环境可以在你的classpath下配置config/pigeon_qa.properties文件，实现只访问192.168.0.1:4040提供的pigeon服务：
 ```
 http://service.dianping.com/com.dianping.pigeon.demo.EchoService=192.168.0.1:4040
 ```
-在pigeon1.x中支持的config/applicationContext.properties文件类似上述配置，但applicationContext.properties只在dev和alpha环境生效，其他环境还是从zookeeper中获取服务地址。
-如果要在代码层面设置，需要在调用服务前指定以下代码：
-线程级别每次请求前设置：
-```java
-InvokerHelper.setAddress("192.168.0.1:4040");
+这种方式要求应用增加一个lion配置：
+xxx-service.pigeon.registry.config.local设置为true，在线下默认开启，线上关闭，不建议线上开启
+
+通过api方式
 ```
-该方式请在非线上环境使用，一般用于UT测试。
-另外一种方式是：
-```java
 ConfigManagerLoader.getConfigManager().setLocalStringValue("http://service.dianping.com/com.dianping.pigeon.demo.EchoService", "192.168.0.1:4040");
 ```
+需要在程序启动时，调用前设置。
+这种方式要求应用增加一个lion配置：
+xxx-service.pigeon.registry.config.local设置为true，在线下默认开启，线上关闭，不建议线上开启
+
+运行时动态指定
+如果要在代码层面设置，需要在调用服务前指定以下代码： 
+线程级别每次请求前设置：
+```
+InvokerHelper.setAddress("192.168.0.1:4040");
+```
+该方式请在非线上环境使用，一般用于测试。
 
 ### 如何定义自己的拦截器
 
 pigeon在客户端调用和服务端调用都提供了拦截器机制，方便用户可以获取到调用参数和返回结果。
 注意：请不要在拦截器当中写消耗性能的代码，因为拦截器中的代码都是同步调用，如果执行太慢会影响服务调用的执行时间，用户如果想在拦截器中实现复杂逻辑，请自行进行异步处理。
-在客户端可以实现自己的拦截器：
-```java
-import com.dianping.pigeon.remoting.common.domain.InvocationRequest;
-import com.dianping.pigeon.remoting.common.domain.InvocationResponse;
-import com.dianping.pigeon.remoting.invoker.process.InvokerProcessInterceptor;
 
-public class MyInvokerProcessInterceptor implements InvokerProcessInterceptor {
-
+在客户端可以实现自己的拦截器：  
+```
+package com.dianping.pigeon.demo.interceptor;
+  
+import com.dianping.pigeon.remoting.invoker.domain.InvokerContext;
+import com.dianping.pigeon.remoting.invoker.process.InvokerInterceptor;
+ 
+public class MyInvokerInterceptor implements InvokerInterceptor {
+ 
+ 
     @Override
-    public void preInvoke(InvocationRequest invocationRequest) {
-        System.out.println("preInvoke:" + invocationRequest);
+    public void preInvoke(InvokerContext invokerContext) {
+        System.out.println("preInvoke:" + invokerContext.getRequest());    
     }
-    
+ 
     @Override
-    public void postInvoke(InvocationRequest invocationRequest, InvocationResponse invocationResponse) {
-        System.out.println("postInvoke:" + invocationResponse);
+    public void postInvoke(InvokerContext invokerContext) {
+        // TODO Auto-generated method stub
+         
     }
-
+ 
+    @Override
+    public void afterThrowing(InvokerContext invokerContext, Throwable throwable) {
+        // TODO Auto-generated method stub
+         
+    }
+ 
 }
 ```
+在classpath下META-INF下增加一个services目录，目录下放一个com.dianping.pigeon.remoting.invoker.process.InvokerInterceptor文件，文件内容如下
 在系统初始化时注册到pigeon中：
-```java
-InvokerProcessInterceptorFactory.registerInterceptor(new MyInvokerProcessInterceptor());
+com.dianping.pigeon.demo.interceptor.MyInvokerInterceptor
+
+
+同样的，在服务端也可以定义类似的拦截器：  
 ```
-同样的，在服务端也可以定义类似的拦截器：
-```java
-import com.dianping.pigeon.remoting.common.domain.InvocationRequest;
-import com.dianping.pigeon.remoting.common.domain.InvocationResponse;
-import com.dianping.pigeon.remoting.provider.process.ProviderProcessInterceptor;
-
-public class MyProviderProcessInterceptor implements ProviderProcessInterceptor {
-
+package com.dianping.pigeon.demo.interceptor;
+ 
+import com.dianping.pigeon.remoting.provider.domain.ProviderContext;
+import com.dianping.pigeon.remoting.provider.process.ProviderInterceptor;
+ 
+public class MyProviderInterceptor implements ProviderInterceptor {
+ 
     @Override
-    public void preInvoke(InvocationRequest invocationRequest) {
-        System.out.println("preInvoke:" + invocationRequest);
+    public void preInvoke(ProviderContext providerContext) {
+        System.out.println("preInvoke:" + providerContext);
     }
-    
+ 
     @Override
-    public void postInvoke(InvocationRequest invocationRequest, InvocationResponse invocationResponse) {
-        System.out.println("postInvoke:" + invocationResponse);
+    public void postInvoke(ProviderContext providerContext) {
+        // TODO Auto-generated method stub
+ 
     }
-    
+ 
 }
 ```
+在classpath下META-INF下增加一个services目录，目录下增加一个com.dianping.pigeon.remoting.provider.process.ProviderInterceptor文件，文件内容如下
 在系统初始化时注册到pigeon中：
-```java
-ProviderProcessInterceptorFactory.registerInterceptor(new MyProviderProcessInterceptor());
-```
+com.dianping.pigeon.demo.interceptor.MyProviderInterceptor
+
 
 ### 如何关闭自动注册
 
@@ -1174,10 +1530,11 @@ shop-server.pigeon.autoregister.enable配置为false
 
 2、预热完了之后，再调pigeon的api完成服务发布：
 ServiceFactory.online();
-建议sleep一段时间再调这个方法
-如果没有调用这个接口，需要自行修改lion服务配置
+建议在全部初始化完成之后再调这个方法
+如果没有调用这个接口，需要自行通过管理端程序去修改注册中心状态
 
 ### 服务端如何获取客户端信息
+使用com.dianping.pigeon.remoting.common.util.ContextUtils类的接口
 
 可通过
 ```java
@@ -1247,6 +1604,18 @@ xxx.pigeon.invoker.log.timeout.period.apps=shop-server:0,data-server:100
 配置内容里，可以配置多个目标服务app的日志打印间隔，以逗号分隔，目标app也必须是点评统一标准应用名，如果某个目标服务app未配置则这个app的超时异常都会记录
 每个app后边的数字，默认为0代表每个超时异常都会记录，如果配置为10000则任何超时异常都不会记录到cat，如果为1代表记录一半，如果为100代表每100个超时异常记录一次，数字越大记录的异常越少
 
+
+### 如何控制异常输出到cat和控制台
+
+pigeon可以设置客户端调用异常时是否输出到cat和控制台，可以在lion对应项目配置里加上以下配置，如xxx这个应用（需要保证classes/META-INF/app.properties里的app.name=xxx，这里的xxx必须与lion项目名称保持一致）：
+xxx.pigeon.invoker.log.exception.ignored=java.lang.InterruptedException,com.xxx.xxx.XxxException
+如果不使用lion，可以在pigeon.properties里设置
+pigeon.invoker.log.exception.ignored=java.lang.InterruptedException,com.xxx.xxx.XxxException
+以上设置代表出现这些异常时pigeon不会记录异常到cat和控制台日志，但会抛出异常
+
+### pigeon框架日志
+pigeon默认会将ERROR日志写入SYSTEM_ERR，WARN日志会写入SYSTEM_OUT，另外，pigeon内部还会将INFO和WARN级别的日志写入/data/applogs/pigeon/pigeon.*.log，但这个日志不会写入ERROR级别日志
+
 ### 记录服务端每个请求的详细信息
 
 pigeon可以设在服务端记录客户端发过来的每个请求的详细信息，需要在lion相应项目里配置：
@@ -1259,7 +1628,8 @@ xxx.pigeon.provider.accesslog.enable=true
 ```
 应用名称+ "@" + 来源ip+ "@" + 请求对象内容（包含请求参数值等）+ "@" + 时间区间消耗
 ```
- 
+如果要记录每个参数值的内容，必须添加配置： pigeon.log.parameters设置为true
+
 ### 记录服务端业务异常详细日志
 
 pigeon在服务端默认不会记录业务方法抛出的异常详细信息，如果需要记录这类业务异常，需要在lion相应项目里配置：
