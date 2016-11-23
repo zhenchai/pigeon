@@ -45,9 +45,9 @@ public enum CallMethod {
             return SYNC;
         } else if (CALLBACK.isCallback(name)) {
             return CALLBACK;
-        } else if (FUTURE.isCallback(name)) {
+        } else if (FUTURE.isFuture(name)) {
             return FUTURE;
-        } else if (ONEWAY.isFuture(name)) {
+        } else if (ONEWAY.isOneway(name)) {
             return ONEWAY;
         } else {
             throw new IllegalArgumentException("invalid callMethod name: " + name);
