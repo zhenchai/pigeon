@@ -1,7 +1,12 @@
 package com.dianping.pigeon.remoting.test;
 
 import com.dianping.pigeon.remoting.common.codec.json.JacksonSerializer;
+import com.dianping.pigeon.remoting.provider.config.PoolConfig;
 import com.dianping.pigeon.remoting.provider.config.spring.PoolBean;
+import com.dianping.pigeon.remoting.provider.process.threadpool.PoolConfigSource;
+import com.dianping.pigeon.remoting.provider.process.threadpool.ThreadPoolFactory;
+import com.dianping.pigeon.threadpool.DefaultThreadPool;
+import com.dianping.pigeon.threadpool.ThreadPool;
 import com.google.common.collect.Maps;
 import org.junit.Test;
 
@@ -184,5 +189,19 @@ public class PoolTest {
                 "request pool size:%d(active:%d,core:%d,max:%d,largest:%d),task count:%d(completed:%d),queue size:%d,queue remaining:%d",
                 e.getPoolSize(), e.getActiveCount(), e.getCorePoolSize(), e.getMaximumPoolSize(), e.getLargestPoolSize(),
                 e.getTaskCount(), e.getCompletedTaskCount(), e.getQueue().size(), e.getQueue().remainingCapacity()));
+    }
+
+    @Test
+    public void testInterner() {
+        ThreadPool threadPool = new DefaultThreadPool("test",500,500);
+
+        for (int i = 0; i < 500; ++i) {
+            threadPool.getExecutor().submit(new Runnable() {
+                @Override
+                public void run() {
+                    ThreadPoolFactory.getThreadPool(new PoolConfig("aaa", PoolConfigSource.SPRING));
+                }
+            });
+        }
     }
 }

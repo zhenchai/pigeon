@@ -2,7 +2,8 @@ package com.dianping.pigeon.remoting.provider.config.spring;
 
 import com.dianping.pigeon.log.Logger;
 import com.dianping.pigeon.log.LoggerLoader;
-import com.dianping.pigeon.remoting.common.util.Constants;
+import com.dianping.pigeon.remoting.provider.config.PoolConfig;
+import com.dianping.pigeon.remoting.provider.process.threadpool.PoolConfigSource;
 import com.dianping.pigeon.threadpool.DefaultThreadPool;
 import com.dianping.pigeon.threadpool.ThreadPool;
 import org.apache.commons.lang.StringUtils;
@@ -18,9 +19,10 @@ public class PoolBean {
     private static Logger logger = LoggerLoader.getLogger(PoolBean.class);
     private volatile ThreadPool threadPool = null;
     private String poolName;
-    private volatile int corePoolSize;
-    private volatile int maxPoolSize;
-    private volatile int workQueueSize;
+    private int corePoolSize;
+    private int maxPoolSize;
+    private int workQueueSize;
+    private volatile PoolConfig poolConfig;
 
     public String getPoolName() {
         return poolName;
@@ -52,6 +54,20 @@ public class PoolBean {
 
     public void setWorkQueueSize(int workQueueSize) {
         this.workQueueSize = workQueueSize;
+    }
+
+    public PoolConfig init() {
+        if (poolConfig == null) {
+            synchronized (this) {
+                if (poolConfig == null) {
+                    poolConfig = new PoolConfig(poolName, PoolConfigSource.SPRING);
+                    poolConfig.setCorePoolSize(corePoolSize);
+                    poolConfig.setMaxPoolSize(maxPoolSize);
+                    poolConfig.setWorkQueueSize(workQueueSize);
+                }
+            }
+        }
+        return poolConfig;
     }
 
     @Override

@@ -37,6 +37,7 @@ public class PoolBeanDefinitionParser implements BeanDefinitionParser {
         RootBeanDefinition beanDefinition = new RootBeanDefinition();
         beanDefinition.setLazyInit(false);
         beanDefinition.setBeanClass(PoolBean.class);
+        beanDefinition.setInitMethodName("init");
         MutablePropertyValues properties = beanDefinition.getPropertyValues();
 
         String id = element.getAttribute("id");
