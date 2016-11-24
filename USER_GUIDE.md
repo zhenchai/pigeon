@@ -991,7 +991,7 @@ pigeon在调用端提供了服务降级功能支持
 
 应用调用远端的服务接口如果在最近一段时间内出现连续的调用失败，失败率超过一定阀值，可以自动触发或手工触发降级，调用端直接返回默认对象或抛出异常，不会将调用请求发到服务提供方，如果服务提供方恢复可用，客户端可以自动或手工解除降级
 
-1、配置接口的降级策略
+### 配置接口的降级策略
 
 例如xxx-service项目，有http://service.dianping.com/com.dianping.pigeon.demo.EchoService这个服务，包含3个方法：
 ```
@@ -999,7 +999,7 @@ String echo(String input);
 User getUserDetail(String userName);
 User[] getUserDetailArray(String[] usernames);
 ```
-2、配置可降级的方法
+### 配置可降级的方法
 
 要配置以下lion配置：
 
@@ -1068,7 +1068,7 @@ g、若想在开启了降级总开关的基础上，开启或关闭部分接口�
 
 h、降级配置方式的优先级为：mock > groovy script > json exception > json default value
 
-3、强制降级开关
+### 强制降级开关
 强制降级开关只是在远程服务大量超时或其他不可用情况时，紧急时候进行设置，开启后，调用端会根据上述降级策略直接返回默认值或抛出降级异常，当远程服务恢复后，建议关闭此开关
 
 提供了pigeon.invoker.degrade.force配置开关，例如xxx-service项目要配置以下lion配置：
@@ -1076,7 +1076,7 @@ h、降级配置方式的优先级为：mock > groovy script > json exception > 
 xxx-service.pigeon.invoker.degrade.force=true，默认为false
 ```
 
-4、失败降级开关
+### 失败降级开关
 
 
 失败降级开关便于客户端在服务端出现非业务异常(比如网络失败，超时，无可用节点等)时进行降级容错，而在出现业务异常(比如登录用户名密码错误)时不需要降级。
@@ -1086,7 +1086,7 @@ xxx-service.pigeon.invoker.degrade.force=true，默认为false
 xxx-service.pigeon.invoker.degrade.failure=true，默认为false
 ```
 
-5、自动降级开关
+### 自动降级开关
 
 自动降级开关是在调用端设置，开启自动降级后，调用端如果调用某个服务出现连续的超时或不可用，当一段时间内（10秒内）失败率超过一定阀值（默认1%）会触发自动降级，调用端会根据上述降级策略直接返回默认值或抛出降级异常
 
@@ -1097,11 +1097,35 @@ xxx-service.pigeon.invoker.degrade.failure=true，默认为false
 xxx-service.pigeon.invoker.degrade.auto=true，默认为false
 ```
 
-6、降级开关的优先级(在同时打开的时候的有效性)
+### 降级开关的优先级(在同时打开的时候的有效性)
 
 强制降级 > 自动降级 > 失败降级
 
 其中自动降级包含失败降级策略
+
+### 业务自行降级
+前面提到的降级是pigeon内置的服务降级功能，通常pigeon提供的服务降级功能足够满足业务需求，但如果业务想自行进行服务降级，可以catch pigeon的RpcException，这个RpcException包括了超时等所有pigeon异常：
+```java
+try {
+	return xxxService.echo("hello");
+} catch (RpcException e) {
+	return "default value";
+}
+```
+
+### 降级相关异常统计、日志及监控输出
+如果使用pigeon内部的服务降级，服务降级返回默认对象的请求在CAT上PigeonCall不会统计作为失败，而是认为是成功，如果降级策略是抛出异常那么还是会统计作为失败请求。
+
+每次降级的请求都会在CAT event里记录PigeonCall.degrade事件，如果每次降级想作为异常输出到CAT，可以配置pigeon.invoker.degrade.log.enable参数为true，这样每次降级后pigeon会在CAT problem输出com.dianping.pigeon.remoting.invoker.exception.ServiceDegradedException
+
+如果业务有自己的服务降级策略，优先调远程pigeon服务，如果调用失败可以返回默认值，但又不希望pigeon把异常记录到CAT，可以在调用远程服务前按如下例子进行设置：
+```java
+InvokerHelper.setLogCallException(false);
+try {
+	return xxxService.echo("hello");
+} catch (RpcException e) {
+	return "default value";
+}
 
 ## 配置客户端调用模式
 
@@ -1712,7 +1736,8 @@ public class MyLoadbalance extends RoundRobinLoadBalance {
 }
 ```
 
-### 如何控制cat上客户端超时异常的次数
+### 日志及监控输出控制
+#### 如何控制cat上客户端超时异常的次数
 
 pigeon可以设置客户端发生超时异常时在cat上控制异常记录的次数，可以在lion对应项目配置里加上以下配置，如xxx这个应用（需要保证classes/META-INF/app.properties里的app.name=xxx，这里的xxx必须与lion项目名称保持一致）：
 ```
@@ -1723,7 +1748,7 @@ xxx.pigeon.invoker.log.timeout.period.apps=shop-server:0,data-server:100
 每个app后边的数字，默认为0代表每个超时异常都会记录，如果配置为10000则任何超时异常都不会记录到cat，如果为1代表记录一半，如果为100代表每100个超时异常记录一次，数字越大记录的异常越少
 
 
-### 如何控制异常输出到cat和控制台
+#### 如何控制异常输出到cat和控制台
 
 pigeon可以设置客户端调用异常时是否输出到cat和控制台，可以在lion对应项目配置里加上以下配置，如xxx这个应用（需要保证classes/META-INF/app.properties里的app.name=xxx，这里的xxx必须与lion项目名称保持一致）：
 
@@ -1735,11 +1760,11 @@ pigeon.invoker.log.exception.ignored=java.lang.InterruptedException,com.xxx.xxx.
 
 以上设置代表出现这些异常时pigeon不会记录异常到cat和控制台日志，但会抛出异常
 
-### pigeon框架日志
+#### pigeon框架日志
 
 pigeon默认会将ERROR日志写入SYSTEM_ERR，WARN日志会写入SYSTEM_OUT，另外，pigeon内部还会将INFO和WARN级别的日志写入/data/applogs/pigeon/pigeon.*.log，但这个日志不会写入ERROR级别日志
 
-### 记录服务端每个请求的详细信息
+#### 记录服务端每个请求的详细信息
 
 pigeon可以设在服务端记录客户端发过来的每个请求的详细信息，需要在lion相应项目里配置：
 ```
@@ -1755,14 +1780,13 @@ xxx.pigeon.provider.accesslog.enable=true
 ```
 如果要记录每个参数值的内容，必须添加配置： pigeon.log.parameters设置为true
 
-### 记录服务端业务异常详细日志
+#### 记录服务端业务异常详细日志
 
-pigeon在服务端默认不会记录业务方法抛出的异常详细信息，如果需要记录这类业务异常，需要在lion相应项目里配置：
+pigeon在服务端默认不会记录业务方法抛出的异常详细信息，如果需要记录这类业务异常，需要增加以下配置：
 ```
-xxx.pigeon.provider.logserviceexception为true
+pigeon.provider.logserviceexception为true
 ```
 xxx是应用的app.name，需要与lion项目名称保持一致
-
 
 ###	获取服务注册信息
 
