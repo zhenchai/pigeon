@@ -42,8 +42,6 @@ public class CallbackFuture implements Callback, CallFuture {
     protected Client client;
     protected MonitorTransaction transaction;
 
-    protected InvokerContext invocationContext;
-
     private final Lock lock = new ReentrantLock();
     private final Condition condition = lock.newCondition();
 
