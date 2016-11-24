@@ -36,8 +36,11 @@ public class ServiceFutureImpl extends CallbackFuture implements Future {
 
     protected Thread callerThread;
 
+    protected InvokerContext invocationContext;
+
     public ServiceFutureImpl(InvokerContext invocationContext, long timeout) {
         super();
+        this.invocationContext = invocationContext;
         this.timeout = timeout;
         callerThread = Thread.currentThread();
     }
