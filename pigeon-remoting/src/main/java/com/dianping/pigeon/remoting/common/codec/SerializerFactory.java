@@ -108,6 +108,21 @@ public final class SerializerFactory {
         }
     }
 
+    public static void registerSerializer(String serializeName, byte serializerType, Serializer serializer) {
+        if (serializer == null) {
+            throw new IllegalArgumentException("the serializer is null");
+        }
+
+        try {
+            serializerTypes.putIfAbsent(serializeName, serializerType);
+            serializers.putIfAbsent(serializerType, serializer);
+        } catch (Exception e) {
+            logger.error("register serializer failed!", e);
+            serializers.remove(serializerType, serializer);
+            serializerTypes.remove(serializeName, serializerType);
+        }
+    }
+
     public static Serializer getSerializer(byte serializerType) {
         Serializer serializer = serializers.get(serializerType);
         if (serializer == null) {
