@@ -63,11 +63,11 @@ public class ServiceCallbackWrapper implements Callback {
 			addr = client.getAddress();
 		}
 		boolean isSuccess = false;
+		String callInterface = InvocationUtils.getRemoteCallFullName(invokerConfig.getUrl(),
+				invocationContext.getMethodName(), invocationContext.getParameterTypes());
 		try {
 			setResponseContext(response);
 			if (Constants.MONITOR_ENABLE) {
-				String callInterface = InvocationUtils.getRemoteCallFullName(invokerConfig.getUrl(),
-						invocationContext.getMethodName(), invocationContext.getParameterTypes());
 				transaction = monitor.createTransaction("PigeonCallback", callInterface, invocationContext);
 			}
 			if (transaction != null) {
@@ -107,6 +107,9 @@ public class ServiceCallbackWrapper implements Callback {
 				}
 			}
 		} finally {
+			if (invocationContext.isDegraded()) {
+				transaction.logEvent("PigeonCall.degrade", callInterface, "");
+			}
 			try {
 				if (response.getMessageType() == Constants.MESSAGE_TYPE_SERVICE) {
 					completeTransaction(transaction);

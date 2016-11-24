@@ -145,6 +145,9 @@ public class ServiceFutureImpl extends CallbackFuture implements Future {
             throw e;
         } finally {
             if (transaction != null) {
+            	if (invocationContext.isDegraded()) {
+					transaction.logEvent("PigeonCall.degrade", callInterface, "");
+				}
                 invocationContext.getTimeline().add(new TimePoint(TimePhase.E, TimeUtils.currentTimeMillis()));
                 try {
                     transaction.complete();
