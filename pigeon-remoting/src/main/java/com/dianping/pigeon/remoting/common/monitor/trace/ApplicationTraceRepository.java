@@ -1,6 +1,7 @@
 package com.dianping.pigeon.remoting.common.monitor.trace;
 
 import com.dianping.pigeon.util.TimeUtils;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 /**
  * @author qi.yin
@@ -120,6 +121,7 @@ public class ApplicationTraceRepository {
         this.providerTraceData = providerTraceData;
     }
 
+    @JsonIgnore
     public SourceKey getSourceKey() {
         SourceKey sourceKey = (SourceKey) traceKeys.get();
         return sourceKey;
