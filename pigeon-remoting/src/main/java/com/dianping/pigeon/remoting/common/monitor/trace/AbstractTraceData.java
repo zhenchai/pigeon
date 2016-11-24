@@ -73,6 +73,10 @@ public class AbstractTraceData {
         return totalFailed.get();
     }
 
+    public long getTotalElapsed() {
+        return totalElapsed.get();
+    }
+
     public long getMaxElasped() {
         return maxElapsed.get();
     }
@@ -113,6 +117,7 @@ public class AbstractTraceData {
         this.elasped999th = elasped999th;
     }
 
+
     public long getPercentile(double delta) {
         List<Long> keys = new ArrayList<Long>(elapseds.keySet());
 
@@ -120,16 +125,20 @@ public class AbstractTraceData {
         long tempCount = 0;
         long key = 0;
 
-        for (int i = keys.size() - 1; i >= 0; i++) {
+        for (int i = 0; i < elapseds.size(); i++) {
 
             key = keys.get(i);
+
             AtomicLong value = elapseds.get(key);
 
-            if (Math.abs((tempCount * 1.0 / totalCount) - (1 - delta)) < 1e-6) {
+            tempCount += value.get();
+
+            double difference = tempCount * 1.0 / totalCount - delta;
+
+            if (Math.abs(difference) < 1e-5 || difference > 0) {
                 break;
             }
 
-            tempCount += value.get();
         }
         return key;
     }
@@ -193,6 +202,13 @@ public class AbstractTraceData {
         count.incrementAndGet();
     }
 
+    public ConcurrentNavigableMap<Long, AtomicLong> getElapseds() {
+        return elapseds;
+    }
+
+    public void setElapseds(ConcurrentNavigableMap<Long, AtomicLong> elapseds) {
+        this.elapseds = elapseds;
+    }
 
     protected long computeDuration(long duration) {
         if (duration < 20) {
@@ -204,5 +220,14 @@ public class AbstractTraceData {
         } else {
             return duration - duration % 500;
         }
+    }
+
+    @Override
+    public String toString() {
+        return "AbstractTraceData[" + "totalElapsed=" + totalElapsed + ", serialize=" + serialize +
+                ", timeout=" + timeout + ", elasped999th=" + elasped999th + ", elasped99th=" + elasped99th +
+                ", elasped95th=" + elasped95th + ", avgElasped=" + avgElasped + ", minElapsed=" + minElapsed +
+                ", maxElapsed=" + maxElapsed + ", totalFailed=" + totalFailed + ", totalSuccess=" + totalSuccess +
+                ", totalCount=" + totalCount + "]";
     }
 }

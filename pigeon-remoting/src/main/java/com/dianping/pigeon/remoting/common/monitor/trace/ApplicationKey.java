@@ -8,6 +8,10 @@ public class ApplicationKey implements SourceKey {
 
     private String appName;
 
+    public ApplicationKey() {
+
+    }
+
     public ApplicationKey(String appName) {
         this.appName = appName;
     }

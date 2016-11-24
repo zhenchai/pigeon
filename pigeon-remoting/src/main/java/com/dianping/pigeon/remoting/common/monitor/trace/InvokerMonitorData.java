@@ -14,7 +14,7 @@ public class InvokerMonitorData extends AbstractMonitorData {
         return callMethod;
     }
 
-    public InvokerMonitorData(ApplicationTraceData traceData, SourceKey srcKey, DestinationKey dstKey) {
+    public InvokerMonitorData(ApplicationTraceRepository traceData, SourceKey srcKey, DestinationKey dstKey) {
         super(traceData);
 
         SourceKey sourceKey = this.traceData.getSourceKey();

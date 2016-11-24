@@ -42,4 +42,10 @@ public class InvokerTraceData extends AbstractTraceData {
     public void incDegradedCount() {
         this.degradedCount.incrementAndGet();
     }
+
+    @Override
+    public String toString() {
+        return "InvokerTraceData{" + "degradedCount=" + degradedCount + ", callMethod=" + callMethod +
+                ", region=" + region + super.toString()+ "}" ;
+    }
 }

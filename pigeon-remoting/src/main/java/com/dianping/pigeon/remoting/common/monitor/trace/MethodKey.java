@@ -10,6 +10,9 @@ public class MethodKey implements SourceKey, DestinationKey {
 
     private String methodName;
 
+    public MethodKey() {
+    }
+
     public MethodKey(String serviceName, String methodName) {
         this.serviceName = serviceName;
         this.methodName = methodName;

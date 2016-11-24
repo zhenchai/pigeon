@@ -1,6 +1,6 @@
 package com.dianping.pigeon.console.servlet.json;
 
-import com.dianping.pigeon.remoting.common.monitor.trace.ApplicationTraceData;
+import com.dianping.pigeon.remoting.common.monitor.trace.ApplicationTraceRepository;
 import com.dianping.pigeon.remoting.common.codec.json.JacksonSerializer;
 import com.dianping.pigeon.remoting.common.monitor.trace.MonitorDataFactory;
 
@@ -19,9 +19,9 @@ public class TraceStatsJsonServlet extends HttpServlet {
     private final JacksonSerializer jacksonSerializer = new JacksonSerializer();
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        ApplicationTraceData traceData = MonitorDataFactory.getTraceData();
+        ApplicationTraceRepository traceData = MonitorDataFactory.getTraceData();
 
-        ApplicationTraceData old = traceData.copy();
+        ApplicationTraceRepository old = traceData.copy();
         traceData.reset();
 
         String traceDataJson = jacksonSerializer.serializeObject(old);

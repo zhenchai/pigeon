@@ -21,4 +21,8 @@ public class ProviderTraceData extends AbstractTraceData {
         this.callType = callType;
     }
 
+    @Override
+    public String toString() {
+        return "ProviderTraceData{" + "callType=" + callType + super.toString() + "} ";
+    }
 }
