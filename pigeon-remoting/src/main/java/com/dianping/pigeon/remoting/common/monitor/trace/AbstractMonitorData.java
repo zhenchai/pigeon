@@ -8,7 +8,7 @@ import com.dianping.pigeon.util.TimeUtils;
  */
 public abstract class AbstractMonitorData implements MonitorData {
 
-    protected final ApplicationTraceData traceData;
+    protected final ApplicationTraceRepository traceData;
 
     protected SourceKey srcKey;
 
@@ -24,7 +24,7 @@ public abstract class AbstractMonitorData implements MonitorData {
 
     protected boolean completed;
 
-    public AbstractMonitorData(ApplicationTraceData traceData) {
+    public AbstractMonitorData(ApplicationTraceRepository traceData) {
         this.traceData = traceData;
     }
 

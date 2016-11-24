@@ -73,6 +73,10 @@ public class AbstractTraceData {
         return totalFailed.get();
     }
 
+    public long getTotalElapsed() {
+        return totalElapsed.get();
+    }
+
     public long getMaxElasped() {
         return maxElapsed.get();
     }
@@ -82,19 +86,30 @@ public class AbstractTraceData {
     }
 
     public long getAvgElasped() {
-        return totalElapsed.get() / (totalSuccess.get() + totalFailed.get());
+        long count = totalSuccess.get() + totalFailed.get();
+
+        if (count == 0L) {
+            avgElasped = 0L;
+        } else {
+            avgElasped = totalElapsed.get() / (totalSuccess.get() + totalFailed.get());
+        }
+
+        return avgElasped;
     }
 
     public long getElasped95th() {
-        return getPercentile(0.95);
+        elasped95th = getPercentile(0.95);
+        return elasped95th;
     }
 
     public long getElasped99th() {
-        return getPercentile(0.99);
+        elasped99th = getPercentile(0.99);
+        return elasped99th;
     }
 
     public long getElasped999th() {
-        return getPercentile(0.999);
+        elasped999th = getPercentile(0.999);
+        return elasped999th;
     }
 
     public void setElasped95th(long elasped95th) {
@@ -113,23 +128,30 @@ public class AbstractTraceData {
         this.elasped999th = elasped999th;
     }
 
+
     public long getPercentile(double delta) {
         List<Long> keys = new ArrayList<Long>(elapseds.keySet());
 
         long totalCount = totalSuccess.get() + totalFailed.get();
-        long tempCount = 0;
-        long key = 0;
-
-        for (int i = keys.size() - 1; i >= 0; i++) {
+        long tempCount = 0L;
+        long key = 0L;
+        if (totalCount == 0L) {
+            return 0;
+        }
+        for (int i = 0; i < elapseds.size(); i++) {
 
             key = keys.get(i);
+
             AtomicLong value = elapseds.get(key);
 
-            if (Math.abs((tempCount * 1.0 / totalCount) - (1 - delta)) < 1e-6) {
+            tempCount += value.get();
+
+            double difference = tempCount * 1.0 / totalCount - delta;
+
+            if (Math.abs(difference) < 1e-5 || difference > 0) {
                 break;
             }
 
-            tempCount += value.get();
         }
         return key;
     }
@@ -193,6 +215,13 @@ public class AbstractTraceData {
         count.incrementAndGet();
     }
 
+    public ConcurrentNavigableMap<Long, AtomicLong> getElapseds() {
+        return elapseds;
+    }
+
+    public void setElapseds(ConcurrentNavigableMap<Long, AtomicLong> elapseds) {
+        this.elapseds = elapseds;
+    }
 
     protected long computeDuration(long duration) {
         if (duration < 20) {
@@ -205,4 +234,5 @@ public class AbstractTraceData {
             return duration - duration % 500;
         }
     }
+
 }

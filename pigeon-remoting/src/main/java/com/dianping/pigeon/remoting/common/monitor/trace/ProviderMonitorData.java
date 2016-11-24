@@ -8,7 +8,7 @@ public class ProviderMonitorData extends AbstractMonitorData {
 
     private byte callType;
 
-    public ProviderMonitorData(ApplicationTraceData traceData, SourceKey srcKey, DestinationKey dstKey) {
+    public ProviderMonitorData(ApplicationTraceRepository traceData, SourceKey srcKey, DestinationKey dstKey) {
         super(traceData);
         this.srcKey = srcKey;
         this.dstKey = dstKey;

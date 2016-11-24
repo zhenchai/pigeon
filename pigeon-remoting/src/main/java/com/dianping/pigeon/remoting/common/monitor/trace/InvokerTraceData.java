@@ -42,4 +42,5 @@ public class InvokerTraceData extends AbstractTraceData {
     public void incDegradedCount() {
         this.degradedCount.incrementAndGet();
     }
+
 }

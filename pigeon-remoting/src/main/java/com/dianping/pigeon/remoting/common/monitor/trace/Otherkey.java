@@ -8,6 +8,10 @@ public class Otherkey implements SourceKey {
 
     private String name;
 
+    public Otherkey(){
+
+    }
+
     public Otherkey(String name) {
         this.name = name;
     }

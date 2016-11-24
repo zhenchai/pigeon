@@ -6,11 +6,13 @@ import com.dianping.pigeon.util.TimeUtils;
  * @author qi.yin
  *         2016/11/17  下午1:22.
  */
-public class ApplicationTraceData {
+public class ApplicationTraceRepository {
 
     private String appName;
 
     private long startMillis;
+
+    private long endMillis;
 
     private static transient final ThreadLocal<TraceKey> traceKeys = new ThreadLocal<TraceKey>();
 
@@ -18,8 +20,11 @@ public class ApplicationTraceData {
 
     private ProviderTraceRepository providerTraceData = new ProviderTraceRepository();
 
+    public ApplicationTraceRepository() {
 
-    public ApplicationTraceData(String appName) {
+    }
+
+    public ApplicationTraceRepository(String appName) {
         this.appName = appName;
         this.startMillis = TimeUtils.currentTimeMillis();
     }
@@ -53,7 +58,7 @@ public class ApplicationTraceData {
         invokerTraceData.addData(monitorData);
     }
 
-    public void degrade(InvokerMonitorData monitorData){
+    public void degrade(InvokerMonitorData monitorData) {
         invokerTraceData.degrade(monitorData);
     }
 
@@ -61,10 +66,13 @@ public class ApplicationTraceData {
         invokerTraceData.reset();
         providerTraceData.reset();
         startMillis = TimeUtils.currentTimeMillis();
+        endMillis = startMillis;
     }
 
-    public ApplicationTraceData copy() {
-        ApplicationTraceData traceData = new ApplicationTraceData(appName);
+    public ApplicationTraceRepository copy() {
+        ApplicationTraceRepository traceData = new ApplicationTraceRepository(appName);
+        traceData.setStartMillis(getStartMillis());
+        traceData.setEndMillis(TimeUtils.currentTimeMillis());
 
         traceData.setInvokerTraceData((InvokerTraceRepository) invokerTraceData.copy());
         traceData.setProviderTraceData((ProviderTraceRepository) providerTraceData.copy());
@@ -76,8 +84,24 @@ public class ApplicationTraceData {
         return appName;
     }
 
+    public void setAppName(String appName) {
+        this.appName = appName;
+    }
+
     public long getStartMillis() {
         return startMillis;
+    }
+
+    public void setStartMillis(long startMillis) {
+        this.startMillis = startMillis;
+    }
+
+    public long getEndMillis() {
+        return endMillis;
+    }
+
+    public void setEndMillis(long endMillis) {
+        this.endMillis = endMillis;
     }
 
     public InvokerTraceRepository getInvokerTraceData() {

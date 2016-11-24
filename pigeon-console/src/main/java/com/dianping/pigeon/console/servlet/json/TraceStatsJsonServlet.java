@@ -1,8 +1,14 @@
 package com.dianping.pigeon.console.servlet.json;
 
-import com.dianping.pigeon.remoting.common.monitor.trace.ApplicationTraceData;
+import com.dianping.pigeon.remoting.common.monitor.trace.ApplicationTraceRepository;
 import com.dianping.pigeon.remoting.common.codec.json.JacksonSerializer;
 import com.dianping.pigeon.remoting.common.monitor.trace.MonitorDataFactory;
+import com.dianping.pigeon.remoting.common.util.InvocationUtils;
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.PropertyAccessor;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -16,15 +22,15 @@ import java.io.IOException;
  */
 public class TraceStatsJsonServlet extends HttpServlet {
 
-    private final JacksonSerializer jacksonSerializer = new JacksonSerializer();
+    private static final ObjectMapper mapper = new ObjectMapper();
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        ApplicationTraceData traceData = MonitorDataFactory.getTraceData();
+        ApplicationTraceRepository traceData = MonitorDataFactory.getTraceData();
 
-        ApplicationTraceData old = traceData.copy();
+        ApplicationTraceRepository old = traceData.copy();
         traceData.reset();
 
-        String traceDataJson = jacksonSerializer.serializeObject(old);
+        String traceDataJson = mapper.writeValueAsString(old);
         response.getWriter().print(traceDataJson);
     }
 

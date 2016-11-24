@@ -10,7 +10,7 @@ public class MonitorDataFactory {
 
     private static final String appName = ConfigManagerLoader.getConfigManager().getAppName();
 
-    private static final ApplicationTraceData traceData = new ApplicationTraceData(appName);
+    private static final ApplicationTraceRepository traceData = new ApplicationTraceRepository(appName);
 
     public static InvokerMonitorData newInvokerMonitorData(SourceKey srcKey, DestinationKey dstKey) {
         InvokerMonitorData monitorData = new InvokerMonitorData(traceData, srcKey, dstKey);
@@ -22,7 +22,7 @@ public class MonitorDataFactory {
         return monitorData;
     }
 
-    public static ApplicationTraceData getTraceData() {
+    public static ApplicationTraceRepository getTraceData() {
         return traceData;
     }
 }
