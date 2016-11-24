@@ -18,6 +18,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.dianping.pigeon.remoting.invoker.config.InvokerConfig;
 import org.apache.commons.lang.StringUtils;
 import com.dianping.pigeon.log.Logger;
 
@@ -111,6 +112,10 @@ public class ServiceServlet extends HttpServlet {
 
 	public Map<String, ProviderConfig<?>> getServiceProviders() {
 		return ServiceFactory.getAllServiceProviders();
+	}
+
+	public Map<InvokerConfig<?>, Object> getInvokerConfigs(){
+		return ServiceFactory.getAllServiceInvokers();
 	}
 
 	protected boolean initServicePage(HttpServletRequest request, HttpServletResponse response) throws IOException {
