@@ -86,19 +86,30 @@ public class AbstractTraceData {
     }
 
     public long getAvgElasped() {
-        return totalElapsed.get() / (totalSuccess.get() + totalFailed.get());
+        long count = totalSuccess.get() + totalFailed.get();
+
+        if (count == 0L) {
+            avgElasped = 0L;
+        } else {
+            avgElasped = totalElapsed.get() / (totalSuccess.get() + totalFailed.get());
+        }
+
+        return avgElasped;
     }
 
     public long getElasped95th() {
-        return getPercentile(0.95);
+        elasped95th = getPercentile(0.95);
+        return elasped95th;
     }
 
     public long getElasped99th() {
-        return getPercentile(0.99);
+        elasped99th = getPercentile(0.99);
+        return elasped99th;
     }
 
     public long getElasped999th() {
-        return getPercentile(0.999);
+        elasped999th = getPercentile(0.999);
+        return elasped999th;
     }
 
     public void setElasped95th(long elasped95th) {
@@ -122,9 +133,11 @@ public class AbstractTraceData {
         List<Long> keys = new ArrayList<Long>(elapseds.keySet());
 
         long totalCount = totalSuccess.get() + totalFailed.get();
-        long tempCount = 0;
-        long key = 0;
-
+        long tempCount = 0L;
+        long key = 0L;
+        if (totalCount == 0L) {
+            return 0;
+        }
         for (int i = 0; i < elapseds.size(); i++) {
 
             key = keys.get(i);
@@ -222,12 +235,4 @@ public class AbstractTraceData {
         }
     }
 
-    @Override
-    public String toString() {
-        return "AbstractTraceData[" + "totalElapsed=" + totalElapsed + ", serialize=" + serialize +
-                ", timeout=" + timeout + ", elasped999th=" + elasped999th + ", elasped99th=" + elasped99th +
-                ", elasped95th=" + elasped95th + ", avgElasped=" + avgElasped + ", minElapsed=" + minElapsed +
-                ", maxElapsed=" + maxElapsed + ", totalFailed=" + totalFailed + ", totalSuccess=" + totalSuccess +
-                ", totalCount=" + totalCount + "]";
-    }
 }
