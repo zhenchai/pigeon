@@ -13,6 +13,7 @@ import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import com.dianping.pigeon.remoting.common.domain.MessageType;
 import com.dianping.pigeon.remoting.common.monitor.trace.ProviderMonitorData;
 import com.dianping.pigeon.config.ConfigManager;
 import com.dianping.pigeon.remoting.common.monitor.trace.ApplicationKey;
@@ -149,18 +150,18 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
 
     private static synchronized void refreshPoolConfig(String poolConfig) throws Throwable {
         if (StringUtils.isNotBlank(poolConfig)) {
-            PoolBean[] poolBeen = (PoolBean[])jacksonSerializer.toObject(PoolBean[].class, poolConfig);
+            PoolBean[] poolBeen = (PoolBean[]) jacksonSerializer.toObject(PoolBean[].class, poolConfig);
             Map<String, PoolBean> newPoolNameMapping = Maps.newConcurrentMap();
 
             for (PoolBean poolBean : poolBeen) {
-                if(poolBean.validate()) {
+                if (poolBean.validate()) {
                     newPoolNameMapping.put(poolBean.getPoolName(), poolBean);
                 } else {//报异常,保持原状
                     throw new RuntimeException("pool config error! please check: " + poolBean);
                 }
             }
 
-            if(newPoolNameMapping.size() != poolBeen.length) {//报异常,保持原状
+            if (newPoolNameMapping.size() != poolBeen.length) {//报异常,保持原状
                 throw new RuntimeException("conflict pool name exists, please check!");
             } else {
                 List<PoolBean> poolBeenToClose = Lists.newLinkedList();
@@ -243,10 +244,15 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
     }
 
     private void doMonitorData(InvocationRequest request, ProviderContext providerContext) {
-        ProviderMonitorData monitorData = MonitorDataFactory.newProviderMonitorData(new ApplicationKey(request.getApp()),
-                new MethodKey(request.getServiceName(), request.getMethodName()));
-        providerContext.setMonitorData(monitorData);
-        monitorData.start();
+        if (MessageType.isService((byte) request.getMessageType())) {
+
+            ProviderMonitorData monitorData = MonitorDataFactory.newProviderMonitorData(new ApplicationKey(request.getApp()),
+                    new MethodKey(request.getServiceName(), request.getMethodName()));
+
+            providerContext.setMonitorData(monitorData);
+
+            monitorData.start();
+        }
     }
 
 
