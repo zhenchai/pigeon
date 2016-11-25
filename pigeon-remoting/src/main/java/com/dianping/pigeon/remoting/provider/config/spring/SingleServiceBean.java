@@ -152,7 +152,9 @@ public class SingleServiceBean extends ServiceInitializeListener {
 			}
 		}
 		providerConfig.setActives(actives);
-		providerConfig.setPoolBean(poolBean);
+		if (poolBean != null) {
+			providerConfig.setPoolConfig(poolBean.init());
+		}
 		if (serverBean != null) {
 			providerConfig.setServerConfig(serverBean.init());
 		}

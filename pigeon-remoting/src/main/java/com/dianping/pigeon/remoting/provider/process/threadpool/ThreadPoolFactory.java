@@ -84,7 +84,7 @@ public class ThreadPoolFactory {
                 }
             }
         } catch (Throwable t) {
-            logger.warn("Error while selecting pool of " + poolConfig + ".", t);
+            logger.warn("Error while getting threadPool of " + poolConfig + ".", t);
         }
 
         return threadPool;

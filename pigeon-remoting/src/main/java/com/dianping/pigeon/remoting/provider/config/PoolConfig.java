@@ -1,7 +1,5 @@
 package com.dianping.pigeon.remoting.provider.config;
 
-import com.dianping.pigeon.remoting.provider.process.threadpool.PoolConfigSource;
-
 /**
  * Created by chenchongze on 16/11/23.
  */

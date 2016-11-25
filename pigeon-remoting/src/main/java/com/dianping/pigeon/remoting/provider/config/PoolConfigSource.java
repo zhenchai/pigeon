@@ -1,4 +1,4 @@
-package com.dianping.pigeon.remoting.provider.process.threadpool;
+package com.dianping.pigeon.remoting.provider.config;
 
 /**
  * Created by chenchongze on 16/11/23.

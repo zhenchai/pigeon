@@ -33,14 +33,14 @@ public class ProviderConfig<T> {
     private int actives = 0;
 
     private boolean supported;
-    private PoolBean poolBean;
+    private PoolConfig poolConfig;
 
-    public PoolBean getPoolBean() {
-        return poolBean;
+    public PoolConfig getPoolConfig() {
+        return poolConfig;
     }
 
-    public void setPoolBean(PoolBean poolBean) {
-        this.poolBean = poolBean;
+    public void setPoolConfig(PoolConfig poolConfig) {
+        this.poolConfig = poolConfig;
     }
 
     public int getActives() {

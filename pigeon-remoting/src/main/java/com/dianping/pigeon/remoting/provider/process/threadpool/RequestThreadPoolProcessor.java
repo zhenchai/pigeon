@@ -373,7 +373,7 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
         ServiceMethodCache methodCache = ServiceMethodFactory.getServiceMethodCache(url);
         Set<String> methodNames = methodCache.getMethodMap().keySet();
         if (needStandalonePool(providerConfig)) {
-            if (providerConfig.getPoolBean() != null) { // 服务的poolBean方式,支持方法的fallback
+            /*if (providerConfig.getPoolBean() != null) { // 服务的poolBean方式,支持方法的fallback
                 springApiPoolBeanMapping.putIfAbsent(url, providerConfig.getPoolBean());
                 springPoolNameMapping.putIfAbsent(providerConfig.getPoolBean().getPoolName(), providerConfig.getPoolBean());
             } else if (providerConfig.getActives() > 0 && CollectionUtils.isEmpty(methodConfigs)) { // 服务的actives方式,不支持方法的fallback,不支持动态修改
@@ -414,7 +414,7 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
                         }
                     }
                 }
-            }
+            }*/
         }
     }
 

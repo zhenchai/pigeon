@@ -3,9 +3,6 @@
  */
 package com.dianping.pigeon.remoting.provider.config;
 
-
-import com.dianping.pigeon.remoting.provider.config.spring.PoolBean;
-
 /**
  * @author xiangwu
  * 
@@ -16,14 +13,14 @@ public class ProviderMethodConfig {
 
 	private int actives = 0;
 
-	private PoolBean poolBean;
+	private PoolConfig poolConfig;
 
-	public PoolBean getPoolBean() {
-		return poolBean;
+	public PoolConfig getPoolConfig() {
+		return poolConfig;
 	}
 
-	public void setPoolBean(PoolBean poolBean) {
-		this.poolBean = poolBean;
+	public void setPoolConfig(PoolConfig poolConfig) {
+		this.poolConfig = poolConfig;
 	}
 
 	public String getName() {

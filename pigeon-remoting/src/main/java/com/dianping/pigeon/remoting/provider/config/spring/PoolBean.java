@@ -3,7 +3,7 @@ package com.dianping.pigeon.remoting.provider.config.spring;
 import com.dianping.pigeon.log.Logger;
 import com.dianping.pigeon.log.LoggerLoader;
 import com.dianping.pigeon.remoting.provider.config.PoolConfig;
-import com.dianping.pigeon.remoting.provider.process.threadpool.PoolConfigSource;
+import com.dianping.pigeon.remoting.provider.config.PoolConfigSource;
 import com.dianping.pigeon.threadpool.DefaultThreadPool;
 import com.dianping.pigeon.threadpool.ThreadPool;
 import org.apache.commons.lang.StringUtils;

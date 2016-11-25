@@ -6,6 +6,8 @@ package com.dianping.pigeon.remoting.provider.config.spring;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.dianping.pigeon.remoting.provider.config.PoolConfig;
+import com.dianping.pigeon.remoting.provider.config.PoolConfigSource;
 import org.apache.commons.lang.StringUtils;
 import com.dianping.pigeon.log.Logger;
 import org.springframework.beans.MutablePropertyValues;
@@ -139,7 +141,18 @@ public class ServiceBeanDefinitionParser implements BeanDefinitionParser {
 			if (!parserContext.getRegistry().containsBeanDefinition(pool)) {
 				throw new IllegalStateException("method must have a reference to bean:" + pool);
 			}
-			properties.addPropertyValue("poolBean", new RuntimeBeanReference(pool));
+
+			BeanDefinition poolBd = parserContext.getRegistry().getBeanDefinition(pool);
+			String poolName = (String) poolBd.getPropertyValues().getPropertyValue("poolName").getValue();
+			Integer coreSize = (Integer) poolBd.getPropertyValues().getPropertyValue("corePoolSize").getValue();
+			Integer maxSize = (Integer) poolBd.getPropertyValues().getPropertyValue("maxPoolSize").getValue();
+			Integer queueSize = (Integer) poolBd.getPropertyValues().getPropertyValue("workQueueSize").getValue();
+			PoolConfig poolConfig = new PoolConfig(poolName, PoolConfigSource.SPRING);
+			poolConfig.setCorePoolSize(coreSize);
+			poolConfig.setMaxPoolSize(maxSize);
+			poolConfig.setWorkQueueSize(queueSize);
+			properties.addPropertyValue("poolConfig", poolConfig);
+
 		} else if (element.hasAttribute("actives")) {
 			properties.addPropertyValue("actives", resolveReference(element, "actives"));
 			String value = element.getAttribute("actives");
@@ -190,6 +203,19 @@ public class ServiceBeanDefinitionParser implements BeanDefinitionParser {
 			String valueInCache = configManager.getStringValue(value.substring(2, value.length() - 1));
 			if (valueInCache == null) {
 				throw new IllegalStateException("undefined config property:" + element.getAttribute(attribute));
+			} else {
+				value = valueInCache;
+			}
+		}
+		return value;
+	}
+
+	private static String resolveReference(BeanDefinition bd, String attribute) {
+		String value = (String) bd.getAttribute(attribute);
+		if (value.startsWith(DEFAULT_PLACEHOLDER_PREFIX) && value.endsWith(DEFAULT_PLACEHOLDER_SUFFIX)) {
+			String valueInCache = configManager.getStringValue(value.substring(2, value.length() - 1));
+			if (valueInCache == null) {
+				throw new IllegalStateException("undefined config property:" + bd.getAttribute(attribute));
 			} else {
 				value = valueInCache;
 			}
