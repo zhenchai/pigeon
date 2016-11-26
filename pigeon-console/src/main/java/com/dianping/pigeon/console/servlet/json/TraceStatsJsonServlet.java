@@ -8,6 +8,7 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import javax.servlet.ServletException;
@@ -23,6 +24,10 @@ import java.io.IOException;
 public class TraceStatsJsonServlet extends HttpServlet {
 
     private static final ObjectMapper mapper = new ObjectMapper();
+
+    static {
+        mapper.configure(MapperFeature.PROPAGATE_TRANSIENT_MARKER, true);
+    }
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         ApplicationTraceRepository traceData = MonitorDataFactory.getTraceData();

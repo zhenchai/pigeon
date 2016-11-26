@@ -2,7 +2,7 @@ package com.dianping.pigeon.util;
 
 public class VersionUtils {
 
-	public static final String VERSION = "2.9.2-SNAPSHOT";
+	public static final String VERSION = "2.9.3-SNAPSHOT";
 	
     public static final String DP_THRIFT_VERSION = "2.8.0";
 

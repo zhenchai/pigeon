@@ -11,6 +11,8 @@ import java.util.Map;
 import java.util.concurrent.Executors;
 
 import com.dianping.pigeon.config.ConfigManagerLoader;
+import com.dianping.pigeon.log.Logger;
+import com.dianping.pigeon.log.LoggerLoader;
 import com.dianping.pigeon.remoting.invoker.Client;
 import com.dianping.pigeon.remoting.invoker.ClientFactory;
 import com.dianping.pigeon.remoting.invoker.client.ClientConfig;
@@ -21,13 +23,14 @@ import com.dianping.pigeon.threadpool.DefaultThreadFactory;
 import com.dianping.pigeon.util.CollectionUtils;
 import com.dianping.pigeon.remoting.invoker.process.ResponseProcessorFactory;
 import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
-import org.jboss.netty.channel.socket.nio.NioWorkerPool;
 import org.jboss.netty.util.HashedWheelTimer;
 
 /**
  *
  */
 public class NettyClientFactory implements ClientFactory {
+
+    protected final Logger logger = LoggerLoader.getLogger(getClass());
 
     private final static ResponseProcessor responseProcessor = ResponseProcessorFactory.selectProcessor();
 
@@ -68,16 +71,26 @@ public class NettyClientFactory implements ClientFactory {
     }
 
     private org.jboss.netty.channel.ChannelFactory createChannelFactory() {
-        return new NioClientSocketChannelFactory(
-                Executors.newCachedThreadPool(
-                        new DefaultThreadFactory("Pigeon-Netty-Client-Boss")),
-                clientConfig.getBossThreadPoolCount(),
-                new NioWorkerPool(
-                        Executors.newCachedThreadPool(
-                                new DefaultThreadFactory("Pigeon-Netty-Client-Worker")),
-                        clientConfig.getWorkerThreadPoolCount()),
-                new HashedWheelTimer(new DefaultThreadFactory("Pigeon-Netty-Client-Timer")));
+        try {
+            return new NioClientSocketChannelFactory(
+                    Executors.newCachedThreadPool(
+                            new DefaultThreadFactory("Pigeon-Netty-Client-Boss")),
+                    clientConfig.getBossThreadPoolCount(),
+                    new org.jboss.netty.channel.socket.nio.NioWorkerPool(
+                            Executors.newCachedThreadPool(
+                                    new DefaultThreadFactory("Pigeon-Netty-Client-Worker")),
+                            clientConfig.getWorkerThreadPoolCount()),
+                    new HashedWheelTimer(new DefaultThreadFactory("Pigeon-Netty-Client-Timer")));
+
+        } catch (Error e) {
+            logger.warn("[createChannelFactory] netty version conflict, use runtime version", e);
+
+            return new NioClientSocketChannelFactory(
+                    Executors.newCachedThreadPool(new DefaultThreadFactory("Pigeon-Netty-Client-Boss")),
+                    Executors.newCachedThreadPool(new DefaultThreadFactory("Pigeon-Netty-Client-Worker")),
+                    clientConfig.getBossThreadPoolCount(),
+                    clientConfig.getWorkerThreadPoolCount());
+        }
 
     }
-
 }
