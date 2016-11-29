@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.dianping.pigeon.remoting.provider.config.PoolConfig;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
@@ -32,7 +33,7 @@ public class SingleServiceBean extends ServiceInitializeListener {
 	private String version;
 	private String interfaceName;
 	private ServerBean serverBean;
-	private PoolBean poolBean;
+	private PoolConfig poolConfig;
 	private boolean cancelTimeout = Constants.DEFAULT_TIMEOUT_CANCEL;
 	private ConfigManager configManager = ConfigManagerLoader.getConfigManager();
 	private boolean useSharedPool = configManager.getBooleanValue(Constants.KEY_SERVICE_SHARED,
@@ -41,12 +42,12 @@ public class SingleServiceBean extends ServiceInitializeListener {
 	private ClassLoader classLoader;
 	private int actives;
 
-	public PoolBean getPoolBean() {
-		return poolBean;
+	public PoolConfig getPoolConfig() {
+		return poolConfig;
 	}
 
-	public void setPoolBean(PoolBean poolBean) {
-		this.poolBean = poolBean;
+	public void setPoolConfig(PoolConfig poolConfig) {
+		this.poolConfig = poolConfig;
 	}
 
 	public int getActives() {
@@ -152,9 +153,7 @@ public class SingleServiceBean extends ServiceInitializeListener {
 			}
 		}
 		providerConfig.setActives(actives);
-		if (poolBean != null) {
-			providerConfig.setPoolConfig(poolBean.init());
-		}
+		providerConfig.setPoolConfig(poolConfig);
 		if (serverBean != null) {
 			providerConfig.setServerConfig(serverBean.init());
 		}

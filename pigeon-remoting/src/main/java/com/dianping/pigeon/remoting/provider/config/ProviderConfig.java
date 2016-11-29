@@ -6,9 +6,7 @@ package com.dianping.pigeon.remoting.provider.config;
 
 import java.util.Map;
 
-import com.dianping.pigeon.remoting.provider.config.spring.PoolBean;
 import com.dianping.pigeon.util.ThriftUtils;
-import com.dianping.pigeon.util.VersionUtils;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
 

@@ -2,9 +2,11 @@ package com.dianping.pigeon.remoting.provider.config.spring;
 
 import com.dianping.pigeon.config.ConfigManager;
 import com.dianping.pigeon.config.ConfigManagerLoader;
+import com.dianping.pigeon.remoting.provider.config.PoolConfigFactory;
 import com.dianping.pigeon.remoting.provider.process.threadpool.RequestThreadPoolProcessor;
 import org.springframework.beans.MutablePropertyValues;
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.BeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
@@ -47,21 +49,21 @@ public class PoolBeanDefinitionParser implements BeanDefinitionParser {
         properties.addPropertyValue("corePoolSize", corePoolSize);
         String value = element.getAttribute("corePoolSize");
         if (value.startsWith(DEFAULT_PLACEHOLDER_PREFIX) && value.endsWith(DEFAULT_PLACEHOLDER_SUFFIX)) {
-            RequestThreadPoolProcessor.getSpringPoolBeanCoreSizeKeys().put(id, value.substring(2, value.length() - 1));
+            PoolConfigFactory.getCoreSizeKeys().put(id, value.substring(2, value.length() - 1));
         }
 
         Integer maxPoolSize = Integer.parseInt(resolveReference(element, "maxPoolSize"));
         properties.addPropertyValue("maxPoolSize", maxPoolSize);
         value = element.getAttribute("maxPoolSize");
         if (value.startsWith(DEFAULT_PLACEHOLDER_PREFIX) && value.endsWith(DEFAULT_PLACEHOLDER_SUFFIX)) {
-            RequestThreadPoolProcessor.getSpringPoolBeanMaxSizeKeys().put(id, value.substring(2, value.length() - 1));
+            PoolConfigFactory.getMaxSizeKeys().put(id, value.substring(2, value.length() - 1));
         }
 
         Integer workQueueSize = Integer.parseInt(resolveReference(element, "workQueueSize"));
         properties.addPropertyValue("workQueueSize", workQueueSize);
         value = element.getAttribute("workQueueSize");
         if (value.startsWith(DEFAULT_PLACEHOLDER_PREFIX) && value.endsWith(DEFAULT_PLACEHOLDER_SUFFIX)) {
-            RequestThreadPoolProcessor.getSpringPoolBeanQueueSizeKeys().put(id, value.substring(2, value.length() - 1));
+            PoolConfigFactory.getQueueSizeKeys().put(id, value.substring(2, value.length() - 1));
         }
 
         if (corePoolSize < 0 ||
@@ -71,7 +73,18 @@ public class PoolBeanDefinitionParser implements BeanDefinitionParser {
             throw new IllegalArgumentException("please check pool config: " + id);
 
         parserContext.getRegistry().registerBeanDefinition(id, beanDefinition);
+
+        //registerPoolInitializeListenerBeanDefinition(parserContext.getRegistry());
+
         return beanDefinition;
+    }
+
+    private void registerPoolInitializeListenerBeanDefinition(BeanDefinitionRegistry registry) {
+        final String beanId = PoolInitializeListener.class.getName();
+
+        if (!registry.containsBeanDefinition(beanId)) {
+
+        }
     }
 
     private static String resolveReference(Element element, String attribute) {

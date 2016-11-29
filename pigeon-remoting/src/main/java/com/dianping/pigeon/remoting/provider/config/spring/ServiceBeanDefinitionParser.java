@@ -7,6 +7,7 @@ package com.dianping.pigeon.remoting.provider.config.spring;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.dianping.pigeon.remoting.provider.config.PoolConfig;
+import com.dianping.pigeon.remoting.provider.config.PoolConfigFactory;
 import com.dianping.pigeon.remoting.provider.config.PoolConfigSource;
 import org.apache.commons.lang.StringUtils;
 import com.dianping.pigeon.log.Logger;
@@ -109,7 +110,15 @@ public class ServiceBeanDefinitionParser implements BeanDefinitionParser {
 			if (!parserContext.getRegistry().containsBeanDefinition(pool)) {
 				throw new IllegalStateException("service must have a reference to bean:" + pool);
 			}
-			properties.addPropertyValue("poolBean", new RuntimeBeanReference(pool));
+
+			BeanDefinition poolBd = parserContext.getRegistry().getBeanDefinition(pool);
+			String poolName = (String) poolBd.getPropertyValues().getPropertyValue("poolName").getValue();
+			int coreSize = (int) poolBd.getPropertyValues().getPropertyValue("corePoolSize").getValue();
+			int maxSize = (int) poolBd.getPropertyValues().getPropertyValue("maxPoolSize").getValue();
+			int queueSize = (int) poolBd.getPropertyValues().getPropertyValue("workQueueSize").getValue();
+			PoolConfig poolConfig = PoolConfigFactory.createPoolConfig(poolName, coreSize, maxSize, queueSize);
+			properties.addPropertyValue("poolConfig", poolConfig);
+
 		} else if (element.hasAttribute("actives")) {
 			properties.addPropertyValue("actives", resolveReference(element, "actives"));
 		}
@@ -144,13 +153,10 @@ public class ServiceBeanDefinitionParser implements BeanDefinitionParser {
 
 			BeanDefinition poolBd = parserContext.getRegistry().getBeanDefinition(pool);
 			String poolName = (String) poolBd.getPropertyValues().getPropertyValue("poolName").getValue();
-			Integer coreSize = (Integer) poolBd.getPropertyValues().getPropertyValue("corePoolSize").getValue();
-			Integer maxSize = (Integer) poolBd.getPropertyValues().getPropertyValue("maxPoolSize").getValue();
-			Integer queueSize = (Integer) poolBd.getPropertyValues().getPropertyValue("workQueueSize").getValue();
-			PoolConfig poolConfig = new PoolConfig(poolName, PoolConfigSource.SPRING);
-			poolConfig.setCorePoolSize(coreSize);
-			poolConfig.setMaxPoolSize(maxSize);
-			poolConfig.setWorkQueueSize(queueSize);
+			int coreSize = (int) poolBd.getPropertyValues().getPropertyValue("corePoolSize").getValue();
+			int maxSize = (int) poolBd.getPropertyValues().getPropertyValue("maxPoolSize").getValue();
+			int queueSize = (int) poolBd.getPropertyValues().getPropertyValue("workQueueSize").getValue();
+			PoolConfig poolConfig = PoolConfigFactory.createPoolConfig(poolName, coreSize, maxSize, queueSize);
 			properties.addPropertyValue("poolConfig", poolConfig);
 
 		} else if (element.hasAttribute("actives")) {

@@ -3,7 +3,6 @@ package com.dianping.pigeon.remoting.test;
 import com.dianping.pigeon.remoting.common.codec.json.JacksonSerializer;
 import com.dianping.pigeon.remoting.provider.config.PoolConfig;
 import com.dianping.pigeon.remoting.provider.config.spring.PoolBean;
-import com.dianping.pigeon.remoting.provider.config.PoolConfigSource;
 import com.dianping.pigeon.remoting.provider.process.threadpool.ThreadPoolFactory;
 import com.dianping.pigeon.threadpool.DefaultThreadPool;
 import com.dianping.pigeon.threadpool.ThreadPool;
@@ -199,7 +198,7 @@ public class PoolTest {
             threadPool.getExecutor().submit(new Runnable() {
                 @Override
                 public void run() {
-                    ThreadPoolFactory.getThreadPool(new PoolConfig("aaa", PoolConfigSource.SPRING));
+                    ThreadPoolFactory.getThreadPool(new PoolConfig("aaa"));
                 }
             });
         }

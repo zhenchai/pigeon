@@ -20,24 +20,6 @@ public class ThreadPoolFactory {
 
     private static final Logger logger = LoggerLoader.getLogger(ThreadPoolFactory.class);
     private static final Interner<PoolConfig> interner = Interners.newWeakInterner();
-    private static volatile boolean isInitialized = false;
-
-    static {
-        init();
-    }
-
-    public static void init() {
-        if (!isInitialized) {
-            synchronized (ThreadPoolFactory.class) {
-                if (!isInitialized) {
-                    //todo ??
-
-                    isInitialized = true;
-                }
-            }
-        }
-    }
-
     // poolConfig --> threadPool
     private static final ConcurrentMap<PoolConfig, ThreadPool> threadPools = Maps.newConcurrentMap();
 

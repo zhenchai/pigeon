@@ -3,7 +3,6 @@ package com.dianping.pigeon.remoting.provider.config.spring;
 import com.dianping.pigeon.log.Logger;
 import com.dianping.pigeon.log.LoggerLoader;
 import com.dianping.pigeon.remoting.provider.config.PoolConfig;
-import com.dianping.pigeon.remoting.provider.config.PoolConfigSource;
 import com.dianping.pigeon.threadpool.DefaultThreadPool;
 import com.dianping.pigeon.threadpool.ThreadPool;
 import org.apache.commons.lang.StringUtils;
@@ -60,7 +59,7 @@ public class PoolBean {
         if (poolConfig == null) {
             synchronized (this) {
                 if (poolConfig == null) {
-                    poolConfig = new PoolConfig(poolName, PoolConfigSource.SPRING);
+                    poolConfig = new PoolConfig(poolName);
                     poolConfig.setCorePoolSize(corePoolSize);
                     poolConfig.setMaxPoolSize(maxPoolSize);
                     poolConfig.setWorkQueueSize(workQueueSize);
