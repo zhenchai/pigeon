@@ -59,7 +59,8 @@ public class PoolBean {
         if (poolConfig == null) {
             synchronized (this) {
                 if (poolConfig == null) {
-                    poolConfig = new PoolConfig(poolName);
+                    poolConfig = new PoolConfig();
+                    poolConfig.setPoolName(poolName);
                     poolConfig.setCorePoolSize(corePoolSize);
                     poolConfig.setMaxPoolSize(maxPoolSize);
                     poolConfig.setWorkQueueSize(workQueueSize);

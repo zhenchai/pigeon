@@ -34,7 +34,8 @@ public class PoolConfigFactory {
         PoolConfig poolConfig = poolConfigs.get(poolName);
 
         if (poolConfig == null) {
-            poolConfig = new PoolConfig(poolName);
+            poolConfig = new PoolConfig();
+            poolConfig.setPoolName(poolName);
             poolConfig.setCorePoolSize(coreSize);
             poolConfig.setMaxPoolSize(maxSize);
             poolConfig.setWorkQueueSize(queueSize);

@@ -198,7 +198,7 @@ public class PoolTest {
             threadPool.getExecutor().submit(new Runnable() {
                 @Override
                 public void run() {
-                    ThreadPoolFactory.getThreadPool(new PoolConfig("aaa"));
+                    ThreadPoolFactory.getThreadPool(new PoolConfig());
                 }
             });
         }

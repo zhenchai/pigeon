@@ -5,12 +5,16 @@ package com.dianping.pigeon.remoting.provider.config;
  */
 public class PoolConfig {
 
-    private final String poolName;
+    private String poolName;
     private volatile int corePoolSize;
     private volatile int maxPoolSize;
     private volatile int workQueueSize;
 
-    public PoolConfig(String poolName) {
+    public PoolConfig() {
+
+    }
+
+    public void setPoolName(String poolName) {
         this.poolName = poolName;
     }
 

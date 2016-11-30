@@ -16,8 +16,10 @@ import com.dianping.pigeon.remoting.common.codec.json.JacksonSerializer;
 import com.dianping.pigeon.remoting.common.monitor.trace.MonitorDataFactory;
 import com.dianping.pigeon.remoting.provider.config.*;
 import com.dianping.pigeon.remoting.provider.publish.ServicePublisher;
+import com.dianping.pigeon.util.CollectionUtils;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
 
 import com.dianping.pigeon.config.ConfigChangeListener;
@@ -38,7 +40,6 @@ import com.dianping.pigeon.remoting.provider.service.method.ServiceMethodCache;
 import com.dianping.pigeon.remoting.provider.service.method.ServiceMethodFactory;
 import com.dianping.pigeon.threadpool.DefaultThreadPool;
 import com.dianping.pigeon.threadpool.ThreadPool;
-import com.dianping.pigeon.util.CollectionUtils;
 
 public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
 
@@ -323,6 +324,7 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
 
     @Override
     public String getProcessorStatistics() {
+        Set<String> keys = Sets.newHashSet();
         StringBuilder stats = new StringBuilder();
 
         if ("server".equals(poolStrategy)) {
@@ -337,15 +339,18 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
                 if (!CollectionUtils.isEmpty(providerConfig.getMethods())) {
                     for (ProviderMethodConfig methodConfig : providerConfig.getMethods().values()) {
                         if (methodConfig.getPoolConfig() != null) {
-                            stats.append(",[").append(methodConfig.getName()).append("=").append(
+                            String api = providerConfig.getUrl() + "#" + methodConfig.getName();
+                            stats.append(",[").append(api).append("=").append(
                                     getThreadPoolStatistics(ThreadPoolFactory.getThreadPool(methodConfig.getPoolConfig())))
                                     .append("]");
+                            keys.add(api);
                         }
                     }
                     if (providerConfig.getPoolConfig() != null) {
                         stats.append(",[").append(providerConfig.getUrl()).append("=").append(
                                 getThreadPoolStatistics(ThreadPoolFactory.getThreadPool(providerConfig.getPoolConfig())))
                                 .append("]");
+                        keys.add(providerConfig.getUrl());
                     }
                 }
             }
@@ -356,22 +361,26 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
                 stats.append(",[").append(key).append("=").append(getThreadPoolStatistics(serviceThreadPools.get(key)))
                         .append("]");
             }
+            keys.addAll(serviceThreadPools.keySet());
         }
         if (!CollectionUtils.isEmpty(methodThreadPools)) {
             for (String key : methodThreadPools.keySet()) {
                 stats.append(",[").append(key).append("=").append(getThreadPoolStatistics(methodThreadPools.get(key)))
                         .append("]");
             }
+            keys.addAll(methodThreadPools.keySet());
         }
 
         if (!CollectionUtils.isEmpty(apiPoolNameMapping)) {
             for (Map.Entry<String, String> entry : apiPoolNameMapping.entrySet()) {
                 String api = entry.getKey();
-                String poolName = entry.getValue();
-                PoolConfig poolConfig = poolConfigs.get(poolName);
-                if (poolConfig != null) {
-                    stats.append(",[").append(api).append("=")
-                            .append(getThreadPoolStatistics(ThreadPoolFactory.getThreadPool(poolConfig))).append("]");
+                if (!keys.contains(api)) {
+                    String poolName = entry.getValue();
+                    PoolConfig poolConfig = poolConfigs.get(poolName);
+                    if (poolConfig != null) {
+                        stats.append(",[").append(api).append("=")
+                                .append(getThreadPoolStatistics(ThreadPoolFactory.getThreadPool(poolConfig))).append("]");
+                    }
                 }
             }
         }
