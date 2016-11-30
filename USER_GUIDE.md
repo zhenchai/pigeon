@@ -917,7 +917,7 @@ a、首先需要在应用lion里配置开关打开，例如xxx-service项目要�
 
 xxx-service.pigeon.provider.pool.config.enable=true
 
-b、配置应用的自定义pool(与方法2中的pool无关)，添加配置项：
+b、配置应用的自定义pool(与方法1中的pool无关)，添加配置项：
 
 xxx-service.pigeon.provider.pool.config
 

@@ -3,10 +3,8 @@ package com.dianping.pigeon.remoting.provider.config.spring;
 import com.dianping.pigeon.config.ConfigManager;
 import com.dianping.pigeon.config.ConfigManagerLoader;
 import com.dianping.pigeon.remoting.provider.config.PoolConfigFactory;
-import com.dianping.pigeon.remoting.provider.process.threadpool.RequestThreadPoolProcessor;
 import org.springframework.beans.MutablePropertyValues;
 import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.BeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
@@ -39,7 +37,6 @@ public class PoolBeanDefinitionParser implements BeanDefinitionParser {
         RootBeanDefinition beanDefinition = new RootBeanDefinition();
         beanDefinition.setLazyInit(false);
         beanDefinition.setBeanClass(PoolBean.class);
-        beanDefinition.setInitMethodName("init");
         MutablePropertyValues properties = beanDefinition.getPropertyValues();
 
         String id = element.getAttribute("id");
@@ -74,17 +71,7 @@ public class PoolBeanDefinitionParser implements BeanDefinitionParser {
 
         parserContext.getRegistry().registerBeanDefinition(id, beanDefinition);
 
-        //registerPoolInitializeListenerBeanDefinition(parserContext.getRegistry());
-
         return beanDefinition;
-    }
-
-    private void registerPoolInitializeListenerBeanDefinition(BeanDefinitionRegistry registry) {
-        final String beanId = PoolInitializeListener.class.getName();
-
-        if (!registry.containsBeanDefinition(beanId)) {
-
-        }
     }
 
     private static String resolveReference(Element element, String attribute) {

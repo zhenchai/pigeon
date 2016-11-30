@@ -8,7 +8,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import com.dianping.pigeon.remoting.provider.config.PoolConfig;
 import com.dianping.pigeon.remoting.provider.config.PoolConfigFactory;
-import com.dianping.pigeon.remoting.provider.config.PoolConfigSource;
 import org.apache.commons.lang.StringUtils;
 import com.dianping.pigeon.log.Logger;
 import org.springframework.beans.MutablePropertyValues;
