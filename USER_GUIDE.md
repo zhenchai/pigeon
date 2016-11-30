@@ -91,19 +91,16 @@ pigeon在运行时可能会依赖以下jar包，如果有必要，需要应用�
 	<groupId>com.facebook.swift</groupId>
 	<artifactId>swift-annotations</artifactId>
 	<version>${swift.version}</version>
-	<optional>true</optional>
 </dependency>
 <dependency>
 	<groupId>com.facebook.swift</groupId>
 	<artifactId>swift-codec</artifactId>
 	<version>${swift.version}</version>
-	<optional>true</optional>
 </dependency>
 <dependency>
 	<groupId>com.facebook.swift</groupId>
 	<artifactId>swift-generator</artifactId>
 	<version>${swift.version}</version>
-	<optional>true</optional>
 </dependency>
 ```
 ## 准备工作

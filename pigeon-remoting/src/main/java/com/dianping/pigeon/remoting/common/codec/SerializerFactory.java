@@ -108,6 +108,7 @@ public final class SerializerFactory {
         }
     }
 
+    @Deprecated
     public static void registerSerializer(String serializeName, byte serializerType, Serializer serializer) {
         if (serializer == null) {
             throw new IllegalArgumentException("the serializer is null");
