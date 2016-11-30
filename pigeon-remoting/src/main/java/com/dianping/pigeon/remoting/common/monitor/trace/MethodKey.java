@@ -35,6 +35,11 @@ public class MethodKey implements SourceKey, DestinationKey {
     }
 
     @Override
+    public String jsonMapKey() {
+        return "MethodKey{serviceName=" + serviceName + ", methodName=" + methodName + "}";
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
@@ -53,8 +58,9 @@ public class MethodKey implements SourceKey, DestinationKey {
         return result;
     }
 
+    //attention, json depend on toString, so do not change at will
     @Override
     public String toString() {
-        return "MethodKey{serviceName=" + serviceName + ", methodName=" + methodName + "}";
+        return jsonMapKey();
     }
 }

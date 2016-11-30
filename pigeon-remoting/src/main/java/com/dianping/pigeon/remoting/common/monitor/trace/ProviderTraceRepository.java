@@ -12,7 +12,7 @@ public class ProviderTraceRepository extends AbstractTraceRepository<ProviderMon
 
     public void start(ProviderMonitorData monitorData) {
         ProviderTraceData traceStatsData = MapUtils.getOrCreate(traceDatas,
-                new Pair<SourceKey, DestinationKey>(monitorData.getSrcKey(), monitorData.getDstKey()),
+                new PairKey<SourceKey, DestinationKey>(monitorData.getSrcKey(), monitorData.getDstKey()),
                 ProviderTraceData.class);
 
         traceStatsData.incTotalCount();
@@ -21,7 +21,7 @@ public class ProviderTraceRepository extends AbstractTraceRepository<ProviderMon
     public void addData(ProviderMonitorData monitorData) {
 
         ProviderTraceData traceStatsData = MapUtils.getOrCreate(traceDatas,
-                new Pair<SourceKey, DestinationKey>(monitorData.getSrcKey(), monitorData.getDstKey()),
+                new PairKey<SourceKey, DestinationKey>(monitorData.getSrcKey(), monitorData.getDstKey()),
                 ProviderTraceData.class);
 
         traceStatsData.setCallType(monitorData.getCallType());
@@ -32,7 +32,7 @@ public class ProviderTraceRepository extends AbstractTraceRepository<ProviderMon
     public void complete(ProviderMonitorData monitorData) {
 
         ProviderTraceData traceStatsData = MapUtils.getOrCreate(traceDatas,
-                new Pair<SourceKey, DestinationKey>(monitorData.getSrcKey(), monitorData.getDstKey()),
+                new PairKey<SourceKey, DestinationKey>(monitorData.getSrcKey(), monitorData.getDstKey()),
                 ProviderTraceData.class);
 
         long elapsed = TimeUtils.currentTimeMillis() - monitorData.getStartMillisTime();

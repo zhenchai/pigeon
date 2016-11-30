@@ -25,6 +25,11 @@ public class ApplicationKey implements SourceKey {
     }
 
     @Override
+    public String jsonMapKey() {
+        return "ApplicationKey{" + "appName=" + appName + "}";
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
@@ -40,8 +45,9 @@ public class ApplicationKey implements SourceKey {
         return appName != null ? appName.hashCode() : 0;
     }
 
+    //attention, json depend on toString, so do not change at will
     @Override
     public String toString() {
-        return "ApplicationKey{" + "appName=" + appName + "}";
+        return jsonMapKey();
     }
 }
