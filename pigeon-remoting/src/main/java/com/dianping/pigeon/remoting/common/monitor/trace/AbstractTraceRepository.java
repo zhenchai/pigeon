@@ -1,8 +1,6 @@
 package com.dianping.pigeon.remoting.common.monitor.trace;
 
 
-import com.dianping.pigeon.util.Pair;
-
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -12,8 +10,8 @@ import java.util.concurrent.ConcurrentMap;
  */
 public abstract class AbstractTraceRepository<M extends MonitorData, T extends AbstractTraceData> implements TraceRepository<M> {
 
-    protected volatile ConcurrentMap<Pair<SourceKey, DestinationKey>, T> traceDatas =
-            new ConcurrentHashMap<Pair<SourceKey, DestinationKey>, T>();
+    protected volatile ConcurrentMap<PairKey<SourceKey, DestinationKey>, T> traceDatas =
+            new ConcurrentHashMap<PairKey<SourceKey, DestinationKey>, T>();
 
     public AbstractTraceRepository() {
 
@@ -21,7 +19,7 @@ public abstract class AbstractTraceRepository<M extends MonitorData, T extends A
 
     @Override
     public void reset() {
-        this.traceDatas = new ConcurrentHashMap<Pair<SourceKey, DestinationKey>, T>();
+        this.traceDatas = new ConcurrentHashMap<PairKey<SourceKey, DestinationKey>, T>();
     }
 
     @Override
@@ -34,11 +32,11 @@ public abstract class AbstractTraceRepository<M extends MonitorData, T extends A
 
     public abstract AbstractTraceRepository<M,T> createAllTraceData();
 
-    public ConcurrentMap<Pair<SourceKey, DestinationKey>, T> getTraceDatas() {
+    public ConcurrentMap<PairKey<SourceKey, DestinationKey>, T> getTraceDatas() {
         return traceDatas;
     }
 
-    public void setTraceDatas(ConcurrentMap<Pair<SourceKey, DestinationKey>, T> traceDatas) {
+    public void setTraceDatas(ConcurrentMap<PairKey<SourceKey, DestinationKey>, T> traceDatas) {
         this.traceDatas = traceDatas;
     }
 

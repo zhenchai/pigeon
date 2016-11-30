@@ -7,7 +7,7 @@ import com.dianping.pigeon.monitor.MonitorTransaction;
 import com.dianping.pigeon.remoting.common.monitor.trace.InvokerMonitorData;
 import com.dianping.pigeon.remoting.common.monitor.trace.ApplicationKey;
 import com.dianping.pigeon.remoting.common.monitor.trace.MethodKey;
-import com.dianping.pigeon.remoting.common.monitor.trace.Otherkey;
+import com.dianping.pigeon.remoting.common.monitor.trace.OtherKey;
 import com.dianping.pigeon.remoting.common.monitor.trace.SourceKey;
 import com.dianping.pigeon.remoting.common.domain.CallMethod;
 import com.dianping.pigeon.remoting.common.domain.InvocationResponse;
@@ -43,7 +43,7 @@ public class TraceFilter extends InvocationInvokeFilter {
         }
         SourceKey srcKey = null;
         if (StringUtils.isNotBlank(rootMessage)) {
-            srcKey = new Otherkey(rootMessage);
+            srcKey = new OtherKey(rootMessage);
         } else {
             srcKey = new ApplicationKey(appName);
         }

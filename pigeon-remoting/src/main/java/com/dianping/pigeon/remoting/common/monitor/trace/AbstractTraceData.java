@@ -1,6 +1,7 @@
 package com.dianping.pigeon.remoting.common.monitor.trace;
 
 import com.dianping.pigeon.util.MapUtils;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,13 +25,13 @@ public class AbstractTraceData {
 
     private AtomicLong minElapsed = new AtomicLong(Long.MAX_VALUE);
 
-    private long avgElasped;
+    private long avgElapsed;
 
-    private long elasped95th;
+    private long elapsed95th;
 
-    private long elasped99th;
+    private long elapsed99th;
 
-    private long elasped999th;
+    private long elapsed999th;
 
     private transient AtomicLong totalElapsed = new AtomicLong();
 
@@ -77,58 +78,78 @@ public class AbstractTraceData {
         return totalElapsed.get();
     }
 
-    public long getMaxElasped() {
+    public long getMaxElapsed() {
         return maxElapsed.get();
     }
 
-    public long getMinElasped() {
+    public long getMinElapsed() {
         return minElapsed.get();
     }
 
-    public long getAvgElasped() {
+    public long getAvgElapsed() {
         long count = totalSuccess.get() + totalFailed.get();
 
         if (count == 0L) {
-            avgElasped = 0L;
+            avgElapsed = 0L;
         } else {
-            avgElasped = totalElapsed.get() / (totalSuccess.get() + totalFailed.get());
+            avgElapsed = totalElapsed.get() / (totalSuccess.get() + totalFailed.get());
         }
 
-        return avgElasped;
+        return avgElapsed;
     }
 
-    public long getElasped95th() {
-        elasped95th = getPercentile(0.95);
-        return elasped95th;
+    @JsonIgnore
+    public long getAvgElapsed_() {
+        return avgElapsed;
     }
 
-    public long getElasped99th() {
-        elasped99th = getPercentile(0.99);
-        return elasped99th;
+    public long getElapsed95th() {
+        elapsed95th = getPercentile(0.95);
+        return elapsed95th;
     }
 
-    public long getElasped999th() {
-        elasped999th = getPercentile(0.999);
-        return elasped999th;
+    @JsonIgnore
+    public long getElapsed95th_() {
+        return elapsed95th;
     }
 
-    public void setElasped95th(long elasped95th) {
-        this.elasped95th = elasped95th;
+    public long getElapsed99th() {
+        elapsed99th = getPercentile(0.99);
+        return elapsed99th;
     }
 
-    public void setAvgElasped(long avgElasped) {
-        this.avgElasped = avgElasped;
+    @JsonIgnore
+    public long getElapsed99th_() {
+        return elapsed99th;
     }
 
-    public void setElasped99th(long elasped99th) {
-        this.elasped99th = elasped99th;
+    public long getElapsed999th() {
+        elapsed999th = getPercentile(0.999);
+        return elapsed999th;
     }
 
-    public void setElasped999th(long elasped999th) {
-        this.elasped999th = elasped999th;
+    @JsonIgnore
+    public long getElapsed999th_() {
+        return elapsed999th;
     }
 
+    public void setElapsed95th(long elapsed95th) {
+        this.elapsed95th = elapsed95th;
+    }
 
+    public void setAvgElapsed(long avgElapsed) {
+        this.avgElapsed = avgElapsed;
+    }
+
+    public void setElapsed99th(long elapsed99th) {
+        this.elapsed99th = elapsed99th;
+    }
+
+    public void setElapsed999th(long elapsed999th) {
+        this.elapsed999th = elapsed999th;
+    }
+
+    @JsonIgnore
     public long getPercentile(double delta) {
         List<Long> keys = new ArrayList<Long>(elapseds.keySet());
 
@@ -168,6 +189,7 @@ public class AbstractTraceData {
         this.totalFailed.incrementAndGet();
     }
 
+    @JsonIgnore
     public void setElapsed(long elapsed) {
         setMaxElapsed(elapsed);
         setMinElapsed(elapsed);
@@ -207,6 +229,7 @@ public class AbstractTraceData {
         this.totalElapsed.addAndGet(elapsed);
     }
 
+    @JsonIgnore
     public void setElapseds(long elapsed) {
         long duration = computeDuration(elapsed);
 
@@ -215,10 +238,12 @@ public class AbstractTraceData {
         count.incrementAndGet();
     }
 
+    @JsonIgnore
     public ConcurrentNavigableMap<Long, AtomicLong> getElapseds() {
         return elapseds;
     }
 
+    @JsonIgnore
     public void setElapseds(ConcurrentNavigableMap<Long, AtomicLong> elapseds) {
         this.elapseds = elapseds;
     }

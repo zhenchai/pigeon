@@ -4,15 +4,15 @@ package com.dianping.pigeon.remoting.common.monitor.trace;
  * @author qi.yin
  *         2016/11/17  下午1:26.
  */
-public class Otherkey implements SourceKey {
+public class OtherKey implements SourceKey {
 
     private String name;
 
-    public Otherkey(){
+    public OtherKey() {
 
     }
 
-    public Otherkey(String name) {
+    public OtherKey(String name) {
         this.name = name;
     }
 
@@ -25,8 +25,14 @@ public class Otherkey implements SourceKey {
     }
 
     @Override
+    public String jsonMapKey() {
+        return "OtherKey{" + "name=" + name + "}";
+    }
+
+    //attention, json depend on toString, so do not change at will
+    @Override
     public String toString() {
-        return "Otherkey{" + "name=" + name + "}";
+        return "OtherKey{" + "name=" + name + "}";
     }
 
     @Override
@@ -34,7 +40,7 @@ public class Otherkey implements SourceKey {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        Otherkey otherkey = (Otherkey) o;
+        OtherKey otherkey = (OtherKey) o;
 
         return !(name != null ? !name.equals(otherkey.name) : otherkey.name != null);
 

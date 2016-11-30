@@ -12,7 +12,7 @@ public class InvokerTraceRepository extends AbstractTraceRepository<InvokerMonit
 
     public void start(InvokerMonitorData monitorData) {
         InvokerTraceData traceStatsData = MapUtils.getOrCreate(traceDatas,
-                new Pair<SourceKey, DestinationKey>(monitorData.getSrcKey(), monitorData.getDstKey()),
+                new PairKey<SourceKey, DestinationKey>(monitorData.getSrcKey(), monitorData.getDstKey()),
                 InvokerTraceData.class);
 
         traceStatsData.incTotalCount();
@@ -21,7 +21,7 @@ public class InvokerTraceRepository extends AbstractTraceRepository<InvokerMonit
     public void addData(InvokerMonitorData monitorData) {
 
         InvokerTraceData traceStatsData = MapUtils.getOrCreate(traceDatas,
-                new Pair<SourceKey, DestinationKey>(monitorData.getSrcKey(), monitorData.getDstKey()),
+                new PairKey<SourceKey, DestinationKey>(monitorData.getSrcKey(), monitorData.getDstKey()),
                 InvokerTraceData.class);
 
         traceStatsData.setCallMethod(monitorData.getCallMethod());
@@ -32,7 +32,7 @@ public class InvokerTraceRepository extends AbstractTraceRepository<InvokerMonit
 
     public void complete(InvokerMonitorData monitorData) {
         InvokerTraceData traceStatsData = MapUtils.getOrCreate(traceDatas,
-                new Pair<SourceKey, DestinationKey>(monitorData.getSrcKey(), monitorData.getDstKey()),
+                new PairKey<SourceKey, DestinationKey>(monitorData.getSrcKey(), monitorData.getDstKey()),
                 InvokerTraceData.class);
 
         long elapsed = TimeUtils.currentTimeMillis() - monitorData.getStartMillisTime();
@@ -47,7 +47,7 @@ public class InvokerTraceRepository extends AbstractTraceRepository<InvokerMonit
 
     public void degrade(InvokerMonitorData monitorData) {
         InvokerTraceData traceStatsData = MapUtils.getOrCreate(traceDatas,
-                new Pair<SourceKey, DestinationKey>(monitorData.getSrcKey(), monitorData.getDstKey()),
+                new PairKey<SourceKey, DestinationKey>(monitorData.getSrcKey(), monitorData.getDstKey()),
                 InvokerTraceData.class);
 
         traceStatsData.incDegradedCount();
