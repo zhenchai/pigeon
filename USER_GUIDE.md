@@ -899,14 +899,12 @@ workQueueSize="${pigeon-benchmark.isolation.queue.size}" />
 <pigeon:service interface="com.dianping.pigeon.benchmark.service.HelloService"
 url="com.dianping.pigeon.benchmark.service.HelloService"
 pool="poolS" useSharedPool="false" ref="helloService">
-    <pigeon:method name="sayHello" pool="poolM" actives="20" /><!-- actives无效 -->
-    <pigeon:method name="returnNull" actives="50" />
+    <pigeon:method name="sayHello" pool="poolM" />
 </pigeon:service>
 <pigeon:service interface="com.dianping.pigeon.benchmark.service.TestService"
 url="com.dianping.pigeon.benchmark.service.TestService"
-pool="poolS" actives="50" useSharedPool="false" ref="testService"><!-- actives无效 -->
-    <pigeon:method name="sendLong" pool="poolM" />
-    <pigeon:method name="sendStr" actives="20" />
+pool="poolM" useSharedPool="false" ref="testService">
+    <pigeon:method name="sendLong" pool="poolS" />
 </pigeon:service>
 ```
 需要设置useSharedPool为false，pool定义中的corePoolSize、maxPoolSize、workQueueSize均可动态改变生效
