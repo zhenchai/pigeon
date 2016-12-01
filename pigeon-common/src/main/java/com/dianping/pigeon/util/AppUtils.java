@@ -4,6 +4,8 @@
  */
 package com.dianping.pigeon.util;
 
+import org.apache.commons.lang.StringUtils;
+
 import java.io.File;
 import java.net.URL;
 import java.util.Properties;
@@ -12,8 +14,10 @@ public class AppUtils {
 
 	private static String appName = null;
 
+	public static final String UNKNOWN = "unknown";
+
 	public static String getAppName() {
-		if (appName == null) {
+		if (StringUtils.isBlank(appName)) {
 			try {
 				URL appProperties = AppUtils.class.getResource("/META-INF/app.properties");
 				if (appProperties == null) {
@@ -30,8 +34,8 @@ public class AppUtils {
 				}
 			} catch (Exception e) {
 			}
-			if (appName == null) {
-				return "";
+			if (StringUtils.isBlank(appName)) {
+				return UNKNOWN;
 			}
 		}
 		return appName;
