@@ -124,7 +124,11 @@ public class Utils {
         return new ConcurrentHashMap<String, Boolean>();
     }
 
-    public static String getClientPath(String clientAddress) {
-        return Constants.CLIENT_PATH + Constants.PATH_SEPARATOR + clientAddress;
+    public static String getConsolePath(String clientAddress) {
+        return Constants.CONSOLE_PATH + Constants.PATH_SEPARATOR + clientAddress;
+    }
+
+    public static String getConsoleRootPath() {
+        return Constants.CONSOLE_PATH;
     }
 }

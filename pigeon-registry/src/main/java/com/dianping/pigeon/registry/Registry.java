@@ -104,4 +104,6 @@ public interface Registry {
 
     void unregisterConsoleAddress(String consoleAddress);
 
+    List<String> getConsoleAddresses();
+
 }

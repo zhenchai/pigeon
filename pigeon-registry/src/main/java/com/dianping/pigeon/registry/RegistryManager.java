@@ -750,6 +750,7 @@ public class RegistryManager {
         }
     }
 
+
 	private class InnerConfigChangeListener implements ConfigChangeListener {
 
 		@Override

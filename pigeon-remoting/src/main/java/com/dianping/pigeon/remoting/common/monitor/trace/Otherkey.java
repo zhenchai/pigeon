@@ -32,7 +32,7 @@ public class OtherKey implements SourceKey {
     //attention, json depend on toString, so do not change at will
     @Override
     public String toString() {
-        return "OtherKey{" + "name=" + name + "}";
+        return jsonMapKey();
     }
 
     @Override
