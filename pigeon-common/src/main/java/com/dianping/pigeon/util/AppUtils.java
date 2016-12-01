@@ -4,6 +4,8 @@
  */
 package com.dianping.pigeon.util;
 
+import com.dianping.pigeon.log.Logger;
+import com.dianping.pigeon.log.LoggerLoader;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
@@ -12,8 +14,8 @@ import java.util.Properties;
 
 public class AppUtils {
 
+	private static final Logger logger = LoggerLoader.getLogger(AppUtils.class);
 	private static String appName = null;
-
 	public static final String UNKNOWN = "unknown";
 
 	public static String getAppName() {
@@ -35,6 +37,7 @@ public class AppUtils {
 			} catch (Exception e) {
 			}
 			if (StringUtils.isBlank(appName)) {
+				logger.warn("app.name not found, set to default value: " + UNKNOWN);
 				return UNKNOWN;
 			}
 		}
