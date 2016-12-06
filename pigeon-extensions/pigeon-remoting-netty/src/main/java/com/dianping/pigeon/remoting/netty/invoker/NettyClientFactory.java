@@ -52,8 +52,11 @@ public class NettyClientFactory implements ClientFactory {
 
     @Override
     public Client createClient(ConnectInfo connectInfo) {
+        Client client = new NettyClient(clientConfig, getChannelFactory(), connectInfo, responseProcessor);
 
-        return new NettyClient(clientConfig, getChannelFactory(), connectInfo, responseProcessor);
+        logger.info("created netty client: " + connectInfo.getConnect());
+
+        return client;
     }
 
     public org.jboss.netty.channel.ChannelFactory getChannelFactory() {
