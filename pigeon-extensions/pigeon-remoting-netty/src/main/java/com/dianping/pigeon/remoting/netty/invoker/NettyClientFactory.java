@@ -83,7 +83,7 @@ public class NettyClientFactory implements ClientFactory {
                     new HashedWheelTimer(new DefaultThreadFactory("Pigeon-Netty-Client-Timer")));
 
         } catch (Error e) {
-            logger.warn("[createChannelFactory] netty version conflict, use runtime version", e);
+            logger.info("[createChannelFactory] netty version conflict, use runtime version", e);
 
             return new NioClientSocketChannelFactory(
                     Executors.newCachedThreadPool(new DefaultThreadFactory("Pigeon-Netty-Client-Boss")),
