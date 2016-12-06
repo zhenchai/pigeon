@@ -3,6 +3,7 @@ package com.dianping.pigeon.registry.zookeeper;
 import java.util.List;
 import java.util.Map;
 
+import com.dianping.pigeon.config.group.GroupManager;
 import com.dianping.pigeon.registry.RegistryManager;
 import org.apache.commons.lang.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
@@ -32,6 +33,8 @@ public class CuratorEventListener implements CuratorListener {
 	private static final int PROTOCOL = 5;
 
 	private ConfigManager configManager = ConfigManagerLoader.getConfigManager();
+
+	private final GroupManager groupManager = GroupManager.INSTANCE;
 
 	private CuratorClient client;
 
@@ -102,7 +105,9 @@ public class CuratorEventListener implements CuratorListener {
 	}
 
 	private boolean shouldNotify(PathInfo pathInfo) throws Exception {
-		String currentGroup = configManager.getGroup();
+		String serviceName = pathInfo.serviceName;
+		String currentGroup = groupManager.getInvokerGroup(serviceName);
+		//String currentGroup = configManager.getGroup();
 		currentGroup = Utils.normalizeGroup(currentGroup);
 		if (currentGroup.equals(pathInfo.group))
 			return true;
