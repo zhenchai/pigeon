@@ -151,7 +151,7 @@ public class NettyClient extends AbstractClient {
 
     @Override
     public List<NettyChannel> getChannels() {
-        return channelPool.getChannels();
+        return channelPool == null ? null : channelPool.getChannels();
     }
 
     @Override
