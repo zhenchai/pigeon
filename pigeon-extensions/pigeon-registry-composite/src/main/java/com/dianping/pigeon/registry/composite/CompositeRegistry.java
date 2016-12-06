@@ -120,10 +120,6 @@ public class CompositeRegistry implements Registry {
             }
         }
 
-        if (StringUtils.isBlank(addr)) {
-            throw new RegistryException("failed to get service address for " + serviceName);
-        }
-
         return addr;
     }
 
