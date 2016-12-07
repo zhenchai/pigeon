@@ -1362,6 +1362,13 @@ e、如果服务提供方只希望http客户端进行认证，而不希望默认
 
 xxx-service.pigeon.provider.token.protocol.default.enable为false
 
+f、如果服务提供方希望部分服务或方法开启或不开启认证，需要配置
+
+xxx-service.pigeon.provider.token.switches，内容类似com.dianping.pigeon.demo.EchoService=false,com.dianping.pigeon.demo.EchoService#echo2=true
+
+这里边com.dianping.pigeon.demo.EchoService服务下所有方法是默认不开启认证，但echo2方法需要开启认证
+
+
 对于客户端：
 
 a、对于使用pigeon java客户端的应用，只需要配置所依赖的服务的密钥，在配置中心lion里配置key，如xxx-web这个应用：
