@@ -1,5 +1,6 @@
 package com.dianping.pigeon.remoting.invoker.process.filter;
 
+import com.dianping.pigeon.config.ConfigManager;
 import com.dianping.pigeon.config.ConfigManagerLoader;
 import com.dianping.pigeon.monitor.Monitor;
 import com.dianping.pigeon.monitor.MonitorLoader;
@@ -28,11 +29,17 @@ public class TraceFilter extends InvocationInvokeFilter {
 
     private final Monitor monitor = MonitorLoader.getMonitor();
 
+    private static final ConfigManager configManager = ConfigManagerLoader.getConfigManager();
+
     public TraceFilter() {
     }
 
     @Override
     public InvocationResponse invoke(ServiceInvocationHandler handler, InvokerContext invocationContext) throws Throwable {
+        if (!configManager.getBooleanValue("pigeon.invoker.trace.enable", true)) {
+            return handler.handle(invocationContext);
+        }
+
         InvokerConfig config = invocationContext.getInvokerConfig();
 
         MonitorTransaction transaction = monitor.getCurrentCallTransaction();

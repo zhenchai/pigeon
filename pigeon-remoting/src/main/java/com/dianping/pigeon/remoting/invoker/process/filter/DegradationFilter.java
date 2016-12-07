@@ -226,7 +226,10 @@ public class DegradationFilter extends InvocationInvokeFilter {
             if (resp != null) {
 
                 InvokerMonitorData monitorData = (InvokerMonitorData) context.getMonitorData();
-                monitorData.degrade();
+
+                if (monitorData != null) {
+                    monitorData.degrade();
+                }
 
                 DegradationManager.INSTANCE.addDegradedRequest(context, null);
             }
@@ -252,10 +255,13 @@ public class DegradationFilter extends InvocationInvokeFilter {
         }
 
         InvokerMonitorData monitorData = (InvokerMonitorData) context.getMonitorData();
-        monitorData.setCallMethod(invokerConfig.getCallMethod());
-        monitorData.setSerialize(invokerConfig.getSerialize());
-        monitorData.setTimeout(timeout);
-        monitorData.add();
+
+        if (monitorData != null) {
+            monitorData.setCallMethod(invokerConfig.getCallMethod());
+            monitorData.setSerialize(invokerConfig.getSerialize());
+            monitorData.setTimeout(timeout);
+            monitorData.add();
+        }
 
         Object defaultResult = InvokerHelper.getDefaultResult();
         String key = DegradationManager.INSTANCE.getRequestUrl(context);

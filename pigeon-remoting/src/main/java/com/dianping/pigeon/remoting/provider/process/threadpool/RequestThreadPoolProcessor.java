@@ -231,14 +231,16 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
     }
 
     private void doMonitorData(InvocationRequest request, ProviderContext providerContext) {
-        if (MessageType.isService((byte) request.getMessageType())) {
+        if (configManager.getBooleanValue("pigeon.provider.trace.enable", true)) {
+            if (MessageType.isService((byte) request.getMessageType())) {
 
-            ProviderMonitorData monitorData = MonitorDataFactory.newProviderMonitorData(new ApplicationKey(request.getApp()),
-                    new MethodKey(request.getServiceName(), request.getMethodName()));
+                ProviderMonitorData monitorData = MonitorDataFactory.newProviderMonitorData(new ApplicationKey(request.getApp()),
+                        new MethodKey(request.getServiceName(), request.getMethodName()));
 
-            providerContext.setMonitorData(monitorData);
+                providerContext.setMonitorData(monitorData);
 
-            monitorData.start();
+                monitorData.start();
+            }
         }
     }
 
