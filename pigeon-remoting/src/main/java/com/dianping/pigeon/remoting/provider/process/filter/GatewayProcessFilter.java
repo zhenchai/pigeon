@@ -51,7 +51,7 @@ public class GatewayProcessFilter implements ServiceInvocationFilter<ProviderCon
 	private static final ConfigManager configManager = ConfigManagerLoader.getConfigManager();
 	private static final String KEY_APPLIMIT_ENABLE = "pigeon.provider.applimit.enable";
 	private static final String KEY_METHODAPPLIMIT_ENABLE = "pigeon.provider.methodapplimit.enable";
-	private static final String KEY_METHODLIMIT_ENABLE = "pigeon.provider.methodlimit.enable";
+	private static final String KEY_METHODTHREADSLIMIT_ENABLE = "pigeon.provider.methodthreadslimit.enable";
 	private static final String KEY_APPLIMIT = "pigeon.provider.applimit";
 	private static final String KEY_METHODAPPLIMIT = "pigeon.provider.methodapplimit";
 	private static volatile Map<String, Long> appLimitMap = new ConcurrentHashMap<String, Long>();
@@ -61,18 +61,20 @@ public class GatewayProcessFilter implements ServiceInvocationFilter<ProviderCon
 	private static ThreadPool statisticsCheckerPool = new DefaultThreadPool("Pigeon-Server-Statistics-Checker");
 	private static final ConcurrentHashMap<String, AtomicInteger> methodActives = new ConcurrentHashMap<String, AtomicInteger>();
 	private static final AtomicInteger total = new AtomicInteger();
-	private static final int MAX_THREADS = ConfigManagerLoader.getConfigManager().getIntValue(
-			"pigeon.provider.pool.method.maxthreads", 100);
+	private static final int MAX_THREADS = ConfigManagerLoader.getConfigManager()
+			.getIntValue("pigeon.provider.pool.method.maxthreads", 100);
+	private static volatile boolean enableMethodThreadsLimit = configManager
+			.getBooleanValue(KEY_METHODTHREADSLIMIT_ENABLE, true);
+	private static volatile boolean enableAppLimit = configManager.getBooleanValue(KEY_APPLIMIT_ENABLE, false);
+	private static volatile boolean enableMethodAppLimit = configManager.getBooleanValue(KEY_METHODAPPLIMIT_ENABLE,
+			false);
 
 	static {
 		String methodAppLimitConfig = configManager.getStringValue(KEY_METHODAPPLIMIT);
 		parseMethodAppLimitConfig(methodAppLimitConfig);
-		configManager.getBooleanValue(KEY_METHODAPPLIMIT_ENABLE, false);
 
 		String appLimitConfig = configManager.getStringValue(KEY_APPLIMIT);
 		parseAppLimitConfig(appLimitConfig);
-		configManager.getBooleanValue(KEY_APPLIMIT_ENABLE, false);
-		configManager.getBooleanValue(KEY_METHODLIMIT_ENABLE, true);
 		ConfigManagerLoader.getConfigManager().registerConfigChangeListener(new InnerConfigChangeListener());
 		ProviderStatisticsChecker appStatisticsChecker = new ProviderStatisticsChecker();
 		statisticsCheckerPool.execute(appStatisticsChecker);
@@ -125,38 +127,36 @@ public class GatewayProcessFilter implements ServiceInvocationFilter<ProviderCon
 		String fromApp = request.getApp();
 		InvocationResponse response = null;
 		final String requestMethod = request.getServiceName() + "#" + request.getMethodName();
-		final boolean enableMethodLimit = configManager.getBooleanValue(KEY_METHODLIMIT_ENABLE, true);
 		try {
 			ProviderStatisticsHolder.flowIn(request);
 			if (Constants.MESSAGE_TYPE_SERVICE == request.getMessageType()) {
-				if (enableMethodLimit) {
+				if (enableMethodThreadsLimit) {
 					incrementRequest(requestMethod);
 				}
 
-				if (configManager.getBooleanValue(KEY_METHODAPPLIMIT_ENABLE, false)
-						&& methodAppLimitMap.containsKey(requestMethod) && StringUtils.isNotBlank(fromApp)) {
+				if (enableMethodAppLimit && methodAppLimitMap.containsKey(requestMethod)
+						&& StringUtils.isNotBlank(fromApp)) {
 					Long limit = methodAppLimitMap.get(requestMethod).get(fromApp);
 
-					if(limit != null && limit >= 0) {
-						long requests = ProviderStatisticsHolder
-								.getMethodAppCapacityBucket(request).getRequestsInCurrentSecond();
+					if (limit != null && limit >= 0) {
+						long requests = ProviderStatisticsHolder.getMethodAppCapacityBucket(request)
+								.getRequestsInCurrentSecond();
 						if (requests + 1 > limit) {
-							throw new RejectedException(String.format(
-									"Max requests limit %s reached for request %s from app:%s"
-									, limit, requestMethod, fromApp));
+							throw new RejectedException(
+									String.format("Max requests limit %s reached for request %s from app:%s", limit,
+											requestMethod, fromApp));
 						}
 					}
 				}
 
-				if (configManager.getBooleanValue(KEY_APPLIMIT_ENABLE, false) && StringUtils.isNotBlank(fromApp)
-						&& appLimitMap.containsKey(fromApp)) {
+				if (enableAppLimit && StringUtils.isNotBlank(fromApp) && appLimitMap.containsKey(fromApp)) {
 					Long limit = appLimitMap.get(fromApp);
 					if (limit >= 0) {
 						long requests = ProviderStatisticsHolder.getCapacityBucket(request)
 								.getRequestsInCurrentSecond();
 						if (requests + 1 > limit) {
-							throw new RejectedException(String.format(
-									"Max requests limit %s reached for request from app:%s", limit, fromApp));
+							throw new RejectedException(String
+									.format("Max requests limit %s reached for request from app:%s", limit, fromApp));
 						}
 					}
 				}
@@ -164,7 +164,7 @@ public class GatewayProcessFilter implements ServiceInvocationFilter<ProviderCon
 			response = handler.handle(invocationContext);
 			return response;
 		} finally {
-			if (Constants.MESSAGE_TYPE_SERVICE == request.getMessageType() && enableMethodLimit) {
+			if (Constants.MESSAGE_TYPE_SERVICE == request.getMessageType() && enableMethodThreadsLimit) {
 				decrementRequest(requestMethod);
 			}
 			if (!Constants.REPLY_MANUAL) {
@@ -186,16 +186,15 @@ public class GatewayProcessFilter implements ServiceInvocationFilter<ProviderCon
 	}
 
 	public static void checkRequest(final InvocationRequest request) {
-		if (Constants.MESSAGE_TYPE_SERVICE == request.getMessageType()
-				&& configManager.getBooleanValue(KEY_METHODLIMIT_ENABLE, true)) {
+		if (Constants.MESSAGE_TYPE_SERVICE == request.getMessageType() && enableMethodThreadsLimit) {
 			final String requestMethod = request.getServiceName() + "#" + request.getMethodName();
 			AtomicInteger count = methodActives.get(requestMethod);
 			if (count != null) {
 				int limit = getMaxThreadsForMethod(requestMethod, count.get());
 				if (count.get() > limit) {
-					throw new RejectedException(String.format(
-							"Reached the maximum limit %s for method: %s, current: %s", limit, requestMethod,
-							count.get()));
+					throw new RejectedException(
+							String.format("Reached the maximum limit %s for method: %s, current: %s", limit,
+									requestMethod, count.get()));
 				}
 			}
 		}
@@ -237,10 +236,26 @@ public class GatewayProcessFilter implements ServiceInvocationFilter<ProviderCon
 		public void onKeyUpdated(String key, String value) {
 			if (key.endsWith(KEY_APPLIMIT)) {
 				parseAppLimitConfig(value);
-			}
-
-			if(key.endsWith(KEY_METHODAPPLIMIT)) {
+			} else if (key.endsWith(KEY_METHODAPPLIMIT)) {
 				parseMethodAppLimitConfig(value);
+			} else if (key.endsWith(KEY_APPLIMIT_ENABLE)) {
+				try {
+					enableAppLimit = Boolean.valueOf(value);
+				} catch (RuntimeException e) {
+					logger.warn("invalid value for key " + key, e);
+				}
+			} else if (key.endsWith(KEY_METHODAPPLIMIT_ENABLE)) {
+				try {
+					enableMethodAppLimit = Boolean.valueOf(value);
+				} catch (RuntimeException e) {
+					logger.warn("invalid value for key " + key, e);
+				}
+			} else if (key.endsWith(KEY_METHODTHREADSLIMIT_ENABLE)) {
+				try {
+					enableMethodThreadsLimit = Boolean.valueOf(value);
+				} catch (RuntimeException e) {
+					logger.warn("invalid value for key " + key, e);
+				}
 			}
 		}
 

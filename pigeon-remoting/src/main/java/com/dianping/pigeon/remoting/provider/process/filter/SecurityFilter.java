@@ -59,12 +59,14 @@ public class SecurityFilter implements ServiceInvocationFilter<ProviderContext> 
 	private static final String DEFAULT_VALUE_WHITELIST = "127.0.0.1,";
 	private static final String KEY_ACCESS_DEFAULT = "pigeon.provider.access.ip.default";
 
+	private static volatile boolean isTokenEnable = configManager.getBooleanValue(KEY_TOKEN_ENABLE, false);
+	private static volatile boolean isTokenEnableForDefaultProtocol = configManager
+			.getBooleanValue(KEY_TOKEN_PROTOCOL_DEFAULT_ENABLE, false);
+	private static volatile boolean isAccessIpEnable = configManager.getBooleanValue(KEY_ACCESS_IP_ENABLE, false);
+	private static volatile boolean isAccessDefault = configManager.getBooleanValue(KEY_ACCESS_DEFAULT, true);
+	private static volatile int tokenTimestampDiff = configManager.getIntValue(KEY_TOKEN_TIMESTAMP_DIFF, 120);
+
 	public SecurityFilter() {
-		configManager.getBooleanValue(KEY_TOKEN_ENABLE, false);
-		configManager.getBooleanValue(KEY_TOKEN_PROTOCOL_DEFAULT_ENABLE, false);
-		configManager.getIntValue(KEY_TOKEN_TIMESTAMP_DIFF, 120);
-		configManager.getBooleanValue(KEY_ACCESS_DEFAULT, true);
-		configManager.getBooleanValue(KEY_ACCESS_IP_ENABLE, false);
 		parseBlackList(configManager.getStringValue(KEY_BLACKLIST, ""));
 		parseWhiteList(configManager.getStringValue(KEY_WHITELIST, DEFAULT_VALUE_WHITELIST));
 		parseAppSecrets(configManager.getStringValue(KEY_APP_SECRETS, ""));
@@ -97,7 +99,7 @@ public class SecurityFilter implements ServiceInvocationFilter<ProviderContext> 
 	}
 
 	private static boolean canAccess(String ip) {
-		if (configManager.getBooleanValue(KEY_ACCESS_IP_ENABLE, false)) {
+		if (isAccessIpEnable) {
 			for (String addr : ipWhiteSet) {
 				if (ip.startsWith(addr)) {
 					return true;
@@ -108,7 +110,7 @@ public class SecurityFilter implements ServiceInvocationFilter<ProviderContext> 
 					return false;
 				}
 			}
-			return configManager.getBooleanValue(KEY_ACCESS_DEFAULT, true);
+			return isAccessDefault;
 		}
 		return true;
 	}
@@ -153,6 +155,36 @@ public class SecurityFilter implements ServiceInvocationFilter<ProviderContext> 
 				parseWhiteList(value);
 			} else if (key.endsWith(KEY_TOKEN_SWITCHES)) {
 				parseTokenSwitchesConfig(value);
+			} else if (key.endsWith(KEY_TOKEN_ENABLE)) {
+				try {
+					isTokenEnable = Boolean.valueOf(value);
+				} catch (RuntimeException e) {
+					logger.warn("invalid value for key " + key, e);
+				}
+			} else if (key.endsWith(KEY_TOKEN_PROTOCOL_DEFAULT_ENABLE)) {
+				try {
+					isTokenEnableForDefaultProtocol = Boolean.valueOf(value);
+				} catch (RuntimeException e) {
+					logger.warn("invalid value for key " + key, e);
+				}
+			} else if (key.endsWith(KEY_ACCESS_IP_ENABLE)) {
+				try {
+					isAccessIpEnable = Boolean.valueOf(value);
+				} catch (RuntimeException e) {
+					logger.warn("invalid value for key " + key, e);
+				}
+			} else if (key.endsWith(KEY_ACCESS_DEFAULT)) {
+				try {
+					isAccessDefault = Boolean.valueOf(value);
+				} catch (RuntimeException e) {
+					logger.warn("invalid value for key " + key, e);
+				}
+			} else if (key.endsWith(KEY_TOKEN_TIMESTAMP_DIFF)) {
+				try {
+					tokenTimestampDiff = Integer.valueOf(value);
+				} catch (RuntimeException e) {
+					logger.warn("invalid value for key " + key, e);
+				}
 			}
 		}
 
@@ -205,7 +237,7 @@ public class SecurityFilter implements ServiceInvocationFilter<ProviderContext> 
 						"Request timestamp is invalid:" + timestamp + ", from:" + remoteAddress + "@" + app);
 			}
 			long timediff = getCurrentTime() - time;
-			if (Math.abs(timediff) > configManager.getIntValue(KEY_TOKEN_TIMESTAMP_DIFF, 120)) {
+			if (Math.abs(timediff) > tokenTimestampDiff) {
 				throw new SecurityException("The request has expired:" + timestamp + ", from:" + app);
 			}
 			String data = serviceName + "#" + methodName + "#" + time;
@@ -242,7 +274,7 @@ public class SecurityFilter implements ServiceInvocationFilter<ProviderContext> 
 	}
 
 	private static boolean needValidateToken(String serviceName, String methodName) {
-		if (configManager.getBooleanValue(KEY_TOKEN_ENABLE, false)) {
+		if (isTokenEnable) {
 			if (!tokenSwitches.isEmpty()) {
 				Boolean enable = tokenSwitches.get(serviceName + "#" + methodName);
 				if (enable != null) {
@@ -275,7 +307,7 @@ public class SecurityFilter implements ServiceInvocationFilter<ProviderContext> 
 				if (from == null) {
 					isAuth = true;
 				}
-				if (!configManager.getBooleanValue(KEY_TOKEN_PROTOCOL_DEFAULT_ENABLE, false)
+				if (!isTokenEnableForDefaultProtocol
 						&& Constants.PROTOCOL_DEFAULT.equals(invocationContext.getChannel().getProtocol())) {
 					isAuth = false;
 				}
