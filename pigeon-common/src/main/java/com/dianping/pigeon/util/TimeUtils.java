@@ -5,7 +5,7 @@ import java.util.concurrent.TimeUnit;
 public class TimeUtils {
 
 	public static long currentTimeMillis() {
-		return MillisecondClock.CLOCK.currentTimeMillis();
+		return System.currentTimeMillis();
 	}
 
 	static class MillisecondClock {
@@ -15,7 +15,7 @@ public class TimeUtils {
 		private MillisecondClock(long rate) {
 			this.rate = rate;
 			this.now = System.currentTimeMillis();
-			start();
+			//start();
 		}
 
 		private void start() {
