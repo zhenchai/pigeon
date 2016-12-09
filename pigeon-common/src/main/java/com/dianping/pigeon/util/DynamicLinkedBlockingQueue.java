@@ -83,7 +83,25 @@ public class DynamicLinkedBlockingQueue<E> extends AbstractQueue<E>
     public void setCapacity(int capacity) {
         if (capacity <= 0)
             throw new IllegalArgumentException();
-        this.capacity = capacity;
+        int delta = capacity - this.capacity;
+
+        if (delta == 0) {
+            return;
+        }
+
+        fullyLock();
+        try {
+            if (delta > 0) {
+                if (count.get() == this.capacity) {
+                    notFull.signal();
+                }
+            }
+
+            this.capacity = capacity;
+        } finally {
+            fullyUnlock();
+        }
+
     }
 
     public int getCapacity() {
@@ -123,6 +141,8 @@ public class DynamicLinkedBlockingQueue<E> extends AbstractQueue<E>
      * @param node the node
      */
     private void enqueue(Node<E> node) {
+        // assert putLock.isHeldByCurrentThread();
+        // assert last.next == null;
         last = last.next = node;
     }
 
