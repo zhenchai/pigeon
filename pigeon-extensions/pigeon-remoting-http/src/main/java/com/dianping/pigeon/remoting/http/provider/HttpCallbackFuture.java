@@ -13,7 +13,6 @@ import com.dianping.pigeon.remoting.invoker.concurrent.Callback;
 import com.dianping.pigeon.remoting.invoker.exception.RequestTimeoutException;
 import com.dianping.pigeon.remoting.provider.domain.ProviderContext;
 import com.dianping.pigeon.remoting.provider.util.ProviderUtils;
-import com.dianping.pigeon.util.TimeUtils;
 
 /**
  * Created by chenchongze on 16/1/13.
@@ -45,10 +44,10 @@ public class HttpCallbackFuture implements Callback, CallFuture {
         synchronized (this) {
             long start = request.getCreateMillisTime();
             while (!this.done) {
-                long timeoutMillis_ = timeoutMillis - (TimeUtils.currentTimeMillis() - start);
+                long timeoutMillis_ = timeoutMillis - (System.currentTimeMillis() - start);
                 if (timeoutMillis_ <= 0) {
                     StringBuilder sb = new StringBuilder();
-                    sb.append("request timeout, current time:").append(TimeUtils.currentTimeMillis())
+                    sb.append("request timeout, current time:").append(System.currentTimeMillis())
                             .append("\r\nrequest:").append(request);
                     RequestTimeoutException e = InvocationUtils.newTimeoutException("invoke timeout");
                     invocationContext.getChannel().write(ProviderUtils.createFailResponse(request, e));

@@ -34,7 +34,6 @@ import com.dianping.pigeon.remoting.provider.domain.ProviderContext;
 import com.dianping.pigeon.remoting.provider.process.ProviderContextProcessor;
 import com.dianping.pigeon.remoting.provider.service.method.ServiceMethod;
 import com.dianping.pigeon.remoting.provider.service.method.ServiceMethodFactory;
-import com.dianping.pigeon.util.TimeUtils;
 
 public class MonitorProcessFilter implements ServiceInvocationFilter<ProviderContext> {
 
@@ -171,7 +170,7 @@ public class MonitorProcessFilter implements ServiceInvocationFilter<ProviderCon
                 transaction.setStatusError(frameworkError);
             }
             if (transaction != null) {
-                invocationContext.getTimeline().add(new TimePoint(TimePhase.E, TimeUtils.currentTimeMillis()));
+                invocationContext.getTimeline().add(new TimePoint(TimePhase.E, System.currentTimeMillis()));
                 try {
                     transaction.complete();
                     if (isAccessLogEnabled) {

@@ -1,7 +1,5 @@
 package com.dianping.pigeon.remoting.common.monitor.trace;
 
-import com.dianping.pigeon.util.TimeUtils;
-
 /**
  * @author qi.yin
  *         2016/11/20  下午3:29.
@@ -30,7 +28,7 @@ public abstract class AbstractMonitorData implements MonitorData {
 
     @Override
     public void start() {
-        startMillisTime = TimeUtils.currentTimeMillis();
+        startMillisTime = System.currentTimeMillis();
     }
 
     @Override

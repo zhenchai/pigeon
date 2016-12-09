@@ -28,7 +28,6 @@ import com.dianping.pigeon.remoting.provider.service.method.ServiceMethod;
 import com.dianping.pigeon.remoting.provider.service.method.ServiceMethodFactory;
 import com.dianping.pigeon.remoting.provider.util.ProviderHelper;
 import com.dianping.pigeon.remoting.provider.util.ProviderUtils;
-import com.dianping.pigeon.util.TimeUtils;
 
 public class BusinessProcessFilter implements ServiceInvocationFilter<ProviderContext> {
 
@@ -37,55 +36,55 @@ public class BusinessProcessFilter implements ServiceInvocationFilter<ProviderCo
     private static final String KEY_TIMEOUT_RESET = "pigeon.timeout.reset";
 
 
-	@Override
-	public InvocationResponse invoke(ServiceInvocationHandler handler, ProviderContext invocationContext)
-			throws Throwable {
-		invocationContext.getTimeline().add(new TimePoint(TimePhase.U));
-		InvocationRequest request = invocationContext.getRequest();
-		if (request.getMessageType() == Constants.MESSAGE_TYPE_SERVICE) {
-			if (ConfigManagerLoader.getConfigManager().getBooleanValue(KEY_TIMEOUT_RESET, true)
-					&& request.getTimeout() > 0) {
-				ContextUtils.putLocalContext(Constants.REQUEST_TIMEOUT, request.getTimeout());
-			}
-			if (Thread.currentThread().isInterrupted()) {
-				StringBuilder msg = new StringBuilder();
-				msg.append("the request has been canceled by timeout checking processor:").append(request);
-				throw new RequestAbortedException(msg.toString());
-			}
-			List<ProviderProcessInterceptor> interceptors = ProviderProcessInterceptorFactory.getInterceptors();
-			for (ProviderProcessInterceptor interceptor : interceptors) {
-				interceptor.preInvoke(request);
-			}
-			List<ProviderInterceptor> contextInterceptors = ProviderInterceptorFactory.getInterceptors();
-			for (ProviderInterceptor interceptor : contextInterceptors) {
-				interceptor.preInvoke(invocationContext);
-			}
-			InvocationResponse response = null;
-			ServiceMethod method = invocationContext.getServiceMethod();
-			if (method == null) {
-				method = ServiceMethodFactory.getMethod(request);
-			}
+    @Override
+    public InvocationResponse invoke(ServiceInvocationHandler handler, ProviderContext invocationContext)
+            throws Throwable {
+        invocationContext.getTimeline().add(new TimePoint(TimePhase.U));
+        InvocationRequest request = invocationContext.getRequest();
+        if (request.getMessageType() == Constants.MESSAGE_TYPE_SERVICE) {
+            if (ConfigManagerLoader.getConfigManager().getBooleanValue(KEY_TIMEOUT_RESET, true)
+                    && request.getTimeout() > 0) {
+                ContextUtils.putLocalContext(Constants.REQUEST_TIMEOUT, request.getTimeout());
+            }
+            if (Thread.currentThread().isInterrupted()) {
+                StringBuilder msg = new StringBuilder();
+                msg.append("the request has been canceled by timeout checking processor:").append(request);
+                throw new RequestAbortedException(msg.toString());
+            }
+            List<ProviderProcessInterceptor> interceptors = ProviderProcessInterceptorFactory.getInterceptors();
+            for (ProviderProcessInterceptor interceptor : interceptors) {
+                interceptor.preInvoke(request);
+            }
+            List<ProviderInterceptor> contextInterceptors = ProviderInterceptorFactory.getInterceptors();
+            for (ProviderInterceptor interceptor : contextInterceptors) {
+                interceptor.preInvoke(invocationContext);
+            }
+            InvocationResponse response = null;
+            ServiceMethod method = invocationContext.getServiceMethod();
+            if (method == null) {
+                method = ServiceMethodFactory.getMethod(request);
+            }
             if (Constants.REPLY_MANUAL) {
                 if (request.getCallType() == Constants.CALLTYPE_REPLY) {
                     request.setCallType(Constants.CALLTYPE_MANUAL);
                 }
                 ProviderHelper.setContext(invocationContext);
             }
-			invocationContext.getTimeline().add(new TimePoint(TimePhase.M, TimeUtils.currentTimeMillis()));
-			Object returnObj = null;
-			try {
-				returnObj = method.invoke(request.getParameters());
-			} finally {
-				ProviderHelper.clearContext();
-			}
+            invocationContext.getTimeline().add(new TimePoint(TimePhase.M, System.currentTimeMillis()));
+            Object returnObj = null;
+            try {
+                returnObj = method.invoke(request.getParameters());
+            } finally {
+                ProviderHelper.clearContext();
+            }
 
-			invocationContext.getTimeline().add(new TimePoint(TimePhase.M, TimeUtils.currentTimeMillis()));
-			if (request.getCallType() == Constants.CALLTYPE_REPLY) {
-				response = ProviderUtils.createSuccessResponse(request, returnObj);
-			}
-			return response;
-		}
-		throw new BadRequestException("message type[" + request.getMessageType() + "] is not supported!");
-	}
+            invocationContext.getTimeline().add(new TimePoint(TimePhase.M, System.currentTimeMillis()));
+            if (request.getCallType() == Constants.CALLTYPE_REPLY) {
+                response = ProviderUtils.createSuccessResponse(request, returnObj);
+            }
+            return response;
+        }
+        throw new BadRequestException("message type[" + request.getMessageType() + "] is not supported!");
+    }
 
 }

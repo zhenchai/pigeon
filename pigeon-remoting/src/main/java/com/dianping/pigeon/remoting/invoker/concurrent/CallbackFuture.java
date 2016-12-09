@@ -20,11 +20,9 @@ import com.dianping.pigeon.remoting.common.util.Constants;
 import com.dianping.pigeon.remoting.common.util.ContextUtils;
 import com.dianping.pigeon.remoting.common.util.InvocationUtils;
 import com.dianping.pigeon.remoting.invoker.Client;
-import com.dianping.pigeon.remoting.invoker.domain.InvokerContext;
 import com.dianping.pigeon.remoting.invoker.process.ExceptionManager;
 import com.dianping.pigeon.remoting.invoker.process.InvokerContextProcessor;
 import com.dianping.pigeon.remoting.invoker.route.statistics.ServiceStatisticsHolder;
-import com.dianping.pigeon.util.TimeUtils;
 
 /**
  * Created by chenchongze on 16/9/9.
@@ -87,7 +85,7 @@ public class CallbackFuture implements Callback, CallFuture {
 
             while (!isDone()) {
                 condition.await(timeoutLeft, TimeUnit.MILLISECONDS);
-                long timeoutPassed = TimeUtils.currentTimeMillis() - start;
+                long timeoutPassed = System.currentTimeMillis() - start;
 
                 if (isDone() || timeoutPassed >= timeoutMillis) {
                     break;
@@ -102,7 +100,7 @@ public class CallbackFuture implements Callback, CallFuture {
         if (!isDone()) {
             ServiceStatisticsHolder.flowOut(request, client.getAddress());
             throw InvocationUtils.newTimeoutException(
-                    "request timeout, current time:" + TimeUtils.currentTimeMillis() + "\r\nrequest:" + request);
+                    "request timeout, current time:" + System.currentTimeMillis() + "\r\nrequest:" + request);
         }
 
         return this.response;

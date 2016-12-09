@@ -8,7 +8,6 @@ import java.util.Set;
 import com.dianping.pigeon.console.domain.Service;
 import com.dianping.pigeon.domain.HostInfo;
 import com.dianping.pigeon.remoting.invoker.Client;
-import com.dianping.pigeon.util.TimeUtils;
 
 public class ServicePage {
 	private String startTime = "";
@@ -49,7 +48,7 @@ public class ServicePage {
 
 	private String governorUrl = "";
 
-	private String timestamp = String.valueOf(TimeUtils.currentTimeMillis() / 1000);
+	private String timestamp = String.valueOf(System.currentTimeMillis() / 1000);
 
 	public Map<String, Set<HostInfo>> getServiceAddresses() {
 		return serviceAddresses;

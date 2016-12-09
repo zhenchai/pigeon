@@ -24,7 +24,6 @@ import com.dianping.pigeon.remoting.common.util.Constants;
 import com.dianping.pigeon.remoting.common.util.SecurityUtils;
 import com.dianping.pigeon.remoting.invoker.config.InvokerConfig;
 import com.dianping.pigeon.remoting.invoker.domain.InvokerContext;
-import com.dianping.pigeon.util.TimeUtils;
 
 /**
  * @author xiangwu
@@ -95,7 +94,7 @@ public class SecurityFilter extends InvocationInvokeFilter {
 	}
 
 	private static int getCurrentTime() {
-		return (int) (TimeUtils.currentTimeMillis() / 1000);
+		return (int) (System.currentTimeMillis() / 1000);
 	}
 
 	@Override

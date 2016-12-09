@@ -29,7 +29,6 @@ import com.dianping.pigeon.remoting.common.util.Constants;
 import com.dianping.pigeon.remoting.common.util.ContextUtils;
 import com.dianping.pigeon.remoting.common.util.SecurityUtils;
 import com.dianping.pigeon.remoting.provider.domain.ProviderContext;
-import com.dianping.pigeon.util.TimeUtils;
 
 /**
  * @author xiangwu
@@ -201,7 +200,7 @@ public class SecurityFilter implements ServiceInvocationFilter<ProviderContext> 
 	}
 
 	private static int getCurrentTime() {
-		return (int) (TimeUtils.currentTimeMillis() / 1000);
+		return (int) (System.currentTimeMillis() / 1000);
 	}
 
 	public static void authenticateRequestIp(String remoteAddress) {

@@ -15,7 +15,6 @@ import com.dianping.pigeon.monitor.MonitorLoader;
 import com.dianping.pigeon.registry.RegistryManager;
 import com.dianping.pigeon.remoting.common.util.Constants;
 import com.dianping.pigeon.remoting.provider.config.ProviderConfig;
-import com.dianping.pigeon.util.TimeUtils;
 
 /**
  * Created by chenchongze on 15/12/4.
@@ -104,13 +103,13 @@ public class HeartBeatListener extends Thread {
     public void run() {
         try {
             while (this.equals(heartBeatListener) && isSendHeartBeat) {
-                Long heartbeat = TimeUtils.currentTimeMillis();
+                Long heartbeat = System.currentTimeMillis();
                 // 写心跳
                 if(serviceHeartBeatCache.size() > 0) {
                     registryManager.updateHeartBeat(serviceAddress, heartbeat);
                 }
 
-                Long internal = REFRESH_INTERVAL - TimeUtils.currentTimeMillis() + heartbeat;
+                Long internal = REFRESH_INTERVAL - System.currentTimeMillis() + heartbeat;
                 if(internal > 0) {
                     Thread.sleep(internal);
                 }

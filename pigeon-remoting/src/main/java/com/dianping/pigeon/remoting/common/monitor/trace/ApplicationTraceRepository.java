@@ -1,6 +1,5 @@
 package com.dianping.pigeon.remoting.common.monitor.trace;
 
-import com.dianping.pigeon.util.TimeUtils;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 /**
@@ -27,7 +26,7 @@ public class ApplicationTraceRepository {
 
     public ApplicationTraceRepository(String appName) {
         this.appName = appName;
-        this.startMillis = TimeUtils.currentTimeMillis();
+        this.startMillis = System.currentTimeMillis();
     }
 
     public void start(ProviderMonitorData monitorData) {
@@ -66,14 +65,14 @@ public class ApplicationTraceRepository {
     public void reset() {
         invokerTraceData.reset();
         providerTraceData.reset();
-        startMillis = TimeUtils.currentTimeMillis();
+        startMillis = System.currentTimeMillis();
         endMillis = startMillis;
     }
 
     public ApplicationTraceRepository copy() {
         ApplicationTraceRepository traceData = new ApplicationTraceRepository(appName);
         traceData.setStartMillis(getStartMillis());
-        traceData.setEndMillis(TimeUtils.currentTimeMillis());
+        traceData.setEndMillis(System.currentTimeMillis());
 
         traceData.setInvokerTraceData((InvokerTraceRepository) invokerTraceData.copy());
         traceData.setProviderTraceData((ProviderTraceRepository) providerTraceData.copy());
