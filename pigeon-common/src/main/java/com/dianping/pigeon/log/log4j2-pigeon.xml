@@ -4,7 +4,7 @@
         <Console name="ConsoleError" target="SYSTEM_ERR">
             <PatternLayout pattern="%d [%t] %-5p [%c{2}] %m%n" />
             <Filters>
-                <BurstFilter level="error" rate="50" maxBurst="250" />
+                <BurstFilter level="error" rate="25" maxBurst="100" />
             </Filters>
         </Console>
         <Console name="ConsoleWarn" target="SYSTEM_OUT">
