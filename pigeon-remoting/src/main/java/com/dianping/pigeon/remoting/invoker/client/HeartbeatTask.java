@@ -140,13 +140,13 @@ public class HeartbeatTask implements Runnable {
         byte heartBeatSupport = RegistryManager.getInstance().getServerHeartBeatSupportFromCache(address);
 
         switch (HeartBeatSupport.findByValue(heartBeatSupport)) {
-            case UNSUPPORT:
-            case SCANNER:
+            case NoSupport:
+            case ScannerOnly:
                 supported = false;
                 break;
 
-            case CLIENTTOSERVER:
-            case BOTH:
+            case P2POnly:
+            case BothSupport:
             default:
                 supported = true;
                 break;
