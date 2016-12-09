@@ -20,7 +20,6 @@ import com.dianping.pigeon.remoting.provider.util.ProviderUtils;
 import com.dianping.pigeon.threadpool.DefaultThreadPool;
 import com.dianping.pigeon.threadpool.ThreadPool;
 import com.dianping.pigeon.util.ThreadPoolUtils;
-import com.dianping.pigeon.util.TimeUtils;
 
 public abstract class AbstractRequestProcessor implements RequestProcessor {
 
@@ -60,7 +59,7 @@ public abstract class AbstractRequestProcessor implements RequestProcessor {
 	public Future<InvocationResponse> processRequest(final InvocationRequest request,
 			final ProviderContext providerContext) {
 		if (request.getCreateMillisTime() == 0) {
-			request.setCreateMillisTime(TimeUtils.currentTimeMillis());
+			request.setCreateMillisTime(System.currentTimeMillis());
 		}
 		Future<InvocationResponse> invocationResponse = null;
 		try {

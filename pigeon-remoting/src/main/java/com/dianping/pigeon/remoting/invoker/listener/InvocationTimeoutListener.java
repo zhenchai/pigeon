@@ -13,7 +13,6 @@ import com.dianping.pigeon.remoting.common.domain.InvocationRequest;
 import com.dianping.pigeon.remoting.invoker.concurrent.Callback;
 import com.dianping.pigeon.remoting.invoker.domain.RemoteInvocationBean;
 import com.dianping.pigeon.remoting.invoker.route.statistics.ServiceStatisticsHolder;
-import com.dianping.pigeon.util.TimeUtils;
 
 public class InvocationTimeoutListener implements Runnable {
 
@@ -35,7 +34,7 @@ public class InvocationTimeoutListener implements Runnable {
 			timeoutCountInCurrentSecond = 0;
 			try {
 				Thread.sleep(timeoutInterval);
-				long currentTime = TimeUtils.currentTimeMillis();
+				long currentTime = System.currentTimeMillis();
 				for (Long sequence : invocations.keySet()) {
 					RemoteInvocationBean invocationBean = invocations.get(sequence);
 					if (invocationBean != null) {
@@ -59,7 +58,7 @@ public class InvocationTimeoutListener implements Runnable {
 							}
 							if (isLog) {
 								StringBuilder msg = new StringBuilder();
-								msg.append("remove timeout request, process time:").append(TimeUtils.currentTimeMillis())
+								msg.append("remove timeout request, process time:").append(System.currentTimeMillis())
 										.append("\r\n").append("request:").append(request);
 								logger.warn(msg.toString());
 								// RequestTimeoutException e = new

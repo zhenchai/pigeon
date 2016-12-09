@@ -7,7 +7,6 @@ import java.util.Map.Entry;
 
 import com.dianping.pigeon.log.Logger;
 import com.dianping.pigeon.log.LoggerLoader;
-import com.dianping.pigeon.util.TimeUtils;
 
 public class CapacityChecker implements Runnable {
 
@@ -23,7 +22,7 @@ public class CapacityChecker implements Runnable {
 			}
 			if (ServiceStatisticsHolder.getCapacityBuckets() != null) {
 				try {
-					long currentTimeMillis = TimeUtils.currentTimeMillis();
+					long currentTimeMillis = System.currentTimeMillis();
 					for (CapacityBucket bucket : ServiceStatisticsHolder.getCapacityBuckets().values()) {
 						bucket.resetRequestInSecondCounter();
 						try {

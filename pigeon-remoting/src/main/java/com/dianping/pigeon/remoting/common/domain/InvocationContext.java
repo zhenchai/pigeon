@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Map;
 
 import com.dianping.pigeon.remoting.common.monitor.trace.MonitorData;
-import com.dianping.pigeon.util.TimeUtils;
 
 public interface InvocationContext<M extends MonitorData> {
 
@@ -82,7 +81,7 @@ public interface InvocationContext<M extends MonitorData> {
 
         public TimePoint(TimePhase phase) {
             this.phase = phase;
-            this.time = TimeUtils.currentTimeMillis();
+            this.time = System.currentTimeMillis();
         }
 
         public TimePhase getPhase() {

@@ -27,7 +27,6 @@ import com.dianping.pigeon.remoting.provider.process.ProviderProcessHandlerFacto
 import com.dianping.pigeon.remoting.provider.publish.ServicePublisher;
 import com.dianping.pigeon.util.ClassUtils;
 import com.dianping.pigeon.util.NetUtils;
-import com.dianping.pigeon.util.TimeUtils;
 import com.dianping.pigeon.util.VersionUtils;
 
 public final class ProviderBootStrap {
@@ -48,7 +47,6 @@ public final class ProviderBootStrap {
             ConfigManager configManager = ConfigManagerLoader.getConfigManager();
             ProviderProcessHandlerFactory.init();
             SerializerFactory.init();
-            TimeUtils.currentTimeMillis();
             ClassUtils.loadClasses("com.dianping.pigeon");
             Monitor monitor = MonitorLoader.getMonitor();
             if (monitor != null) {

@@ -25,7 +25,6 @@ import com.dianping.pigeon.remoting.invoker.Client;
 import com.dianping.pigeon.remoting.invoker.config.InvokerConfig;
 import com.dianping.pigeon.remoting.invoker.domain.InvokerContext;
 import com.dianping.pigeon.remoting.invoker.process.ExceptionManager;
-import com.dianping.pigeon.util.TimeUtils;
 
 public class RemoteCallMonitorInvokeFilter extends InvocationInvokeFilter {
 
@@ -137,7 +136,7 @@ public class RemoteCallMonitorInvokeFilter extends InvocationInvokeFilter {
 						}
 						monitorProtocal(invocationContext, _request, targetApp);
 					}
-					invocationContext.getTimeline().add(new TimePoint(TimePhase.E, TimeUtils.currentTimeMillis()));
+					invocationContext.getTimeline().add(new TimePoint(TimePhase.E, System.currentTimeMillis()));
 					transaction.complete();
 				} catch (Throwable e) {
 					monitor.logMonitorError(e);

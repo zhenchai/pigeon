@@ -23,7 +23,6 @@ import com.dianping.pigeon.remoting.common.util.InvocationUtils;
 import com.dianping.pigeon.remoting.invoker.AbstractClient;
 import com.dianping.pigeon.remoting.invoker.client.ClientConfig;
 import com.dianping.pigeon.remoting.invoker.domain.ConnectInfo;
-import com.dianping.pigeon.util.TimeUtils;
 
 public class HttpInvokerClient extends AbstractClient {
 
@@ -71,7 +70,7 @@ public class HttpInvokerClient extends AbstractClient {
                 Constants.HEART_TASK_METHOD, null, SerializerType.HESSIAN.getCode(),
                 Constants.MESSAGE_TYPE_HEART, 5000, null);
         request.setSequence(0);
-        request.setCreateMillisTime(TimeUtils.currentTimeMillis());
+        request.setCreateMillisTime(System.currentTimeMillis());
         request.setCallType(Constants.CALLTYPE_REPLY);
         InvocationResponse response = null;
         try {

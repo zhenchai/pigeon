@@ -25,7 +25,6 @@ import com.dianping.pigeon.remoting.provider.domain.ProviderContext;
 import com.dianping.pigeon.remoting.provider.process.ProviderExceptionTranslator;
 import com.dianping.pigeon.remoting.provider.publish.ServicePublisher;
 import com.dianping.pigeon.util.LangUtils;
-import com.dianping.pigeon.util.TimeUtils;
 import com.dianping.pigeon.util.VersionUtils;
 
 public final class ProviderUtils {
@@ -121,9 +120,9 @@ public final class ProviderUtils {
         response.setSequence(request.getSequence());
         response.setSerialize(serialize);
         response.setMessageType(Constants.MESSAGE_TYPE_SERVICE_EXCEPTION);
-        if (SerializerType.isJson(serialize)){
+        if (SerializerType.isJson(serialize)) {
             response.setReturn(LangUtils.getFullStackTrace(e));
-        }else{
+        } else {
             response.setReturn(e);
         }
 
@@ -200,7 +199,7 @@ public final class ProviderUtils {
         response.setServiceName(request.getServiceName());
         response.setMethodName(request.getMethodName());
         response.setSeqId(request.getSeqId());
-        response.setCreateMillisTime(TimeUtils.currentTimeMillis());
+        response.setCreateMillisTime(System.currentTimeMillis());
         return response;
     }
 
@@ -223,7 +222,7 @@ public final class ProviderUtils {
             response.setServiceName(request.getServiceName());
             response.setMethodName(request.getMethodName());
             response.setSeqId(((UnifiedRequest) request).getSeqId());
-            response.setCreateMillisTime(TimeUtils.currentTimeMillis());
+            response.setCreateMillisTime(System.currentTimeMillis());
             return response;
         } else {
             throw new BadRequestException("invalid scanner heartbeat request");
@@ -271,7 +270,7 @@ public final class ProviderUtils {
         msg.append(title).append(", from:")
                 .append(providerContext.getChannel() == null ? "" : providerContext.getChannel().getRemoteAddress())
                 .append(", to:").append(ConfigManagerLoader.getConfigManager().getLocalIp())
-                .append(", time:").append(TimeUtils.currentTimeMillis()).append("\r\nrequest:")
+                .append(", time:").append(System.currentTimeMillis()).append("\r\nrequest:")
                 .append(request);
         return msg.toString();
     }
