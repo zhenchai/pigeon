@@ -50,6 +50,7 @@ public class ThreadPoolFactory {
                             threadPool = new DefaultThreadPool("Pigeon-Server-Request-Processor-" + poolConfig,
                                     poolConfig.getCorePoolSize(), poolConfig.getMaxPoolSize(),
                                     new LinkedBlockingQueue<Runnable>(poolConfig.getWorkQueueSize()));
+                            threadPools.put(poolConfig, threadPool);
                         }
                     }
                 }else if (poolConfig.getCorePoolSize() != threadPool.getExecutor().getCorePoolSize()
