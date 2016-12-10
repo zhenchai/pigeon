@@ -307,7 +307,7 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
         String methodName = request.getMethodName();
         ProviderConfig providerConfig = ServicePublisher.getServiceConfig(serviceName);
 
-        if (providerConfig != null) {
+        if (providerConfig != null && needStandalonePool(providerConfig)) {
             Map<String, ProviderMethodConfig> methods = providerConfig.getMethods();
             if (!CollectionUtils.isEmpty(methods)) {
                 ProviderMethodConfig methodConfig = methods.get(methodName);
@@ -339,23 +339,25 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
         // spring poolConfig
         if (!CollectionUtils.isEmpty(ServicePublisher.getAllServiceProviders())) {
             for (ProviderConfig<?> providerConfig : ServicePublisher.getAllServiceProviders().values()) {
-                if (!CollectionUtils.isEmpty(providerConfig.getMethods())) {
-                    for (ProviderMethodConfig methodConfig : providerConfig.getMethods().values()) {
-                        if (methodConfig.getPoolConfig() != null) {
-                            String api = providerConfig.getUrl() + "#" + methodConfig.getName();
-                            stats.append(",[").append(api).append("=").append(
-                                    getDynamicThreadPoolStatistics(DynamicThreadPoolFactory.getThreadPool(methodConfig.getPoolConfig())))
-                                    .append("]");
-                            keys.add(api);
+                if (needStandalonePool(providerConfig)) {
+                    if (!CollectionUtils.isEmpty(providerConfig.getMethods())) {
+                        for (ProviderMethodConfig methodConfig : providerConfig.getMethods().values()) {
+                            if (methodConfig.getPoolConfig() != null) {
+                                String api = providerConfig.getUrl() + "#" + methodConfig.getName();
+                                stats.append(",[").append(api).append("=").append(
+                                        getDynamicThreadPoolStatistics(DynamicThreadPoolFactory.getThreadPool(methodConfig.getPoolConfig())))
+                                        .append("]");
+                                keys.add(api);
+                            }
                         }
                     }
-                }
 
-                if (providerConfig.getPoolConfig() != null) {
-                    stats.append(",[").append(providerConfig.getUrl()).append("=").append(
-                            getDynamicThreadPoolStatistics(DynamicThreadPoolFactory.getThreadPool(providerConfig.getPoolConfig())))
-                            .append("]");
-                    keys.add(providerConfig.getUrl());
+                    if (providerConfig.getPoolConfig() != null) {
+                        stats.append(",[").append(providerConfig.getUrl()).append("=").append(
+                                getDynamicThreadPoolStatistics(DynamicThreadPoolFactory.getThreadPool(providerConfig.getPoolConfig())))
+                                .append("]");
+                        keys.add(providerConfig.getUrl());
+                    }
                 }
             }
         }
