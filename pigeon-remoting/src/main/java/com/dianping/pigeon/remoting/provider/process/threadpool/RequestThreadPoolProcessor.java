@@ -406,7 +406,7 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
         Set<String> methodNames = methodCache.getMethodMap().keySet();
         if (needStandalonePool(providerConfig)) {
             if (providerConfig.getPoolConfig() != null) { // 服务的poolConfig方式,支持方法的fallback
-                DynamicThreadPoolFactory.getOrCreateThreadPool(providerConfig.getPoolConfig());
+                DynamicThreadPoolFactory.refreshThreadPool(providerConfig.getPoolConfig());
             } else if (providerConfig.getActives() > 0 && CollectionUtils.isEmpty(methodConfigs)) { // 服务的actives方式,不支持方法的fallback,不支持动态修改
                 DynamicThreadPool pool = serviceThreadPools.get(url);
                 if (pool == null) {
@@ -428,7 +428,7 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
                     DynamicThreadPool pool = methodThreadPools.get(key);
                     if (methodConfig != null) {
                         if (methodConfig.getPoolConfig() != null) { // 方法poolConfig方式
-                            DynamicThreadPoolFactory.getOrCreateThreadPool(methodConfig.getPoolConfig());
+                            DynamicThreadPoolFactory.refreshThreadPool(methodConfig.getPoolConfig());
                         } else if (pool == null) { // 方法actives方式
                             int actives = DEFAULT_POOL_ACTIVES;
                             if (methodConfig.getActives() > 0) {

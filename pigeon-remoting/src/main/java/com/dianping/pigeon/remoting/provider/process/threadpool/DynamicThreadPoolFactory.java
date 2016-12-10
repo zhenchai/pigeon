@@ -32,32 +32,6 @@ public class DynamicThreadPoolFactory {
         return threadPool;
     }
 
-    // for spring poolConfig
-    public static DynamicThreadPool getOrCreateThreadPool(PoolConfig poolConfig) {
-        DynamicThreadPool threadPool = dynamicThreadPools.get(poolConfig);
-        if (threadPool == null) {
-            synchronized (interner.intern(poolConfig)) {
-                threadPool = dynamicThreadPools.get(poolConfig);
-                if (threadPool == null) {
-                    try {
-                        threadPool = new DynamicThreadPool("Pigeon-Server-Request-Processor-" + poolConfig,
-                                poolConfig.getCorePoolSize(), poolConfig.getMaxPoolSize(),
-                                poolConfig.getWorkQueueSize());
-                        dynamicThreadPools.put(poolConfig, threadPool);
-                    } catch (Throwable t) {
-                        logger.warn("Error while creating threadPool of " + poolConfig + ".", t);
-                    }
-                }
-            }
-        }
-
-        if (threadPool != null && threadPool.getExecutor().isShutdown()) {
-            return null;
-        }
-
-        return threadPool;
-    }
-
     public static void refreshThreadPool(PoolConfig poolConfig) {
         DynamicThreadPool threadPool = dynamicThreadPools.get(poolConfig);
         if (threadPool == null) {
