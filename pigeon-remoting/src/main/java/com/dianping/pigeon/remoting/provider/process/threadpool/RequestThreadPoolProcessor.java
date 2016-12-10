@@ -159,11 +159,13 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
                         oldPoolConfig.setCorePoolSize(newPoolConfig.getCorePoolSize());
                         oldPoolConfig.setMaxPoolSize(newPoolConfig.getMaxPoolSize());
                         oldPoolConfig.setWorkQueueSize(newPoolConfig.getWorkQueueSize());
-                        DynamicThreadPoolFactory.refreshThreadPool(oldPoolConfig);
                         newPoolConfigs.put(oldPoolName, oldPoolConfig);
                     } else {
                         poolToClose.add(oldPoolConfig);
                     }
+                }
+                for (PoolConfig poolConfig : newPoolConfigs.values()) {
+                    DynamicThreadPoolFactory.refreshThreadPool(poolConfig);
                 }
                 poolConfigs = newPoolConfigs;
                 for (PoolConfig _poolToClose : poolToClose) {
