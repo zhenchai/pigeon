@@ -21,46 +21,71 @@ public class DynamicThreadPoolFactory {
     // poolConfig --> threadPool
     private static final ConcurrentMap<PoolConfig, DynamicThreadPool> dynamicThreadPools = Maps.newConcurrentMap();
 
+    // for lion poolConfig
     public static DynamicThreadPool getThreadPool(PoolConfig poolConfig) {
         DynamicThreadPool threadPool = dynamicThreadPools.get(poolConfig);
-        try {
-            if (threadPool == null) {
-                synchronized (interner.intern(poolConfig)) {
-                    threadPool = dynamicThreadPools.get(poolConfig);
-                    if (threadPool == null) {
+
+        if (threadPool != null && threadPool.getExecutor().isShutdown()) {
+            return null;
+        }
+
+        return threadPool;
+    }
+
+    // for spring poolConfig
+    public static DynamicThreadPool getOrCreateThreadPool(PoolConfig poolConfig) {
+        DynamicThreadPool threadPool = dynamicThreadPools.get(poolConfig);
+        if (threadPool == null) {
+            synchronized (interner.intern(poolConfig)) {
+                threadPool = dynamicThreadPools.get(poolConfig);
+                if (threadPool == null) {
+                    try {
                         threadPool = new DynamicThreadPool("Pigeon-Server-Request-Processor-" + poolConfig,
                                 poolConfig.getCorePoolSize(), poolConfig.getMaxPoolSize(),
                                 poolConfig.getWorkQueueSize());
                         dynamicThreadPools.put(poolConfig, threadPool);
-                    }
-                }
-            } else {
-                if (poolConfig.getWorkQueueSize() != threadPool.getWorkQueueCapacity()) {
-                    synchronized (interner.intern(poolConfig)) {
-                        threadPool = dynamicThreadPools.get(poolConfig);
-                        if (threadPool != null
-                                && poolConfig.getWorkQueueSize() != threadPool.getWorkQueueCapacity()) {
-                            threadPool.setWorkQueueCapacity(poolConfig.getWorkQueueSize());
-                        }
-                    }
-                }else if (poolConfig.getCorePoolSize() != threadPool.getExecutor().getCorePoolSize()
-                        || poolConfig.getMaxPoolSize() != threadPool.getExecutor().getMaximumPoolSize()) {
-                    synchronized (interner.intern(poolConfig)) {
-                        threadPool = dynamicThreadPools.get(poolConfig);
-                        if (threadPool != null
-                                && (poolConfig.getCorePoolSize() != threadPool.getExecutor().getCorePoolSize()
-                                || poolConfig.getMaxPoolSize() != threadPool.getExecutor().getMaximumPoolSize())) {
-                            threadPool.getExecutor().setCorePoolSize(poolConfig.getCorePoolSize());
-                            threadPool.getExecutor().setMaximumPoolSize(poolConfig.getMaxPoolSize());
-                        }
+                    } catch (Throwable t) {
+                        logger.warn("Error while creating threadPool of " + poolConfig + ".", t);
                     }
                 }
             }
-        } catch (Throwable t) {
-            logger.warn("Error while getting threadPool of " + poolConfig + ".", t);
+        }
+
+        if (threadPool != null && threadPool.getExecutor().isShutdown()) {
+            return null;
         }
 
         return threadPool;
+    }
+
+    public static void refreshThreadPool(PoolConfig poolConfig) {
+        DynamicThreadPool threadPool = dynamicThreadPools.get(poolConfig);
+        if (threadPool == null) {
+            synchronized (interner.intern(poolConfig)) {
+                threadPool = dynamicThreadPools.get(poolConfig);
+                if (threadPool == null) {
+                    try {
+                        threadPool = new DynamicThreadPool("Pigeon-Server-Request-Processor-" + poolConfig,
+                                poolConfig.getCorePoolSize(), poolConfig.getMaxPoolSize(),
+                                poolConfig.getWorkQueueSize());
+                        dynamicThreadPools.put(poolConfig, threadPool);
+                    } catch (Throwable t) {
+                        logger.warn("Error while creating threadPool of " + poolConfig + ".", t);
+                    }
+                }
+            }
+        } else {
+            if (poolConfigChanged(poolConfig, threadPool)) {
+                synchronized (interner.intern(poolConfig)) {
+                    threadPool = dynamicThreadPools.get(poolConfig);
+                    if (threadPool != null && poolConfigChanged(poolConfig, threadPool)) {
+                        threadPool.setCorePoolSize(poolConfig.getCorePoolSize());
+                        threadPool.setMaximumPoolSize(poolConfig.getMaxPoolSize());
+                        threadPool.setWorkQueueCapacity(poolConfig.getWorkQueueSize());
+                    }
+                }
+            }
+        }
     }
 
     public static void closeThreadPool(PoolConfig poolConfig) {
@@ -71,14 +96,20 @@ public class DynamicThreadPoolFactory {
                 if (threadPool != null) {
                     try {
                         threadPool.getExecutor().shutdown();
+                        //threadPool.getExecutor().awaitTermination(5, TimeUnit.SECONDS);
                         dynamicThreadPools.remove(poolConfig);
-                        threadPool.getExecutor().awaitTermination(5, TimeUnit.SECONDS);
                     } catch (Throwable t) {
                         logger.warn("Error when shutting down old pool.", t);
                     }
                 }
             }
         }
+    }
+
+    private static boolean poolConfigChanged(PoolConfig poolConfig, DynamicThreadPool threadPool) {
+        return poolConfig.getCorePoolSize() != threadPool.getCorePoolSize()
+                || poolConfig.getMaxPoolSize() != threadPool.getMaximumPoolSize()
+                || poolConfig.getWorkQueueSize() != threadPool.getWorkQueueCapacity();
     }
 
 }

@@ -67,9 +67,9 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
 
     private DynamicThreadPool requestProcessThreadPool = null;
 
-    private static ConcurrentHashMap<String, DynamicThreadPool> methodThreadPools = new ConcurrentHashMap<>();
+    private static ConcurrentMap<String, DynamicThreadPool> methodThreadPools = new ConcurrentHashMap<>();
 
-    private static ConcurrentHashMap<String, DynamicThreadPool> serviceThreadPools = new ConcurrentHashMap<>();
+    private static ConcurrentMap<String, DynamicThreadPool> serviceThreadPools = new ConcurrentHashMap<>();
 
     private static int DEFAULT_POOL_ACTIVES = configManager.getIntValue(
             "pigeon.provider.pool.actives", 60);
@@ -98,7 +98,7 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
 
     // poolName --> poolConfig
     private volatile static ConcurrentMap<String, PoolConfig> poolConfigs = Maps.newConcurrentMap();
-    // url or url#method --> poolName
+    // api --> poolName
     private volatile static ConcurrentMap<String, String> apiPoolNameMapping = Maps.newConcurrentMap();
 
     static {
@@ -125,16 +125,16 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
     }
 
     private static void init() throws Throwable {
-        String poolConfig = configManager.getStringValue(KEY_PROVIDER_POOL_CONFIG, "");
-        refreshPoolConfig(poolConfig);
+        String poolInfo = configManager.getStringValue(KEY_PROVIDER_POOL_CONFIG, "");
+        refreshPool(poolInfo);
 
         String apiPoolConfig = configManager.getStringValue(KEY_PROVIDER_POOL_API_CONFIG, "");
-        refreshApiPoolConfig(apiPoolConfig);
+        refreshApiPoolMapping(apiPoolConfig);
 
         logger.info("init pool config success!");
     }
 
-    private static synchronized void refreshPoolConfig(String poolInfo) throws Throwable {
+    private static synchronized void refreshPool(String poolInfo) throws Throwable {
         if (StringUtils.isNotBlank(poolInfo)) {
             PoolConfig[] poolConfigArr = (PoolConfig[]) jacksonSerializer.toObject(PoolConfig[].class, poolInfo);
             ConcurrentMap<String, PoolConfig> newPoolConfigs = Maps.newConcurrentMap();
@@ -159,6 +159,7 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
                         oldPoolConfig.setCorePoolSize(newPoolConfig.getCorePoolSize());
                         oldPoolConfig.setMaxPoolSize(newPoolConfig.getMaxPoolSize());
                         oldPoolConfig.setWorkQueueSize(newPoolConfig.getWorkQueueSize());
+                        DynamicThreadPoolFactory.refreshThreadPool(oldPoolConfig);
                         newPoolConfigs.put(oldPoolName, oldPoolConfig);
                     } else {
                         poolToClose.add(oldPoolConfig);
@@ -173,10 +174,10 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
         }
     }
 
-    private static synchronized void refreshApiPoolConfig(String servicePoolConfig) throws Throwable {
-        if (StringUtils.isNotBlank(servicePoolConfig)) {
-            Map<String, String> _servicePoolConfigMapping = (Map) jacksonSerializer.toObject(Map.class, servicePoolConfig);
-            apiPoolNameMapping = new ConcurrentHashMap<>(_servicePoolConfigMapping);
+    private static synchronized void refreshApiPoolMapping(String apiPoolName) throws Throwable {
+        if (StringUtils.isNotBlank(apiPoolName)) {
+            Map<String, String> _apiPoolNameMapping = (Map) jacksonSerializer.toObject(Map.class, apiPoolName);
+            apiPoolNameMapping = new ConcurrentHashMap<>(_apiPoolNameMapping);
             logger.info("refresh api pool mapping success!");
         }
     }
@@ -253,10 +254,10 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
         String serviceKey = request.getServiceName();
         String methodKey = serviceKey + "#" + request.getMethodName();
 
-        // config配置方式
+        // spring poolConfig
         pool = getConfigThreadPool(request);
 
-        // actives配置方式
+        // spring actives
         if (pool == null && !CollectionUtils.isEmpty(methodThreadPools)) {
             pool = methodThreadPools.get(methodKey);
         }
@@ -264,7 +265,7 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
             pool = serviceThreadPools.get(serviceKey);
         }
 
-        // 配置中心方式
+        // lion poolConfig
         if (pool == null && configManager.getBooleanValue(KEY_PROVIDER_POOL_CONFIG_ENABLE, false)
                 && !CollectionUtils.isEmpty(apiPoolNameMapping)) {
             PoolConfig poolConfig = null;
@@ -335,6 +336,7 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
         }
         stats.append("[slow=").append(getThreadPoolStatistics(slowRequestProcessThreadPool)).append("]");
 
+        // spring poolConfig
         if (!CollectionUtils.isEmpty(ServicePublisher.getAllServiceProviders())) {
             for (ProviderConfig<?> providerConfig : ServicePublisher.getAllServiceProviders().values()) {
                 if (!CollectionUtils.isEmpty(providerConfig.getMethods())) {
@@ -373,6 +375,7 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
             keys.addAll(methodThreadPools.keySet());
         }
 
+        // lion poolConfig
         if (!CollectionUtils.isEmpty(apiPoolNameMapping)) {
             for (Map.Entry<String, String> entry : apiPoolNameMapping.entrySet()) {
                 String api = entry.getKey();
@@ -403,7 +406,7 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
         Set<String> methodNames = methodCache.getMethodMap().keySet();
         if (needStandalonePool(providerConfig)) {
             if (providerConfig.getPoolConfig() != null) { // 服务的poolConfig方式,支持方法的fallback
-                DynamicThreadPoolFactory.getThreadPool(providerConfig.getPoolConfig());
+                DynamicThreadPoolFactory.getOrCreateThreadPool(providerConfig.getPoolConfig());
             } else if (providerConfig.getActives() > 0 && CollectionUtils.isEmpty(methodConfigs)) { // 服务的actives方式,不支持方法的fallback,不支持动态修改
                 DynamicThreadPool pool = serviceThreadPools.get(url);
                 if (pool == null) {
@@ -425,7 +428,7 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
                     DynamicThreadPool pool = methodThreadPools.get(key);
                     if (methodConfig != null) {
                         if (methodConfig.getPoolConfig() != null) { // 方法poolConfig方式
-                            DynamicThreadPoolFactory.getThreadPool(methodConfig.getPoolConfig());
+                            DynamicThreadPoolFactory.getOrCreateThreadPool(methodConfig.getPoolConfig());
                         } else if (pool == null) { // 方法actives方式
                             int actives = DEFAULT_POOL_ACTIVES;
                             if (methodConfig.getActives() > 0) {
@@ -478,6 +481,19 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
     @Override
     public synchronized <T> void removeService(ProviderConfig<T> providerConfig) {
         if (needStandalonePool(providerConfig)) {
+
+            // spring poolConfig
+            if (providerConfig.getPoolConfig() != null) {
+                DynamicThreadPoolFactory.closeThreadPool(providerConfig.getPoolConfig());
+            }
+            Map<String, ProviderMethodConfig> methodConfigs = providerConfig.getMethods();
+            if (!CollectionUtils.isEmpty(methodConfigs)) {
+                for (ProviderMethodConfig methodConfig : methodConfigs.values()) {
+                    if (methodConfig.getPoolConfig() != null) {
+                        DynamicThreadPoolFactory.closeThreadPool(methodConfig.getPoolConfig());
+                    }
+                }
+            }
 
             Set<String> toRemoveKeys = new HashSet<String>();
             for (String key : methodThreadPools.keySet()) {
@@ -550,17 +566,24 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
                         logger.warn("failed to refresh pool config, fallback to previous settings, please check...", t);
                     }
                 } else if ("false".equals(value)) {
-                    apiPoolNameMapping = Maps.newConcurrentMap();
-                    for (PoolConfig poolConfig : poolConfigs.values()) {
-                        DynamicThreadPoolFactory.closeThreadPool(poolConfig);
+                    try {
+                        synchronized (RequestThreadPoolProcessor.class) {
+                            apiPoolNameMapping = Maps.newConcurrentMap();
+                            Map<String, PoolConfig> poolConfigToClose = poolConfigs;
+                            poolConfigs = Maps.newConcurrentMap();
+                            for (PoolConfig poolConfig : poolConfigToClose.values()) {
+                                DynamicThreadPoolFactory.closeThreadPool(poolConfig);
+                            }
+                            logger.info("close pool config success!");
+                        }
+                    } catch (Throwable t) {
+                        logger.warn("failed to close pool config, please check...", t);
                     }
-                    poolConfigs = Maps.newConcurrentMap();
-                    logger.info("close pool config success!");
                 }
             } else if (key.endsWith(KEY_PROVIDER_POOL_CONFIG)) {
                 if (configManager.getBooleanValue(KEY_PROVIDER_POOL_CONFIG_ENABLE, false)) {
                     try {
-                        refreshPoolConfig(value);
+                        refreshPool(value);
                     } catch (Throwable t) {
                         logger.warn("failed to refresh pool config, fallback to previous settings, please check...", t);
                     }
@@ -568,7 +591,7 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
             } else if (key.endsWith(KEY_PROVIDER_POOL_API_CONFIG)) {
                 if (configManager.getBooleanValue(KEY_PROVIDER_POOL_CONFIG_ENABLE, false)) {
                     try {
-                        refreshApiPoolConfig(value);
+                        refreshApiPoolMapping(value);
                     } catch (Throwable t) {
                         logger.warn("failed to refresh api pool config, fallback to previous settings, please check...", t);
                     }
