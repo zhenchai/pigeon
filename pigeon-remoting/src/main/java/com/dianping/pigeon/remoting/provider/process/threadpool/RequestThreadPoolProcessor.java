@@ -347,12 +347,13 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
                             keys.add(api);
                         }
                     }
-                    if (providerConfig.getPoolConfig() != null) {
-                        stats.append(",[").append(providerConfig.getUrl()).append("=").append(
-                                getThreadPoolStatistics(DynamicThreadPoolFactory.getThreadPool(providerConfig.getPoolConfig())))
-                                .append("]");
-                        keys.add(providerConfig.getUrl());
-                    }
+                }
+
+                if (providerConfig.getPoolConfig() != null) {
+                    stats.append(",[").append(providerConfig.getUrl()).append("=").append(
+                            getThreadPoolStatistics(DynamicThreadPoolFactory.getThreadPool(providerConfig.getPoolConfig())))
+                            .append("]");
+                    keys.add(providerConfig.getUrl());
                 }
             }
         }
