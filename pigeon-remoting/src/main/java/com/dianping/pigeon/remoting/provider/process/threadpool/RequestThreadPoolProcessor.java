@@ -38,7 +38,7 @@ import com.dianping.pigeon.remoting.provider.process.ProviderProcessHandlerFacto
 import com.dianping.pigeon.remoting.provider.process.filter.GatewayProcessFilter;
 import com.dianping.pigeon.remoting.provider.service.method.ServiceMethodCache;
 import com.dianping.pigeon.remoting.provider.service.method.ServiceMethodFactory;
-import com.dianping.pigeon.threadpool.DefaultThreadPool;
+import com.dianping.pigeon.threadpool.DynamicThreadPool;
 import com.dianping.pigeon.threadpool.ThreadPool;
 
 public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
@@ -61,9 +61,9 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
     private static final int SLOW_POOL_QUEUESIZE = configManager.getIntValue(
             "pigeon.provider.pool.slow.queuesize", 500);
 
-    private static ThreadPool slowRequestProcessThreadPool = new DefaultThreadPool(
+    private static ThreadPool slowRequestProcessThreadPool = new DynamicThreadPool(
             "Pigeon-Server-Slow-Request-Processor", SLOW_POOL_CORESIZE, SLOW_POOL_MAXSIZE,
-            new LinkedBlockingQueue<Runnable>(SLOW_POOL_QUEUESIZE));
+            SLOW_POOL_QUEUESIZE);
 
     private ThreadPool requestProcessThreadPool = null;
 
@@ -114,13 +114,12 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
     public RequestThreadPoolProcessor(ServerConfig serverConfig) {
         configManager.registerConfigChangeListener(new InnerConfigChangeListener());
         if ("server".equals(poolStrategy)) {
-            requestProcessThreadPool = new DefaultThreadPool("Pigeon-Server-Request-Processor-"
+            requestProcessThreadPool = new DynamicThreadPool("Pigeon-Server-Request-Processor-"
                     + serverConfig.getProtocol() + "-" + serverConfig.getActualPort(), serverConfig.getCorePoolSize(),
-                    serverConfig.getMaxPoolSize(), new LinkedBlockingQueue<Runnable>(serverConfig.getWorkQueueSize()));
+                    serverConfig.getMaxPoolSize(), serverConfig.getWorkQueueSize());
         } else {
-            sharedRequestProcessThreadPool = new DefaultThreadPool("Pigeon-Server-Request-Processor",
-                    serverConfig.getCorePoolSize(), serverConfig.getMaxPoolSize(), new LinkedBlockingQueue<Runnable>(
-                    serverConfig.getWorkQueueSize()));
+            sharedRequestProcessThreadPool = new DynamicThreadPool("Pigeon-Server-Request-Processor",
+                    serverConfig.getCorePoolSize(), serverConfig.getMaxPoolSize(), serverConfig.getWorkQueueSize());
             requestProcessThreadPool = sharedRequestProcessThreadPool;
         }
     }
@@ -167,7 +166,7 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
                 }
                 poolConfigs = newPoolConfigs;
                 for (PoolConfig _poolToClose : poolToClose) {
-                    ThreadPoolFactory.closeThreadPool(_poolToClose);
+                    DynamicThreadPoolFactory.closeThreadPool(_poolToClose);
                 }
             }
             logger.info("refresh pool config success!");
@@ -273,14 +272,14 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
             if (StringUtils.isNotBlank(poolName)) { // 方法级别
                 poolConfig = poolConfigs.get(poolName);
                 if (poolConfig != null) {
-                    pool = ThreadPoolFactory.getThreadPool(poolConfig);
+                    pool = DynamicThreadPoolFactory.getThreadPool(poolConfig);
                 }
             } else { // 服务级别
                 poolName = apiPoolNameMapping.get(serviceKey);
                 if (StringUtils.isNotBlank(poolName)) {
                     poolConfig = poolConfigs.get(poolName);
                     if (poolConfig != null) {
-                        pool = ThreadPoolFactory.getThreadPool(poolConfig);
+                        pool = DynamicThreadPoolFactory.getThreadPool(poolConfig);
                     }
                 }
             }
@@ -312,12 +311,12 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
             if (!CollectionUtils.isEmpty(methods)) {
                 ProviderMethodConfig methodConfig = methods.get(methodName);
                 if (methodConfig != null && methodConfig.getPoolConfig() != null) {
-                    return ThreadPoolFactory.getThreadPool(methodConfig.getPoolConfig());
+                    return DynamicThreadPoolFactory.getThreadPool(methodConfig.getPoolConfig());
                 }
             }
 
             if (providerConfig.getPoolConfig() != null) {
-                return ThreadPoolFactory.getThreadPool(providerConfig.getPoolConfig());
+                return DynamicThreadPoolFactory.getThreadPool(providerConfig.getPoolConfig());
             }
         }
 
@@ -343,14 +342,14 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
                         if (methodConfig.getPoolConfig() != null) {
                             String api = providerConfig.getUrl() + "#" + methodConfig.getName();
                             stats.append(",[").append(api).append("=").append(
-                                    getThreadPoolStatistics(ThreadPoolFactory.getThreadPool(methodConfig.getPoolConfig())))
+                                    getThreadPoolStatistics(DynamicThreadPoolFactory.getThreadPool(methodConfig.getPoolConfig())))
                                     .append("]");
                             keys.add(api);
                         }
                     }
                     if (providerConfig.getPoolConfig() != null) {
                         stats.append(",[").append(providerConfig.getUrl()).append("=").append(
-                                getThreadPoolStatistics(ThreadPoolFactory.getThreadPool(providerConfig.getPoolConfig())))
+                                getThreadPoolStatistics(DynamicThreadPoolFactory.getThreadPool(providerConfig.getPoolConfig())))
                                 .append("]");
                         keys.add(providerConfig.getUrl());
                     }
@@ -381,7 +380,7 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
                     PoolConfig poolConfig = poolConfigs.get(poolName);
                     if (poolConfig != null) {
                         stats.append(",[").append(api).append("=")
-                                .append(getThreadPoolStatistics(ThreadPoolFactory.getThreadPool(poolConfig))).append("]");
+                                .append(getThreadPoolStatistics(DynamicThreadPoolFactory.getThreadPool(poolConfig))).append("]");
                     }
                 }
             }
@@ -403,7 +402,7 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
         Set<String> methodNames = methodCache.getMethodMap().keySet();
         if (needStandalonePool(providerConfig)) {
             if (providerConfig.getPoolConfig() != null) { // 服务的poolConfig方式,支持方法的fallback
-                ThreadPoolFactory.getThreadPool(providerConfig.getPoolConfig());
+                DynamicThreadPoolFactory.getThreadPool(providerConfig.getPoolConfig());
             } else if (providerConfig.getActives() > 0 && CollectionUtils.isEmpty(methodConfigs)) { // 服务的actives方式,不支持方法的fallback,不支持动态修改
                 ThreadPool pool = serviceThreadPools.get(url);
                 if (pool == null) {
@@ -412,8 +411,8 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
                             : actives;
                     int maxSize = actives;
                     int queueSize = actives;
-                    pool = new DefaultThreadPool("Pigeon-Server-Request-Processor-service", coreSize, maxSize,
-                            new LinkedBlockingQueue<Runnable>(queueSize));
+                    pool = new DynamicThreadPool("Pigeon-Server-Request-Processor-service", coreSize, maxSize,
+                            queueSize);
                     serviceThreadPools.putIfAbsent(url, pool);
                 }
             }
@@ -425,7 +424,7 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
                     ThreadPool pool = methodThreadPools.get(key);
                     if (methodConfig != null) {
                         if (methodConfig.getPoolConfig() != null) { // 方法poolConfig方式
-                            ThreadPoolFactory.getThreadPool(methodConfig.getPoolConfig());
+                            DynamicThreadPoolFactory.getThreadPool(methodConfig.getPoolConfig());
                         } else if (pool == null) { // 方法actives方式
                             int actives = DEFAULT_POOL_ACTIVES;
                             if (methodConfig.getActives() > 0) {
@@ -435,8 +434,8 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
                                     : actives;
                             int maxSize = actives;
                             int queueSize = actives;
-                            pool = new DefaultThreadPool("Pigeon-Server-Request-Processor-method", coreSize, maxSize,
-                                    new LinkedBlockingQueue<Runnable>(queueSize));
+                            pool = new DynamicThreadPool("Pigeon-Server-Request-Processor-method", coreSize, maxSize,
+                                    queueSize);
                             methodThreadPools.putIfAbsent(key, pool);
                         }
                     }
@@ -540,7 +539,7 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
                 } else if ("false".equals(value)) {
                     apiPoolNameMapping = Maps.newConcurrentMap();
                     for (PoolConfig poolConfig : poolConfigs.values()) {
-                        ThreadPoolFactory.closeThreadPool(poolConfig);
+                        DynamicThreadPoolFactory.closeThreadPool(poolConfig);
                     }
                     poolConfigs = Maps.newConcurrentMap();
                     logger.info("close pool config success!");
@@ -578,9 +577,8 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
                         int queueSize = oldPool.getExecutor().getQueue().remainingCapacity()
                                 + oldPool.getExecutor().getQueue().size();
                         try {
-                            ThreadPool newPool = new DefaultThreadPool("Pigeon-Server-Request-Processor-method", size,
-                                    oldPool.getExecutor().getMaximumPoolSize(), new LinkedBlockingQueue<Runnable>(
-                                    queueSize));
+                            ThreadPool newPool = new DynamicThreadPool("Pigeon-Server-Request-Processor-method", size,
+                                    oldPool.getExecutor().getMaximumPoolSize(), queueSize);
                             sharedRequestProcessThreadPool = newPool;
                             oldPool.getExecutor().shutdown();
                             oldPool.getExecutor().awaitTermination(5, TimeUnit.SECONDS);
@@ -603,9 +601,8 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
                         int queueSize = oldPool.getExecutor().getQueue().remainingCapacity()
                                 + oldPool.getExecutor().getQueue().size();
                         try {
-                            ThreadPool newPool = new DefaultThreadPool("Pigeon-Server-Request-Processor-method",
-                                    oldPool.getExecutor().getCorePoolSize(), size, new LinkedBlockingQueue<Runnable>(
-                                    queueSize));
+                            ThreadPool newPool = new DynamicThreadPool("Pigeon-Server-Request-Processor-method",
+                                    oldPool.getExecutor().getCorePoolSize(), size, queueSize);
                             sharedRequestProcessThreadPool = newPool;
                             oldPool.getExecutor().shutdown();
                             oldPool.getExecutor().awaitTermination(5, TimeUnit.SECONDS);
@@ -628,9 +625,9 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
                 if (size != queueSize && size >= 0) {
                     try {
                         try {
-                            ThreadPool newPool = new DefaultThreadPool("Pigeon-Server-Request-Processor-method",
+                            ThreadPool newPool = new DynamicThreadPool("Pigeon-Server-Request-Processor-method",
                                     oldPool.getExecutor().getCorePoolSize(),
-                                    oldPool.getExecutor().getMaximumPoolSize(), new LinkedBlockingQueue<Runnable>(size));
+                                    oldPool.getExecutor().getMaximumPoolSize(), size);
                             sharedRequestProcessThreadPool = newPool;
                             oldPool.getExecutor().shutdown();
                             oldPool.getExecutor().awaitTermination(5, TimeUnit.SECONDS);
@@ -663,9 +660,9 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
                                         int queueSize = actives;
                                         int maxSize = actives;
                                         try {
-                                            ThreadPool newPool = new DefaultThreadPool(
+                                            ThreadPool newPool = new DynamicThreadPool(
                                                     "Pigeon-Server-Request-Processor-method", coreSize, maxSize,
-                                                    new LinkedBlockingQueue<Runnable>(queueSize));
+                                                    queueSize);
                                             methodThreadPools.put(serviceKey, newPool);
                                             pool.getExecutor().shutdown();
                                             pool.getExecutor().awaitTermination(5, TimeUnit.SECONDS);
