@@ -8,8 +8,16 @@ import java.util.concurrent.BlockingQueue;
  */
 public interface DynamicBlockingQueue<E> extends BlockingQueue<E> {
 
+    /**
+     *
+     * @param capacity
+     */
     void setCapacity(int capacity);
 
+    /**
+     *
+     * @return
+     */
     int getCapacity();
 
 }

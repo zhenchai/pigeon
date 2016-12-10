@@ -80,30 +80,38 @@ public class DynamicLinkedBlockingQueue<E> extends AbstractQueue<E>
      */
     private final Condition notFull = putLock.newCondition();
 
+    /**
+     * @param capacity
+     */
     public void setCapacity(int capacity) {
         if (capacity <= 0)
             throw new IllegalArgumentException();
+
         int delta = capacity - this.capacity;
 
         if (delta == 0) {
             return;
-        }
+        } else if (delta > 0) {
+            putLock.lock();
 
-        fullyLock();
-        try {
-            if (delta > 0) {
+            try {
                 if (count.get() == this.capacity) {
                     notFull.signal();
                 }
-            }
 
+                this.capacity = capacity;
+            } finally {
+                putLock.unlock();
+            }
+        }else{
             this.capacity = capacity;
-        } finally {
-            fullyUnlock();
         }
 
     }
 
+    /**
+     *
+     */
     public int getCapacity() {
         return capacity;
     }
