@@ -545,12 +545,13 @@ public class ResizableLinkedBlockingQueue<E> extends AbstractQueue<E>
         if (capacity <= 0 || this.capacity == capacity) return false;
 
         // todo 第一种方式:可以take但是不能put,因此加上putLock就行
-        // todo 貌似只加上putLock不行,因为take操作中,用到了capacity的比较判断逻辑
-        // todo 因此我认为capacity的改变必须保证强原子性
-        /*final ReentrantLock putLock = this.putLock;
+        // todo take操作中,用到了capacity的比较判断逻辑,然后会去拿putLock释放notFull的信号
+        // todo 但put和offer醒来拿到putLock之后,还会去判断是否已满,因此应该不会出现超放最大capacity的情况
+        final ReentrantLock putLock = this.putLock;
         putLock.lock();
         try {
-            //如果只有put锁,怎么保证双边不等式的原子性呢?
+            //todo !!!!!!如果只有put锁,怎么保证双边不等式的原子性呢?
+            //todo 不过即使双边不等式的原子性判断出错,释放了错误的notFull信号,put和offer醒来后,都会再次判断是否已满,应该问题不大
             if (this.capacity < capacity && count.get() >= this.capacity && count.get() < capacity) {
                 // todo 队列容量被改大,原先满需要通知不满
                 notFull.signal();
@@ -563,12 +564,10 @@ public class ResizableLinkedBlockingQueue<E> extends AbstractQueue<E>
             return true;
         } finally {
             putLock.unlock();
-            *//*if (signalNotFull)
-                signalNotFull();*//*
-        }*/
+        }
 
         // todo 第二种方式:加上fully大锁
-        fullyLock();
+        /*fullyLock();
         try {
             int c = count.get();
             if (this.capacity < capacity && c >= this.capacity && c < capacity) {
@@ -583,7 +582,7 @@ public class ResizableLinkedBlockingQueue<E> extends AbstractQueue<E>
             return true;
         } finally {
             fullyUnlock();
-        }
+        }*/
     }
 
     /**

@@ -50,7 +50,7 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
     private static final String poolStrategy = configManager.getStringValue(
             "pigeon.provider.pool.strategy", "shared");
 
-    private static ThreadPool sharedRequestProcessThreadPool = null;
+    private static DynamicThreadPool sharedRequestProcessThreadPool = null;
 
     private static final int SLOW_POOL_CORESIZE = configManager.getIntValue(
             "pigeon.provider.pool.slow.coresize", 30);
@@ -61,15 +61,15 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
     private static final int SLOW_POOL_QUEUESIZE = configManager.getIntValue(
             "pigeon.provider.pool.slow.queuesize", 500);
 
-    private static ThreadPool slowRequestProcessThreadPool = new DynamicThreadPool(
+    private static DynamicThreadPool slowRequestProcessThreadPool = new DynamicThreadPool(
             "Pigeon-Server-Slow-Request-Processor", SLOW_POOL_CORESIZE, SLOW_POOL_MAXSIZE,
             SLOW_POOL_QUEUESIZE);
 
-    private ThreadPool requestProcessThreadPool = null;
+    private DynamicThreadPool requestProcessThreadPool = null;
 
-    private static ConcurrentHashMap<String, ThreadPool> methodThreadPools = new ConcurrentHashMap<String, ThreadPool>();
+    private static ConcurrentHashMap<String, DynamicThreadPool> methodThreadPools = new ConcurrentHashMap<>();
 
-    private static ConcurrentHashMap<String, ThreadPool> serviceThreadPools = new ConcurrentHashMap<String, ThreadPool>();
+    private static ConcurrentHashMap<String, DynamicThreadPool> serviceThreadPools = new ConcurrentHashMap<>();
 
     private static int DEFAULT_POOL_ACTIVES = configManager.getIntValue(
             "pigeon.provider.pool.actives", 60);
@@ -342,7 +342,7 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
                         if (methodConfig.getPoolConfig() != null) {
                             String api = providerConfig.getUrl() + "#" + methodConfig.getName();
                             stats.append(",[").append(api).append("=").append(
-                                    getThreadPoolStatistics(DynamicThreadPoolFactory.getThreadPool(methodConfig.getPoolConfig())))
+                                    getDynamicThreadPoolStatistics(DynamicThreadPoolFactory.getThreadPool(methodConfig.getPoolConfig())))
                                     .append("]");
                             keys.add(api);
                         }
@@ -351,7 +351,7 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
 
                 if (providerConfig.getPoolConfig() != null) {
                     stats.append(",[").append(providerConfig.getUrl()).append("=").append(
-                            getThreadPoolStatistics(DynamicThreadPoolFactory.getThreadPool(providerConfig.getPoolConfig())))
+                            getDynamicThreadPoolStatistics(DynamicThreadPoolFactory.getThreadPool(providerConfig.getPoolConfig())))
                             .append("]");
                     keys.add(providerConfig.getUrl());
                 }
@@ -381,7 +381,7 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
                     PoolConfig poolConfig = poolConfigs.get(poolName);
                     if (poolConfig != null) {
                         stats.append(",[").append(api).append("=")
-                                .append(getThreadPoolStatistics(DynamicThreadPoolFactory.getThreadPool(poolConfig))).append("]");
+                                .append(getDynamicThreadPoolStatistics(DynamicThreadPoolFactory.getThreadPool(poolConfig))).append("]");
                     }
                 }
             }
@@ -405,7 +405,7 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
             if (providerConfig.getPoolConfig() != null) { // 服务的poolConfig方式,支持方法的fallback
                 DynamicThreadPoolFactory.getThreadPool(providerConfig.getPoolConfig());
             } else if (providerConfig.getActives() > 0 && CollectionUtils.isEmpty(methodConfigs)) { // 服务的actives方式,不支持方法的fallback,不支持动态修改
-                ThreadPool pool = serviceThreadPools.get(url);
+                DynamicThreadPool pool = serviceThreadPools.get(url);
                 if (pool == null) {
                     int actives = providerConfig.getActives();
                     int coreSize = (int) (actives / DEFAULT_POOL_RATIO_CORE) > 0 ? (int) (actives / DEFAULT_POOL_RATIO_CORE)
@@ -422,7 +422,7 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
                 for (String name : methodNames) {
                     String key = url + "#" + name;
                     ProviderMethodConfig methodConfig = methodConfigs.get(name);
-                    ThreadPool pool = methodThreadPools.get(key);
+                    DynamicThreadPool pool = methodThreadPools.get(key);
                     if (methodConfig != null) {
                         if (methodConfig.getPoolConfig() != null) { // 方法poolConfig方式
                             DynamicThreadPoolFactory.getThreadPool(methodConfig.getPoolConfig());
@@ -449,6 +449,18 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
     public String getProcessorStatistics(InvocationRequest request) {
         ThreadPool pool = selectThreadPool(request);
         return getThreadPoolStatistics(pool);
+    }
+
+    private String getDynamicThreadPoolStatistics(DynamicThreadPool pool) {
+        if (pool == null) {
+            return null;
+        }
+        ThreadPoolExecutor e = pool.getExecutor();
+        String stats = String.format(
+                "request pool size:%d(active:%d,core:%d,max:%d,largest:%d),task count:%d(completed:%d),queue size:%d,queue capacity:%d",
+                e.getPoolSize(), e.getActiveCount(), e.getCorePoolSize(), e.getMaximumPoolSize(), e.getLargestPoolSize(),
+                e.getTaskCount(), e.getCompletedTaskCount(), e.getQueue().size(), pool.getWorkQueueCapacity());
+        return stats;
     }
 
     private String getThreadPoolStatistics(ThreadPool pool) {
@@ -574,16 +586,9 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
                 int size = Integer.valueOf(value);
                 if (size != sharedRequestProcessThreadPool.getExecutor().getCorePoolSize() && size >= 0) {
                     try {
-                        ThreadPool oldPool = sharedRequestProcessThreadPool;
-                        int queueSize = oldPool.getExecutor().getQueue().remainingCapacity()
-                                + oldPool.getExecutor().getQueue().size();
+                        DynamicThreadPool oldPool = sharedRequestProcessThreadPool;
                         try {
-                            ThreadPool newPool = new DynamicThreadPool("Pigeon-Server-Request-Processor-method", size,
-                                    oldPool.getExecutor().getMaximumPoolSize(), queueSize);
-                            sharedRequestProcessThreadPool = newPool;
-                            oldPool.getExecutor().shutdown();
-                            oldPool.getExecutor().awaitTermination(5, TimeUnit.SECONDS);
-                            oldPool = null;
+                            oldPool.setCorePoolSize(size);
                         } catch (Throwable e) {
                             logger.warn("error when shutting down old shared pool", e);
                         }
@@ -598,16 +603,9 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
                 int size = Integer.valueOf(value);
                 if (size != sharedRequestProcessThreadPool.getExecutor().getMaximumPoolSize() && size >= 0) {
                     try {
-                        ThreadPool oldPool = sharedRequestProcessThreadPool;
-                        int queueSize = oldPool.getExecutor().getQueue().remainingCapacity()
-                                + oldPool.getExecutor().getQueue().size();
+                        DynamicThreadPool oldPool = sharedRequestProcessThreadPool;
                         try {
-                            ThreadPool newPool = new DynamicThreadPool("Pigeon-Server-Request-Processor-method",
-                                    oldPool.getExecutor().getCorePoolSize(), size, queueSize);
-                            sharedRequestProcessThreadPool = newPool;
-                            oldPool.getExecutor().shutdown();
-                            oldPool.getExecutor().awaitTermination(5, TimeUnit.SECONDS);
-                            oldPool = null;
+                            oldPool.setMaximumPoolSize(size);
                         } catch (Throwable e) {
                             logger.warn("error when shutting down old shared pool", e);
                         }
@@ -620,19 +618,12 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
                 }
             } else if (StringUtils.isNotBlank(sharedPoolQueueSizeKey) && key.endsWith(sharedPoolQueueSizeKey)) {
                 int size = Integer.valueOf(value);
-                ThreadPool oldPool = sharedRequestProcessThreadPool;
-                int queueSize = oldPool.getExecutor().getQueue().remainingCapacity()
-                        + oldPool.getExecutor().getQueue().size();
+                DynamicThreadPool oldPool = sharedRequestProcessThreadPool;
+                int queueSize = oldPool.getWorkQueueCapacity();
                 if (size != queueSize && size >= 0) {
                     try {
                         try {
-                            ThreadPool newPool = new DynamicThreadPool("Pigeon-Server-Request-Processor-method",
-                                    oldPool.getExecutor().getCorePoolSize(),
-                                    oldPool.getExecutor().getMaximumPoolSize(), size);
-                            sharedRequestProcessThreadPool = newPool;
-                            oldPool.getExecutor().shutdown();
-                            oldPool.getExecutor().awaitTermination(5, TimeUnit.SECONDS);
-                            oldPool = null;
+                            oldPool.setWorkQueueCapacity(size);
                         } catch (Throwable e) {
                             logger.warn("error when shutting down old shared pool", e);
                         }
@@ -650,7 +641,7 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
                         try {
                             String serviceKey = k;
                             if (StringUtils.isNotBlank(serviceKey)) {
-                                ThreadPool pool = null;
+                                DynamicThreadPool pool = null;
                                 if (!CollectionUtils.isEmpty(methodThreadPools)) {
                                     pool = methodThreadPools.get(serviceKey);
                                     int actives = Integer.valueOf(value);
@@ -661,13 +652,9 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
                                         int queueSize = actives;
                                         int maxSize = actives;
                                         try {
-                                            ThreadPool newPool = new DynamicThreadPool(
-                                                    "Pigeon-Server-Request-Processor-method", coreSize, maxSize,
-                                                    queueSize);
-                                            methodThreadPools.put(serviceKey, newPool);
-                                            pool.getExecutor().shutdown();
-                                            pool.getExecutor().awaitTermination(5, TimeUnit.SECONDS);
-                                            pool = null;
+                                            pool.setCorePoolSize(coreSize);
+                                            pool.setMaximumPoolSize(maxSize);
+                                            pool.setWorkQueueCapacity(queueSize);
                                         } catch (Throwable e) {
                                             logger.warn("error when shuting down old method pool", e);
                                         }
