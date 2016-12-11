@@ -91,22 +91,21 @@ public class DynamicLinkedBlockingQueue<E> extends AbstractQueue<E>
 
         if (delta == 0) {
             return;
-        } else if (delta > 0) {
+        } else {
             putLock.lock();
 
             try {
-                if (count.get() == this.capacity) {
-                    notFull.signal();
+                if (delta > 0) {
+                    if (count.get() == this.capacity) {
+                        notFull.signal();
+                    }
                 }
 
                 this.capacity = capacity;
             } finally {
                 putLock.unlock();
             }
-        }else{
-            this.capacity = capacity;
         }
-
     }
 
     /**
@@ -137,7 +136,10 @@ public class DynamicLinkedBlockingQueue<E> extends AbstractQueue<E>
         final ReentrantLock putLock = this.putLock;
         putLock.lock();
         try {
-            notFull.signal();
+            //update
+            if (count.get() < this.capacity) {
+                notFull.signal();
+            }
         } finally {
             putLock.unlock();
         }
@@ -302,6 +304,7 @@ public class DynamicLinkedBlockingQueue<E> extends AbstractQueue<E>
              * signalled if it ever changes from capacity. Similarly
              * for all other uses of count in other wait guards.
              */
+            //update
             while (count.get() >= capacity) {
                 notFull.await();
             }
@@ -335,6 +338,7 @@ public class DynamicLinkedBlockingQueue<E> extends AbstractQueue<E>
         final AtomicInteger count = this.count;
         putLock.lockInterruptibly();
         try {
+            //update
             while (count.get() >= capacity) {
                 if (nanos <= 0)
                     return false;
@@ -366,7 +370,8 @@ public class DynamicLinkedBlockingQueue<E> extends AbstractQueue<E>
     public boolean offer(E e) {
         if (e == null) throw new NullPointerException();
         final AtomicInteger count = this.count;
-        if (count.get() == capacity)
+        //update
+        if (count.get() >= capacity)
             return false;
         int c = -1;
         Node<E> node = new Node(e);
