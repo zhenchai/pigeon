@@ -113,14 +113,19 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
 
     public RequestThreadPoolProcessor(ServerConfig serverConfig) {
         configManager.registerConfigChangeListener(new InnerConfigChangeListener());
-        if ("server".equals(poolStrategy)) {
-            requestProcessThreadPool = new DynamicThreadPool("Pigeon-Server-Request-Processor-"
-                    + serverConfig.getProtocol() + "-" + serverConfig.getActualPort(), serverConfig.getCorePoolSize(),
-                    serverConfig.getMaxPoolSize(), serverConfig.getWorkQueueSize());
-        } else {
-            sharedRequestProcessThreadPool = new DynamicThreadPool("Pigeon-Server-Request-Processor",
-                    serverConfig.getCorePoolSize(), serverConfig.getMaxPoolSize(), serverConfig.getWorkQueueSize());
-            requestProcessThreadPool = sharedRequestProcessThreadPool;
+        try {
+            if ("server".equals(poolStrategy)) {
+                requestProcessThreadPool = new DynamicThreadPool("Pigeon-Server-Request-Processor-"
+                        + serverConfig.getProtocol() + "-" + serverConfig.getActualPort(), serverConfig.getCorePoolSize(),
+                        serverConfig.getMaxPoolSize(), serverConfig.getWorkQueueSize());
+            } else {
+                sharedRequestProcessThreadPool = new DynamicThreadPool("Pigeon-Server-Request-Processor",
+                        serverConfig.getCorePoolSize(), serverConfig.getMaxPoolSize(), serverConfig.getWorkQueueSize());
+                requestProcessThreadPool = sharedRequestProcessThreadPool;
+            }
+        } catch (Throwable t) {
+            logger.error("error serverConfig args: " + serverConfig + ", please check...", t);
+            System.exit(-1);
         }
     }
 
