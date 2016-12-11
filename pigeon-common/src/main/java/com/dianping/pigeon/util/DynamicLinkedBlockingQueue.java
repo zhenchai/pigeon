@@ -86,6 +86,7 @@ public class DynamicLinkedBlockingQueue<E> extends AbstractQueue<E>
     public void setCapacity(int capacity) {
         if (capacity <= 0)
             throw new IllegalArgumentException();
+        final ReentrantLock putLock = this.putLock;
 
         int delta = capacity - this.capacity;
 
@@ -136,10 +137,7 @@ public class DynamicLinkedBlockingQueue<E> extends AbstractQueue<E>
         final ReentrantLock putLock = this.putLock;
         putLock.lock();
         try {
-            //update
-            if (count.get() < this.capacity) {
-                notFull.signal();
-            }
+            notFull.signal();
         } finally {
             putLock.unlock();
         }

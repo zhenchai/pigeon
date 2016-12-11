@@ -22,7 +22,11 @@ public class CompressHandler extends SimpleChannelHandler {
 
     private static Compress snappyCompress = CompressFactory.getSnappyCompress();
 
-    private static CodecConfig codecConfig = CodecConfigFactory.createClientConfig();
+    private CodecConfig codecConfig;
+
+    public CompressHandler(CodecConfig codecConfig) {
+        this.codecConfig = codecConfig;
+    }
 
     @Override
     public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) throws Exception {

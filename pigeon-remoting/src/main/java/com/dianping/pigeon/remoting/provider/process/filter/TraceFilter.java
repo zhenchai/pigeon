@@ -1,7 +1,5 @@
 package com.dianping.pigeon.remoting.provider.process.filter;
 
-import com.dianping.pigeon.config.ConfigManager;
-import com.dianping.pigeon.config.ConfigManagerLoader;
 import com.dianping.pigeon.remoting.common.monitor.trace.ProviderMonitorData;
 import com.dianping.pigeon.remoting.common.domain.InvocationRequest;
 import com.dianping.pigeon.remoting.common.domain.InvocationResponse;
@@ -14,8 +12,6 @@ import com.dianping.pigeon.remoting.provider.domain.ProviderContext;
  *         2016/11/14  下午5:45.
  */
 public class TraceFilter implements ServiceInvocationFilter<ProviderContext> {
-
-    private static final ConfigManager configManager = ConfigManagerLoader.getConfigManager();
 
     public TraceFilter() {
     }
@@ -55,4 +51,5 @@ public class TraceFilter implements ServiceInvocationFilter<ProviderContext> {
         return response;
 
     }
+
 }

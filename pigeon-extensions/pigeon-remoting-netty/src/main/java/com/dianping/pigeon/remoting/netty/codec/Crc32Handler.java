@@ -23,7 +23,11 @@ public class Crc32Handler extends SimpleChannelHandler {
 
     private static ThreadLocal<Adler32> adler32s = new ThreadLocal<Adler32>();
 
-    private static CodecConfig codecConfig = CodecConfigFactory.createClientConfig();
+    private CodecConfig codecConfig;
+
+    public Crc32Handler(CodecConfig codecConfig) {
+        this.codecConfig = codecConfig;
+    }
 
     @Override
     public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) throws Exception {

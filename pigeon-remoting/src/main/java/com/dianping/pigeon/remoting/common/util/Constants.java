@@ -196,6 +196,11 @@ public final class Constants {
     public static final String KEY_AUTOPUBLISH_ENABLE = "pigeon.autopublish.enable";
     public static final String KEY_AUTOUNPUBLISH_ENABLE = "pigeon.autounpublish.enable";
 
+    public static final String KEY_INVOKER_TRACE_ENABLE = "pigeon.invoker.trace.enable";
+    public static final String KEY_PROVIDER_TRACE_ENABLE = "pigeon.provider.trace.enable";
+    public static final boolean DEFAULT_INVOKER_TRACE_ENABLE = true;
+    public static final boolean DEFAULT_PROVIDER_TRACE_ENABLE = true;
+
     public static final String KEY_LOG_PARAMETER = "pigeon.log.parameters";
     public static final String Key_REPLY_MANUAL = "pigeon.provider.reply.manual";
     public static final String KEY_MONITOR_ENABLE = "pigeon.monitor.enabled";

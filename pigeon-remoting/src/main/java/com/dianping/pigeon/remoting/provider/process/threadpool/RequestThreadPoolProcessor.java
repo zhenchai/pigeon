@@ -14,6 +14,7 @@ import com.dianping.pigeon.remoting.common.monitor.trace.ApplicationKey;
 import com.dianping.pigeon.remoting.common.monitor.trace.MethodKey;
 import com.dianping.pigeon.remoting.common.codec.json.JacksonSerializer;
 import com.dianping.pigeon.remoting.common.monitor.trace.MonitorDataFactory;
+import com.dianping.pigeon.remoting.common.util.Constants;
 import com.dianping.pigeon.remoting.provider.config.*;
 import com.dianping.pigeon.remoting.provider.publish.ServicePublisher;
 import com.dianping.pigeon.util.CollectionUtils;
@@ -46,6 +47,8 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
     private static final Logger logger = LoggerLoader.getLogger(RequestThreadPoolProcessor.class);
 
     private static final ConfigManager configManager = ConfigManagerLoader.getConfigManager();
+
+    private static volatile boolean isTrace = true;
 
     private static final String poolStrategy = configManager.getStringValue(
             "pigeon.provider.pool.strategy", "shared");
@@ -126,6 +129,8 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
     }
 
     private static void init() throws Throwable {
+        isTrace = configManager.getBooleanValue(Constants.KEY_PROVIDER_TRACE_ENABLE, Constants.DEFAULT_PROVIDER_TRACE_ENABLE);
+
         String poolConfig = configManager.getStringValue(KEY_PROVIDER_POOL_CONFIG, "");
         refreshPoolConfig(poolConfig);
 
@@ -231,7 +236,7 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
     }
 
     private void doMonitorData(InvocationRequest request, ProviderContext providerContext) {
-        if (configManager.getBooleanValue("pigeon.provider.trace.enable", true)) {
+        if (isTrace) {
             if (MessageType.isService((byte) request.getMessageType())) {
 
                 ProviderMonitorData monitorData = MonitorDataFactory.newProviderMonitorData(new ApplicationKey(request.getApp()),
@@ -644,6 +649,11 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
                     } catch (RuntimeException e) {
                         logger.error("error while changing shared pool, key:" + key + ", value:" + value, e);
                     }
+                }
+            } else if (key.endsWith(Constants.KEY_PROVIDER_TRACE_ENABLE)) {
+                try {
+                    isTrace = Boolean.valueOf(value);
+                } catch (RuntimeException e) {
                 }
             } else {
                 for (String k : methodPoolConfigKeys.keySet()) {

@@ -1,5 +1,6 @@
 package com.dianping.pigeon.remoting.invoker.process.filter;
 
+import com.dianping.pigeon.config.ConfigChangeListener;
 import com.dianping.pigeon.config.ConfigManager;
 import com.dianping.pigeon.config.ConfigManagerLoader;
 import com.dianping.pigeon.monitor.Monitor;
@@ -15,6 +16,7 @@ import com.dianping.pigeon.remoting.common.domain.InvocationResponse;
 import com.dianping.pigeon.remoting.common.domain.MessageType;
 import com.dianping.pigeon.remoting.common.monitor.trace.MonitorDataFactory;
 import com.dianping.pigeon.remoting.common.process.ServiceInvocationHandler;
+import com.dianping.pigeon.remoting.common.util.Constants;
 import com.dianping.pigeon.remoting.invoker.config.InvokerConfig;
 import com.dianping.pigeon.remoting.invoker.domain.InvokerContext;
 import org.apache.commons.lang.StringUtils;
@@ -31,12 +33,16 @@ public class TraceFilter extends InvocationInvokeFilter {
 
     private static final ConfigManager configManager = ConfigManagerLoader.getConfigManager();
 
+    private volatile boolean isTrace = true;
+
     public TraceFilter() {
+        isTrace = configManager.getBooleanValue(Constants.KEY_INVOKER_TRACE_ENABLE, Constants.DEFAULT_INVOKER_TRACE_ENABLE);
+        configManager.registerConfigChangeListener(new InnerConfigChangeListener());
     }
 
     @Override
     public InvocationResponse invoke(ServiceInvocationHandler handler, InvokerContext invocationContext) throws Throwable {
-        if (!configManager.getBooleanValue("pigeon.invoker.trace.enable", true)) {
+        if (!isTrace) {
             return handler.handle(invocationContext);
         }
 
@@ -94,5 +100,31 @@ public class TraceFilter extends InvocationInvokeFilter {
         }
 
         return response;
+    }
+
+    private class InnerConfigChangeListener implements ConfigChangeListener {
+
+        @Override
+        public void onKeyUpdated(String key, String value) {
+            if (key.endsWith(Constants.KEY_INVOKER_TRACE_ENABLE)) {
+                try {
+                    isTrace = Boolean.valueOf(value);
+                } catch (RuntimeException e) {
+                }
+            }
+        }
+
+        @Override
+        public void onKeyAdded(String key, String value) {
+            // TODO Auto-generated method stub
+
+        }
+
+        @Override
+        public void onKeyRemoved(String key) {
+            // TODO Auto-generated method stub
+
+        }
+
     }
 }
