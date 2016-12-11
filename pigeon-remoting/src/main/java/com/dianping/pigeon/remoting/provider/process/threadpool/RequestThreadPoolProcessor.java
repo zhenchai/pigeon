@@ -612,35 +612,27 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
             } else if (StringUtils.isNotBlank(sharedPoolCoreSizeKey) && key.endsWith(sharedPoolCoreSizeKey)) {
                 int size = Integer.valueOf(value);
                 if (size != sharedRequestProcessThreadPool.getExecutor().getCorePoolSize() && size >= 0) {
+                    DynamicThreadPool oldPool = sharedRequestProcessThreadPool;
                     try {
-                        DynamicThreadPool oldPool = sharedRequestProcessThreadPool;
-                        try {
-                            oldPool.setCorePoolSize(size);
-                        } catch (Throwable e) {
-                            logger.warn("error when shutting down old shared pool", e);
-                        }
-                        if (logger.isInfoEnabled()) {
-                            logger.info("changed shared pool, key:" + key + ", value:" + value);
-                        }
-                    } catch (RuntimeException e) {
-                        logger.error("error while changing shared pool, key:" + key + ", value:" + value, e);
+                        oldPool.setCorePoolSize(size);
+                    } catch (Throwable e) {
+                        logger.warn("error while changing shared pool, key:" + key + ", value:" + value, e);
+                    }
+                    if (logger.isInfoEnabled()) {
+                        logger.info("changed shared pool, key:" + key + ", value:" + value);
                     }
                 }
             } else if (StringUtils.isNotBlank(sharedPoolMaxSizeKey) && key.endsWith(sharedPoolMaxSizeKey)) {
                 int size = Integer.valueOf(value);
                 if (size != sharedRequestProcessThreadPool.getExecutor().getMaximumPoolSize() && size >= 0) {
+                    DynamicThreadPool oldPool = sharedRequestProcessThreadPool;
                     try {
-                        DynamicThreadPool oldPool = sharedRequestProcessThreadPool;
-                        try {
-                            oldPool.setMaximumPoolSize(size);
-                        } catch (Throwable e) {
-                            logger.warn("error when shutting down old shared pool", e);
-                        }
-                        if (logger.isInfoEnabled()) {
-                            logger.info("changed shared pool, key:" + key + ", value:" + value);
-                        }
-                    } catch (RuntimeException e) {
-                        logger.error("error while changing shared pool, key:" + key + ", value:" + value, e);
+                        oldPool.setMaximumPoolSize(size);
+                    } catch (Throwable e) {
+                        logger.warn("error while changing shared pool, key:" + key + ", value:" + value, e);
+                    }
+                    if (logger.isInfoEnabled()) {
+                        logger.info("changed shared pool, key:" + key + ", value:" + value);
                     }
                 }
             } else if (StringUtils.isNotBlank(sharedPoolQueueSizeKey) && key.endsWith(sharedPoolQueueSizeKey)) {
@@ -649,50 +641,42 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
                 int queueSize = oldPool.getWorkQueueCapacity();
                 if (size != queueSize && size >= 0) {
                     try {
-                        try {
-                            oldPool.setWorkQueueCapacity(size);
-                        } catch (Throwable e) {
-                            logger.warn("error when shutting down old shared pool", e);
-                        }
-                        if (logger.isInfoEnabled()) {
-                            logger.info("changed shared pool, key:" + key + ", value:" + value);
-                        }
-                    } catch (RuntimeException e) {
-                        logger.error("error while changing shared pool, key:" + key + ", value:" + value, e);
+                        oldPool.setWorkQueueCapacity(size);
+                    } catch (Throwable e) {
+                        logger.warn("error while changing shared pool, key:" + key + ", value:" + value, e);
+                    }
+                    if (logger.isInfoEnabled()) {
+                        logger.info("changed shared pool, key:" + key + ", value:" + value);
                     }
                 }
             } else {
                 for (String k : methodPoolConfigKeys.keySet()) {
                     String v = methodPoolConfigKeys.get(k);
                     if (key.endsWith(v)) {
-                        try {
-                            String serviceKey = k;
-                            if (StringUtils.isNotBlank(serviceKey)) {
-                                DynamicThreadPool pool = null;
-                                if (!CollectionUtils.isEmpty(methodThreadPools)) {
-                                    pool = methodThreadPools.get(serviceKey);
-                                    int actives = Integer.valueOf(value);
-                                    if (pool != null && actives != pool.getExecutor().getMaximumPoolSize()
-                                            && actives >= 0) {
-                                        int coreSize = (int) (actives / DEFAULT_POOL_RATIO_CORE) > 0 ? (int) (actives / DEFAULT_POOL_RATIO_CORE)
-                                                : actives;
-                                        int queueSize = actives;
-                                        int maxSize = actives;
-                                        try {
-                                            pool.setCorePoolSize(coreSize);
-                                            pool.setMaximumPoolSize(maxSize);
-                                            pool.setWorkQueueCapacity(queueSize);
-                                        } catch (Throwable e) {
-                                            logger.warn("error when shuting down old method pool", e);
-                                        }
-                                        if (logger.isInfoEnabled()) {
-                                            logger.info("changed method pool, key:" + serviceKey + ", value:" + actives);
-                                        }
+                        String serviceKey = k;
+                        if (StringUtils.isNotBlank(serviceKey)) {
+                            DynamicThreadPool pool = null;
+                            if (!CollectionUtils.isEmpty(methodThreadPools)) {
+                                pool = methodThreadPools.get(serviceKey);
+                                int actives = Integer.valueOf(value);
+                                if (pool != null && actives != pool.getExecutor().getMaximumPoolSize()
+                                        && actives >= 0) {
+                                    int coreSize = (int) (actives / DEFAULT_POOL_RATIO_CORE) > 0 ? (int) (actives / DEFAULT_POOL_RATIO_CORE)
+                                            : actives;
+                                    int queueSize = actives;
+                                    int maxSize = actives;
+                                    try {
+                                        pool.setCorePoolSize(coreSize);
+                                        pool.setMaximumPoolSize(maxSize);
+                                        pool.setWorkQueueCapacity(queueSize);
+                                    } catch (Throwable e) {
+                                        logger.warn("error while changing method pool, key:" + key + ", value:" + value, e);
+                                    }
+                                    if (logger.isInfoEnabled()) {
+                                        logger.info("changed method pool, key:" + serviceKey + ", value:" + actives);
                                     }
                                 }
                             }
-                        } catch (RuntimeException e) {
-                            logger.error("error while changing method pool, key:" + key + ", value:" + value, e);
                         }
                     }
                 }
