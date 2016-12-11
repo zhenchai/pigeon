@@ -61,23 +61,23 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
     private static final int SLOW_POOL_QUEUESIZE = configManager.getIntValue(
             "pigeon.provider.pool.slow.queuesize", 500);
 
-    private static DynamicThreadPool slowRequestProcessThreadPool = new DynamicThreadPool(
+    private static final DynamicThreadPool slowRequestProcessThreadPool = new DynamicThreadPool(
             "Pigeon-Server-Slow-Request-Processor", SLOW_POOL_CORESIZE, SLOW_POOL_MAXSIZE,
             SLOW_POOL_QUEUESIZE);
 
     private DynamicThreadPool requestProcessThreadPool = null;
 
-    private static ConcurrentMap<String, DynamicThreadPool> methodThreadPools = new ConcurrentHashMap<>();
+    private static final ConcurrentMap<String, DynamicThreadPool> methodThreadPools = new ConcurrentHashMap<>();
 
-    private static ConcurrentMap<String, DynamicThreadPool> serviceThreadPools = new ConcurrentHashMap<>();
+    private static final ConcurrentMap<String, DynamicThreadPool> serviceThreadPools = new ConcurrentHashMap<>();
 
-    private static int DEFAULT_POOL_ACTIVES = configManager.getIntValue(
+    private static final int DEFAULT_POOL_ACTIVES = configManager.getIntValue(
             "pigeon.provider.pool.actives", 60);
 
-    private static float DEFAULT_POOL_RATIO_CORE = configManager.getFloatValue(
+    private static volatile float DEFAULT_POOL_RATIO_CORE = configManager.getFloatValue(
             "pigeon.provider.pool.ratio.coresize", 3f);
 
-    private static float cancelRatio = configManager.getFloatValue(
+    private static volatile float cancelRatio = configManager.getFloatValue(
             "pigeon.timeout.cancelratio", 1f);
 
     private static Map<String, String> methodPoolConfigKeys = new HashMap<String, String>();
@@ -88,7 +88,7 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
 
     private static String sharedPoolQueueSizeKey = null;
 
-    private static boolean enableSlowPool = configManager.getBooleanValue(
+    private static volatile boolean enableSlowPool = configManager.getBooleanValue(
             "pigeon.provider.pool.slow.enable", true);
 
     private static final JacksonSerializer jacksonSerializer = new JacksonSerializer();
