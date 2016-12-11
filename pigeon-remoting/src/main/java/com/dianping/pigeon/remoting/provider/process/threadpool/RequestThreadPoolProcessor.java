@@ -615,11 +615,9 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
                     DynamicThreadPool oldPool = sharedRequestProcessThreadPool;
                     try {
                         oldPool.setCorePoolSize(size);
+                        logger.info("changed shared pool, key:" + key + ", value:" + value);
                     } catch (Throwable e) {
                         logger.warn("error while changing shared pool, key:" + key + ", value:" + value, e);
-                    }
-                    if (logger.isInfoEnabled()) {
-                        logger.info("changed shared pool, key:" + key + ", value:" + value);
                     }
                 }
             } else if (StringUtils.isNotBlank(sharedPoolMaxSizeKey) && key.endsWith(sharedPoolMaxSizeKey)) {
@@ -628,11 +626,9 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
                     DynamicThreadPool oldPool = sharedRequestProcessThreadPool;
                     try {
                         oldPool.setMaximumPoolSize(size);
+                        logger.info("changed shared pool, key:" + key + ", value:" + value);
                     } catch (Throwable e) {
                         logger.warn("error while changing shared pool, key:" + key + ", value:" + value, e);
-                    }
-                    if (logger.isInfoEnabled()) {
-                        logger.info("changed shared pool, key:" + key + ", value:" + value);
                     }
                 }
             } else if (StringUtils.isNotBlank(sharedPoolQueueSizeKey) && key.endsWith(sharedPoolQueueSizeKey)) {
@@ -642,11 +638,9 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
                 if (size != queueSize && size >= 0) {
                     try {
                         oldPool.setWorkQueueCapacity(size);
+                        logger.info("changed shared pool, key:" + key + ", value:" + value);
                     } catch (Throwable e) {
                         logger.warn("error while changing shared pool, key:" + key + ", value:" + value, e);
-                    }
-                    if (logger.isInfoEnabled()) {
-                        logger.info("changed shared pool, key:" + key + ", value:" + value);
                     }
                 }
             } else {
@@ -669,11 +663,9 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
                                         pool.setCorePoolSize(coreSize);
                                         pool.setMaximumPoolSize(maxSize);
                                         pool.setWorkQueueCapacity(queueSize);
+                                        logger.info("changed method pool, key:" + serviceKey + ", value:" + actives);
                                     } catch (Throwable e) {
                                         logger.warn("error while changing method pool, key:" + key + ", value:" + value, e);
-                                    }
-                                    if (logger.isInfoEnabled()) {
-                                        logger.info("changed method pool, key:" + serviceKey + ", value:" + actives);
                                     }
                                 }
                             }
