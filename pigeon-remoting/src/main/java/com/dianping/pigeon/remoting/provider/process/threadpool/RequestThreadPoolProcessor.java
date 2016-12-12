@@ -107,7 +107,7 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
     static {
         if (configManager.getBooleanValue(KEY_PROVIDER_POOL_CONFIG_ENABLE, false)) {
             try {
-                init();
+                initPool();
             } catch (Throwable t) {
                 throw new RuntimeException("failed to init pool config! please check!", t);
             }
@@ -115,6 +115,8 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
     }
 
     public RequestThreadPoolProcessor(ServerConfig serverConfig) {
+        isTrace = configManager.getBooleanValue(Constants.KEY_PROVIDER_TRACE_ENABLE, Constants.DEFAULT_PROVIDER_TRACE_ENABLE);
+
         configManager.registerConfigChangeListener(new InnerConfigChangeListener());
         try {
             if ("server".equals(poolStrategy)) {
@@ -132,8 +134,7 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
         }
     }
 
-    private static void init() throws Throwable {
-        isTrace = configManager.getBooleanValue(Constants.KEY_PROVIDER_TRACE_ENABLE, Constants.DEFAULT_PROVIDER_TRACE_ENABLE);
+    private static void initPool() throws Throwable {
         String poolInfo = configManager.getStringValue(KEY_PROVIDER_POOL_CONFIG, "");
         refreshPool(poolInfo);
         String apiPoolConfig = configManager.getStringValue(KEY_PROVIDER_POOL_API_CONFIG, "");
@@ -572,7 +573,7 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
             if (key.endsWith(KEY_PROVIDER_POOL_CONFIG_ENABLE)) {
                 if ("true".equals(value)) {
                     try {
-                        init();
+                        initPool();
                     } catch (Throwable t) {
                         logger.warn("failed to refresh pool config, fallback to previous settings, please check...", t);
                     }
