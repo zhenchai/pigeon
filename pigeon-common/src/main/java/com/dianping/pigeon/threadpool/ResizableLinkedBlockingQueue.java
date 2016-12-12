@@ -566,6 +566,27 @@ public class ResizableLinkedBlockingQueue<E> extends AbstractQueue<E>
             putLock.unlock();
         }
 
+        // todo 这块参考ThreadPoolExecutor的setCorePoolSize
+        /*if (capacity <= 0) return false;
+
+        int delta = capacity - this.capacity;
+        this.capacity = capacity;
+
+        final ReentrantLock putLock = this.putLock;
+        putLock.lock();
+        try {
+            if (delta > 0) {
+                // 双边不等式问题依然存在
+                // int c = count.get();
+                if ((count.get() + delta) >= this.capacity && count.get() < this.capacity) {
+                    notFull.signal();
+                }
+            }
+            return true;
+        } finally {
+            putLock.unlock();
+        }*/
+
         // todo 第二种方式:加上fully大锁
         /*fullyLock();
         try {
