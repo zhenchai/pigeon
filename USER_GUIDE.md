@@ -913,7 +913,7 @@ pool="poolM" useSharedPool="false" ref="testService">
 
 a、首先需要在应用lion里配置开关打开，例如xxx-service项目要配置以下lion配置：
 
-xxx-service.pigeon.provider.pool.config.enable=true
+xxx-service.pigeon.provider.pool.config.switch=true
 
 b、配置应用的自定义pool(与方法1中的pool无关)，添加配置项：
 

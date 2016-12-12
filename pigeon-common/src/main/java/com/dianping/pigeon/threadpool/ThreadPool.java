@@ -10,12 +10,12 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 public interface ThreadPool {
 
-	public void execute(Runnable run);
+    void execute(Runnable run);
 
-	public <T> Future<T> submit(Callable<T> call);
+    <T> Future<T> submit(Callable<T> call);
 
-	public Future<?> submit(Runnable run);
+    Future<?> submit(Runnable run);
 
-	public ThreadPoolExecutor getExecutor();
+    ThreadPoolExecutor getExecutor();
 
 }
