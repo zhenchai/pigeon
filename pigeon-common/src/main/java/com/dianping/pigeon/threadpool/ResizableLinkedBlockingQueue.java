@@ -318,7 +318,7 @@ public class ResizableLinkedBlockingQueue<E> extends AbstractQueue<E>
      * because it may be the case that another thread is about to
      * insert or remove an element.
      */
-    public int remainingCapacity() { // todo 有可能为负数
+    public int remainingCapacity() {
         return capacity - count.get();
     }
 
@@ -347,7 +347,6 @@ public class ResizableLinkedBlockingQueue<E> extends AbstractQueue<E>
              * signalled if it ever changes from capacity. Similarly
              * for all other uses of count in other wait guards.
              */
-            // todo == to >= 即队列已满或超出
             while (count.get() >= capacity) {
                 notFull.await();
             }
@@ -381,7 +380,6 @@ public class ResizableLinkedBlockingQueue<E> extends AbstractQueue<E>
         final AtomicInteger count = this.count;
         putLock.lockInterruptibly();
         try {
-            // todo == to >= 即队列已满或超出
             while (count.get() >= capacity) {
                 if (nanos <= 0)
                     return false;
@@ -413,7 +411,6 @@ public class ResizableLinkedBlockingQueue<E> extends AbstractQueue<E>
     public boolean offer(E e) {
         if (e == null) throw new NullPointerException();
         final AtomicInteger count = this.count;
-        //todo == to >= 即队列已满或超出
         if (count.get() >= capacity)
             return false;
         int c = -1;
@@ -453,7 +450,7 @@ public class ResizableLinkedBlockingQueue<E> extends AbstractQueue<E>
         } finally {
             takeLock.unlock();
         }
-        if (c == capacity)
+        if (c >= capacity)
             signalNotFull();
         return x;
     }
@@ -478,7 +475,7 @@ public class ResizableLinkedBlockingQueue<E> extends AbstractQueue<E>
         } finally {
             takeLock.unlock();
         }
-        if (c == capacity)
+        if (c >= capacity)
             signalNotFull();
         return x;
     }
@@ -501,7 +498,7 @@ public class ResizableLinkedBlockingQueue<E> extends AbstractQueue<E>
         } finally {
             takeLock.unlock();
         }
-        if (c == capacity)
+        if (c >= capacity)
             signalNotFull();
         return x;
     }
@@ -533,7 +530,7 @@ public class ResizableLinkedBlockingQueue<E> extends AbstractQueue<E>
         trail.next = p.next;
         if (last == p)
             last = trail;
-        if (count.getAndDecrement() == capacity)
+        if (count.getAndDecrement() >= capacity)
             notFull.signal();
     }
 
@@ -541,69 +538,23 @@ public class ResizableLinkedBlockingQueue<E> extends AbstractQueue<E>
         return capacity;
     }
 
-    public boolean setCapacity(int capacity) {
-        if (capacity <= 0 || this.capacity == capacity) return false;
+    public void setCapacity(int capacity) {
+        if (capacity <= 0)
+            throw new IllegalArgumentException();
 
-        // todo 第一种方式:可以take但是不能put,因此加上putLock就行
-        // todo take操作中,用到了capacity的比较判断逻辑,然后会去拿putLock释放notFull的信号
-        // todo 但put和offer醒来拿到putLock之后,还会去判断是否已满,因此应该不会出现超放最大capacity的情况
+        if (this.capacity == capacity)
+            return;
+
         final ReentrantLock putLock = this.putLock;
         putLock.lock();
         try {
-            //todo !!!!!!如果只有put锁,怎么保证双边不等式的原子性呢?
-            //todo 不过即使双边不等式的原子性判断出错,释放了错误的notFull信号,put和offer醒来后,都会再次判断是否已满,应该问题不大
-            if (this.capacity < capacity && count.get() >= this.capacity && count.get() < capacity) {
-                // todo 队列容量被改大,原先满需要通知不满
+            if (this.capacity < capacity && count.get() >= this.capacity) {
                 notFull.signal();
-            } else if (this.capacity > capacity) {
-                // todo 队列容量被改小
-                // todo 不需要通知不空或超满
-                // todo review一下
             }
             this.capacity = capacity;
-            return true;
         } finally {
             putLock.unlock();
         }
-
-        // todo 这块参考ThreadPoolExecutor的setCorePoolSize
-        /*if (capacity <= 0) return false;
-
-        int delta = capacity - this.capacity;
-        this.capacity = capacity;
-
-        final ReentrantLock putLock = this.putLock;
-        putLock.lock();
-        try {
-            if (delta > 0) {
-                // 双边不等式问题依然存在
-                // int c = count.get();
-                if ((count.get() + delta) >= this.capacity && count.get() < this.capacity) {
-                    notFull.signal();
-                }
-            }
-            return true;
-        } finally {
-            putLock.unlock();
-        }*/
-
-        // todo 第二种方式:加上fully大锁
-        /*fullyLock();
-        try {
-            int c = count.get();
-            if (this.capacity < capacity && c >= this.capacity && c < capacity) {
-                // todo 队列容量被改大,原先满需要通知不满
-                notFull.signal();
-            } else if (this.capacity > capacity) {
-                // todo 队列容量被改小
-                // todo 不需要通知不空或超满
-                // todo review一下
-            }
-            this.capacity = capacity;
-            return true;
-        } finally {
-            fullyUnlock();
-        }*/
     }
 
     /**
@@ -774,7 +725,6 @@ public class ResizableLinkedBlockingQueue<E> extends AbstractQueue<E>
             }
             head = last;
             // assert head.item == null && head.next == null;
-            // todo == to >= 即原先队列已满或超出,现在被清空
             if (count.getAndSet(0) >= capacity)
                 notFull.signal();
         } finally {
@@ -826,10 +776,7 @@ public class ResizableLinkedBlockingQueue<E> extends AbstractQueue<E>
                 if (i > 0) {
                     // assert h.item == null;
                     head = h;
-                    // todo == to >= 即原先队列已满或超出,然后再加上新的队列未满的判断,双边不等式的原子性如何保证?
-                    // todo 这边有取锁(takeLock),在全部取出之前,
-                    // todo count大小超过容量大小,因此不可能再put,所以可以保证取完后的count是准确的
-                    signalNotFull = (count.getAndAdd(-i) >= capacity && count.get() < capacity);
+                    signalNotFull = (count.getAndAdd(-i) >= capacity);
                 }
             }
         } finally {

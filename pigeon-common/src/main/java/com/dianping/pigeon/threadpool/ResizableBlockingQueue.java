@@ -9,5 +9,5 @@ public interface ResizableBlockingQueue<E> extends BlockingQueue<E> {
 
     int getCapacity();
 
-    boolean setCapacity(int capacity);
+    void setCapacity(int capacity);
 }
