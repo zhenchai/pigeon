@@ -92,7 +92,7 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
             "pigeon.provider.pool.slow.enable", true);
 
     private static final JacksonSerializer jacksonSerializer = new JacksonSerializer();
-    private static final String KEY_PROVIDER_POOL_CONFIG_ENABLE = "pigeon.provider.pool.config.enable";
+    private static final String KEY_PROVIDER_POOL_CONFIG_ENABLE = "pigeon.provider.pool.config.switch";
     private static final String KEY_PROVIDER_POOL_CONFIG = "pigeon.provider.pool.config";
     private static final String KEY_PROVIDER_POOL_API_CONFIG = "pigeon.provider.pool.api.config";
 
