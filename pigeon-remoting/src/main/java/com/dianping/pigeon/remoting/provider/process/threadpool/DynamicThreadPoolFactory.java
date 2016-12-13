@@ -39,7 +39,7 @@ public class DynamicThreadPoolFactory {
                 threadPool = dynamicThreadPools.get(poolConfig);
                 if (threadPool == null) {
                     try {
-                        threadPool = new DynamicThreadPool("Pigeon-Server-Request-Processor-" + poolConfig,
+                        threadPool = new DynamicThreadPool("Pigeon-Server-Request-Processor-" + poolConfig.getPoolName(),
                                 poolConfig.getCorePoolSize(), poolConfig.getMaxPoolSize(),
                                 poolConfig.getWorkQueueSize());
                         dynamicThreadPools.put(poolConfig, threadPool);
