@@ -14,6 +14,7 @@ import com.dianping.pigeon.config.ConfigManager;
 import com.dianping.pigeon.config.ConfigManagerLoader;
 import com.dianping.pigeon.remoting.common.util.Constants;
 import com.dianping.pigeon.remoting.common.util.ServiceConfigUtils;
+import org.springframework.aop.support.AopUtils;
 
 public class ProviderConfig<T> {
 
@@ -103,7 +104,7 @@ public class ProviderConfig<T> {
     }
 
     public ProviderConfig(T service) {
-        this((Class<T>) ServiceConfigUtils.getServiceInterface(service.getClass()), service);
+        this((Class<T>) ServiceConfigUtils.getServiceInterface(AopUtils.getTargetClass(service)), service);
     }
 
     public String getVersion() {
