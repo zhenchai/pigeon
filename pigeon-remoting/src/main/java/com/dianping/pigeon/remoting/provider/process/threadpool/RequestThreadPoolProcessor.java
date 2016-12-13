@@ -50,9 +50,6 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
 
     private static volatile boolean isTrace = true;
 
-    private static final String poolStrategy = configManager.getStringValue(
-            "pigeon.provider.pool.strategy", "shared");
-
     private static DynamicThreadPool sharedRequestProcessThreadPool = null;
 
     private static final int SLOW_POOL_CORESIZE = configManager.getIntValue(
@@ -67,8 +64,6 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
     private static final DynamicThreadPool slowRequestProcessThreadPool = new DynamicThreadPool(
             "Pigeon-Server-Slow-Request-Processor", SLOW_POOL_CORESIZE, SLOW_POOL_MAXSIZE,
             SLOW_POOL_QUEUESIZE);
-
-    private DynamicThreadPool requestProcessThreadPool = null;
 
     private static final ConcurrentMap<String, DynamicThreadPool> methodThreadPools = new ConcurrentHashMap<>();
 
@@ -114,24 +109,9 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
         }
     }
 
-    public RequestThreadPoolProcessor(ServerConfig serverConfig) {
+    public RequestThreadPoolProcessor() {
         isTrace = configManager.getBooleanValue(Constants.KEY_PROVIDER_TRACE_ENABLE, Constants.DEFAULT_PROVIDER_TRACE_ENABLE);
-
         configManager.registerConfigChangeListener(new InnerConfigChangeListener());
-        try {
-            if ("server".equals(poolStrategy)) {
-                requestProcessThreadPool = new DynamicThreadPool("Pigeon-Server-Request-Processor-"
-                        + serverConfig.getProtocol() + "-" + serverConfig.getActualPort(), serverConfig.getCorePoolSize(),
-                        serverConfig.getMaxPoolSize(), serverConfig.getWorkQueueSize());
-            } else {
-                sharedRequestProcessThreadPool = new DynamicThreadPool("Pigeon-Server-Request-Processor",
-                        serverConfig.getCorePoolSize(), serverConfig.getMaxPoolSize(), serverConfig.getWorkQueueSize());
-                requestProcessThreadPool = sharedRequestProcessThreadPool;
-            }
-        } catch (Throwable t) {
-            logger.error("error serverConfig args: " + serverConfig + ", please check...", t);
-            System.exit(-1);
-        }
     }
 
     private static void initPool() throws Throwable {
@@ -301,11 +281,7 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
             if (enableSlowPool && requestTimeoutListener.isSlowRequest(request)) {
                 pool = slowRequestProcessThreadPool;
             } else {
-                if ("server".equals(poolStrategy)) {
-                    pool = requestProcessThreadPool;
-                } else {
-                    pool = sharedRequestProcessThreadPool;
-                }
+                pool = sharedRequestProcessThreadPool;
             }
         }
 
@@ -339,11 +315,7 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
         Set<String> keys = Sets.newHashSet();
         StringBuilder stats = new StringBuilder();
 
-        if ("server".equals(poolStrategy)) {
-            stats.append("[server=").append(getThreadPoolStatistics(requestProcessThreadPool)).append("]");
-        } else {
-            stats.append("[shared=").append(getThreadPoolStatistics(sharedRequestProcessThreadPool)).append("]");
-        }
+        stats.append("[shared=").append(getThreadPoolStatistics(sharedRequestProcessThreadPool)).append("]");
         stats.append("[slow=").append(getThreadPoolStatistics(slowRequestProcessThreadPool)).append("]");
 
         // spring poolConfig
@@ -407,7 +379,7 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
     }
 
     private boolean needStandalonePool(ProviderConfig<?> providerConfig) {
-        return !providerConfig.isUseSharedPool() || "method".equals(poolStrategy);
+        return !providerConfig.isUseSharedPool();
     }
 
     @Override
@@ -534,20 +506,26 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
 
     @Override
     public ThreadPool getRequestProcessThreadPool() {
-        ThreadPool pool;
-
-        if ("server".equals(poolStrategy)) {
-            pool = requestProcessThreadPool;
-        } else {
-            pool = sharedRequestProcessThreadPool;
-        }
-
-        return pool;
+        return sharedRequestProcessThreadPool;
     }
 
     @Override
     public void doStart() {
-
+        synchronized (RequestThreadPoolProcessor.class) {
+            try {
+                if (sharedRequestProcessThreadPool == null) {
+                    sharedRequestProcessThreadPool = new DynamicThreadPool("Pigeon-Server-Request-Processor",
+                            serverConfig.getCorePoolSize(), serverConfig.getMaxPoolSize(), serverConfig.getWorkQueueSize());
+                } else {
+                    sharedRequestProcessThreadPool.setCorePoolSize(serverConfig.getCorePoolSize());
+                    sharedRequestProcessThreadPool.setMaximumPoolSize(serverConfig.getMaxPoolSize());
+                    sharedRequestProcessThreadPool.setWorkQueueCapacity(serverConfig.getWorkQueueSize());
+                }
+            } catch (Throwable t) {
+                logger.error("error serverConfig args: " + serverConfig + ", please check...", t);
+                System.exit(-1);
+            }
+        }
     }
 
     public static Map<String, String> getMethodPoolConfigKeys() {

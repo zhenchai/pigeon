@@ -58,16 +58,6 @@ public final class ProviderBootStrap {
             Runtime.getRuntime().addShutdownHook(shutdownHook);
             ServerConfig config = new ServerConfig();
             config.setProtocol(Constants.PROTOCOL_HTTP);
-            String poolStrategy = ConfigManagerLoader.getConfigManager().getStringValue("pigeon.provider.pool.strategy",
-                    "shared");
-            if ("server".equals(poolStrategy)) {
-                int corePoolSize = configManager.getIntValue("pigeon.provider.http.corePoolSize", 5);
-                int maxPoolSize = configManager.getIntValue("pigeon.provider.http.maxPoolSize", 300);
-                int workQueueSize = configManager.getIntValue("pigeon.provider.http.workQueueSize", 300);
-                config.setCorePoolSize(corePoolSize);
-                config.setMaxPoolSize(maxPoolSize);
-                config.setWorkQueueSize(workQueueSize);
-            }
             RegistryManager.getInstance();
             List<Server> servers = ExtensionLoader.getExtensionList(Server.class);
             for (Server server : servers) {

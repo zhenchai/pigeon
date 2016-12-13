@@ -9,12 +9,13 @@ import java.util.concurrent.Future;
 import com.dianping.pigeon.remoting.common.domain.InvocationRequest;
 import com.dianping.pigeon.remoting.common.domain.InvocationResponse;
 import com.dianping.pigeon.remoting.provider.config.ProviderConfig;
+import com.dianping.pigeon.remoting.provider.config.ServerConfig;
 import com.dianping.pigeon.remoting.provider.domain.ProviderContext;
 import com.dianping.pigeon.threadpool.ThreadPool;
 
 public interface RequestProcessor {
 
-	public void start();
+	public void start(ServerConfig serverConfig);
 	
 	public void stop();
 

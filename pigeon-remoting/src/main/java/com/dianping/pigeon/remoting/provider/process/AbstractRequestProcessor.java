@@ -13,6 +13,7 @@ import com.dianping.pigeon.log.LoggerLoader;
 import com.dianping.pigeon.remoting.common.domain.InvocationRequest;
 import com.dianping.pigeon.remoting.common.domain.InvocationResponse;
 import com.dianping.pigeon.remoting.common.util.Constants;
+import com.dianping.pigeon.remoting.provider.config.ServerConfig;
 import com.dianping.pigeon.remoting.provider.domain.ProviderContext;
 import com.dianping.pigeon.remoting.provider.listener.RequestTimeoutListener;
 import com.dianping.pigeon.remoting.provider.process.threadpool.RequestThreadPoolProcessor;
@@ -31,6 +32,8 @@ public abstract class AbstractRequestProcessor implements RequestProcessor {
 
 	protected RequestTimeoutListener requestTimeoutListener;
 
+	protected volatile ServerConfig serverConfig;
+
 	public AbstractRequestProcessor() {
 	}
 
@@ -39,7 +42,8 @@ public abstract class AbstractRequestProcessor implements RequestProcessor {
 
 	public abstract void doStart();
 
-	public void start() {
+	public void start(ServerConfig serverConfig) {
+		this.serverConfig = serverConfig;
 		requestTimeoutListener = new RequestTimeoutListener(this, requestContextMap);
 		timeCheckThreadPool.execute(requestTimeoutListener);
 		doStart();
