@@ -30,11 +30,12 @@ public abstract class AbstractRequestProcessor implements RequestProcessor {
 
 	protected static final Logger logger = LoggerLoader.getLogger(RequestThreadPoolProcessor.class);
 
-	protected RequestTimeoutListener requestTimeoutListener;
+	protected RequestTimeoutListener requestTimeoutListener = new RequestTimeoutListener(this, requestContextMap);
 
 	protected volatile ServerConfig serverConfig;
 
 	public AbstractRequestProcessor() {
+		timeCheckThreadPool.execute(requestTimeoutListener);
 	}
 
 	public abstract Future<InvocationResponse> doProcessRequest(final InvocationRequest request,
@@ -44,8 +45,6 @@ public abstract class AbstractRequestProcessor implements RequestProcessor {
 
 	public void start(ServerConfig serverConfig) {
 		this.serverConfig = serverConfig;
-		requestTimeoutListener = new RequestTimeoutListener(this, requestContextMap);
-		timeCheckThreadPool.execute(requestTimeoutListener);
 		doStart();
 	}
 
