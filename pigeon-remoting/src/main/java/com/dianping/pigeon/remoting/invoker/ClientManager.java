@@ -86,7 +86,7 @@ public class ClientManager {
 		providerAvailableThreadPool.execute(this.providerAvailableListener);
 		RegistryEventListener.addListener(providerChangeListener);
 		RegistryEventListener.addListener(registryConnectionListener);
-
+		registerThreadPool.getExecutor().allowCoreThreadTimeOut(true);
 	}
 
 	public void registerClient(String serviceName, String host, int port, int weight) {
@@ -251,16 +251,8 @@ public class ClientManager {
 		long end = System.nanoTime();
 		logger.info("end to register clients for service '" + serviceName + "#" + group + "', cost:"
 				+ ((end - start) / 1000000));
-
 		return addresses;
 	}
-
-	/*
-	 * public void closeRegisterThreadPool() { if (enableRegisterConcurrently) {
-	 * enableRegisterConcurrently = false;
-	 * ThreadPoolUtils.shutdown(registerThreadPool.getExecutor());
-	 * logger.info("closed register thread pool"); } }
-	 */
 
 	public Map<String, Set<HostInfo>> getServiceHosts() {
 		return RegistryManager.getInstance().getAllReferencedServiceAddresses();

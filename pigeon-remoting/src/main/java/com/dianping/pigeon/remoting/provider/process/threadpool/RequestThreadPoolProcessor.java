@@ -107,6 +107,8 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
                 throw new RuntimeException("failed to init pool config! please check!", t);
             }
         }
+
+        slowRequestProcessThreadPool.allowCoreThreadTimeOut(true);
     }
 
     public RequestThreadPoolProcessor() {
