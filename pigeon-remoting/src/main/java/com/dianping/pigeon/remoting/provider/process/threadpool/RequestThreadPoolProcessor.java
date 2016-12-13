@@ -315,8 +315,8 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
         Set<String> keys = Sets.newHashSet();
         StringBuilder stats = new StringBuilder();
 
-        stats.append("[shared=").append(getThreadPoolStatistics(sharedRequestProcessThreadPool)).append("]");
-        stats.append("[slow=").append(getThreadPoolStatistics(slowRequestProcessThreadPool)).append("]");
+        stats.append("[shared=").append(getDynamicThreadPoolStatistics(sharedRequestProcessThreadPool)).append("]");
+        stats.append("[slow=").append(getDynamicThreadPoolStatistics(slowRequestProcessThreadPool)).append("]");
 
         // spring poolConfig
         if (!CollectionUtils.isEmpty(ServicePublisher.getAllServiceProviders())) {
@@ -346,14 +346,14 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
 
         if (!CollectionUtils.isEmpty(serviceThreadPools)) {
             for (String key : serviceThreadPools.keySet()) {
-                stats.append(",[").append(key).append("=").append(getThreadPoolStatistics(serviceThreadPools.get(key)))
+                stats.append(",[").append(key).append("=").append(getDynamicThreadPoolStatistics(serviceThreadPools.get(key)))
                         .append("]");
             }
             keys.addAll(serviceThreadPools.keySet());
         }
         if (!CollectionUtils.isEmpty(methodThreadPools)) {
             for (String key : methodThreadPools.keySet()) {
-                stats.append(",[").append(key).append("=").append(getThreadPoolStatistics(methodThreadPools.get(key)))
+                stats.append(",[").append(key).append("=").append(getDynamicThreadPoolStatistics(methodThreadPools.get(key)))
                         .append("]");
             }
             keys.addAll(methodThreadPools.keySet());
