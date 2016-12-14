@@ -107,7 +107,9 @@ public class ServiceCallbackWrapper implements Callback {
             }
         } finally {
             if (invocationContext.isDegraded()) {
-                transaction.logEvent("PigeonCall.degrade", callInterface, "");
+                if (transaction != null) {
+                    transaction.logEvent("PigeonCall.degrade", callInterface, "");
+                }
             }
             try {
                 if (response.getMessageType() == Constants.MESSAGE_TYPE_SERVICE) {
