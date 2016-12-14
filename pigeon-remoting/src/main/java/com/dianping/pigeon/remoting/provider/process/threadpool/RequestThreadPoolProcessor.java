@@ -211,7 +211,7 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
             return pool.submit(requestExecutor);
         } catch (RejectedExecutionException e) {
             requestContextMap.remove(request);
-            throw new RejectedException(getProcessorStatistics(request, pool), e);
+            throw new RejectedException(getProcessorStatistics(pool), e);
         }
 
     }
@@ -429,10 +429,13 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
     }
 
     @Override
-    public String getProcessorStatistics(InvocationRequest request, ThreadPool pool) {
-        if (pool == null) {
-            pool = selectThreadPool(request);
-        }
+    public String getProcessorStatistics(final InvocationRequest request) {
+        ThreadPool pool = selectThreadPool(request);
+        return getThreadPoolStatistics(pool);
+    }
+
+    @Override
+    public String getProcessorStatistics(final ThreadPool pool) {
         return getThreadPoolStatistics(pool);
     }
 
