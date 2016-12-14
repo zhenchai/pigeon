@@ -85,17 +85,14 @@ public class ServiceFutureImpl extends CallbackFuture implements Future {
                 InvocationResponse degradedResponse = null;
                 if (DegradationManager.INSTANCE.needFailureDegrade(invocationContext)) {
                     try {
-                        degradedResponse = DegradationFilter.degradeCall(invocationContext);
+                        degradedResponse = DegradationFilter.degradeCall(invocationContext, true);
                     } catch (Throwable t) {
                         // won't happen
                         logger.warn("failure degrade in future call type error: " + t.toString());
                     }
                 }
                 if (degradedResponse != null) {// 返回同步调用模式的失败降级结果
-                    Future future = FutureFactory.getFuture();
-                    if (future != null) {
-                        return future.get();
-                    }
+                    return degradedResponse.getReturn();
                 }
                 // not failure degrade
                 DegradationManager.INSTANCE.addFailedRequest(invocationContext, e);
@@ -114,17 +111,14 @@ public class ServiceFutureImpl extends CallbackFuture implements Future {
                 InvocationResponse degradedResponse = null;
                 if (DegradationManager.INSTANCE.needFailureDegrade(invocationContext)) {
                     try {
-                        degradedResponse = DegradationFilter.degradeCall(invocationContext);
+                        degradedResponse = DegradationFilter.degradeCall(invocationContext, true);
                     } catch (Throwable t) {
                         // won't happen
                         logger.warn("failure degrade in future call type error: " + t.toString());
                     }
                 }
                 if (degradedResponse != null) {// 返回同步调用模式的失败降级结果
-                    Future future = FutureFactory.getFuture();
-                    if (future != null) {
-                        return future.get();
-                    }
+                    return degradedResponse.getReturn();
                 }
                 // not failure degrade
                 RpcException e = ExceptionManager.INSTANCE.logRemoteCallException(addr,
