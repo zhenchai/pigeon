@@ -15,21 +15,21 @@ import com.dianping.pigeon.threadpool.ThreadPool;
 
 public interface RequestProcessor {
 
-	public void start(ServerConfig serverConfig);
-	
-	public void stop();
+    public void start(ServerConfig serverConfig);
 
-	public Future<InvocationResponse> processRequest(final InvocationRequest request, final ProviderContext providerContext);
+    public void stop();
 
-	public String getProcessorStatistics();
-	
-	public String getProcessorStatistics(final InvocationRequest request);
-	
-	public <T> void addService(ProviderConfig<T> providerConfig);
-	
-	public <T> void removeService(ProviderConfig<T> providerConfig);
-	
-	public boolean needCancelRequest(InvocationRequest request);
+    public Future<InvocationResponse> processRequest(final InvocationRequest request, final ProviderContext providerContext);
 
-	public ThreadPool getRequestProcessThreadPool();
+    public String getProcessorStatistics();
+
+    public String getProcessorStatistics(final InvocationRequest request, ThreadPool threadPool);
+
+    public <T> void addService(ProviderConfig<T> providerConfig);
+
+    public <T> void removeService(ProviderConfig<T> providerConfig);
+
+    public boolean needCancelRequest(InvocationRequest request);
+
+    public ThreadPool getRequestProcessThreadPool();
 }

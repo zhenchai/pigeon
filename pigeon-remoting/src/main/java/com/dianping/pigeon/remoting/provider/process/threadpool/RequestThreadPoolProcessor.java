@@ -204,22 +204,16 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
             }
         };
         final ThreadPool pool = selectThreadPool(request);
-        // MonitorTransaction transaction =
-        // monitor.createTransaction("PigeonRequestSubmit", "",
-        // providerContext);
-        // transaction.setStatusOk();
+
         try {
             checkRequest(pool, request);
             providerContext.getTimeline().add(new TimePoint(TimePhase.T));
             return pool.submit(requestExecutor);
         } catch (RejectedExecutionException e) {
-            // transaction.setStatusError(e);
             requestContextMap.remove(request);
-            throw new RejectedException(getProcessorStatistics(request), e);
+            throw new RejectedException(getProcessorStatistics(request, pool), e);
         }
-        // finally {
-        // transaction.complete();
-        // }
+
     }
 
     private void doMonitorData(InvocationRequest request, ProviderContext providerContext) {
@@ -435,8 +429,10 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
     }
 
     @Override
-    public String getProcessorStatistics(InvocationRequest request) {
-        ThreadPool pool = selectThreadPool(request);
+    public String getProcessorStatistics(InvocationRequest request, ThreadPool pool) {
+        if (pool == null) {
+            pool = selectThreadPool(request);
+        }
         return getThreadPoolStatistics(pool);
     }
 

@@ -153,7 +153,7 @@ public class RequestTimeoutListener implements Runnable {
                                                 .append("\r\nrequest:").append(request)
                                                 .append("\r\nprocessor stats:interrupt:").append(cancelTimeout)
                                                 .append(",")
-                                                .append(this.requestProcessor.getProcessorStatistics(request));
+                                                .append(this.requestProcessor.getProcessorStatistics(request, null));
                                         Exception te = null;
                                         Thread t = rc.getThread();
                                         if (t == null) {
