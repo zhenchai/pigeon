@@ -27,7 +27,6 @@ import com.dianping.pigeon.remoting.provider.process.ProviderProcessHandlerFacto
 import com.dianping.pigeon.remoting.provider.publish.ServicePublisher;
 import com.dianping.pigeon.util.ClassUtils;
 import com.dianping.pigeon.util.NetUtils;
-import com.dianping.pigeon.util.TimeUtils;
 import com.dianping.pigeon.util.VersionUtils;
 
 public final class ProviderBootStrap {
@@ -48,7 +47,6 @@ public final class ProviderBootStrap {
             ConfigManager configManager = ConfigManagerLoader.getConfigManager();
             ProviderProcessHandlerFactory.init();
             SerializerFactory.init();
-            TimeUtils.currentTimeMillis();
             ClassUtils.loadClasses("com.dianping.pigeon");
             Monitor monitor = MonitorLoader.getMonitor();
             if (monitor != null) {
@@ -60,16 +58,6 @@ public final class ProviderBootStrap {
             Runtime.getRuntime().addShutdownHook(shutdownHook);
             ServerConfig config = new ServerConfig();
             config.setProtocol(Constants.PROTOCOL_HTTP);
-            String poolStrategy = ConfigManagerLoader.getConfigManager().getStringValue("pigeon.provider.pool.strategy",
-                    "shared");
-            if ("server".equals(poolStrategy)) {
-                int corePoolSize = configManager.getIntValue("pigeon.provider.http.corePoolSize", 5);
-                int maxPoolSize = configManager.getIntValue("pigeon.provider.http.maxPoolSize", 300);
-                int workQueueSize = configManager.getIntValue("pigeon.provider.http.workQueueSize", 300);
-                config.setCorePoolSize(corePoolSize);
-                config.setMaxPoolSize(maxPoolSize);
-                config.setWorkQueueSize(workQueueSize);
-            }
             RegistryManager.getInstance();
             List<Server> servers = ExtensionLoader.getExtensionList(Server.class);
             for (Server server : servers) {

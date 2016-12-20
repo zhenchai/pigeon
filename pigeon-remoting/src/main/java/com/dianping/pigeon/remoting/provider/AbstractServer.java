@@ -41,10 +41,10 @@ public abstract class AbstractServer implements Server {
 		if (logger.isInfoEnabled()) {
 			logger.info("server config:" + serverConfig);
 		}
-		requestProcessor = RequestProcessorFactory.selectProcessor(serverConfig);
+		requestProcessor = RequestProcessorFactory.selectProcessor();
 		doStart(serverConfig);
 		if (requestProcessor != null) {
-			requestProcessor.start();
+			requestProcessor.start(serverConfig);
 		}
 		this.serverConfig = serverConfig;
 	}

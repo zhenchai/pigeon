@@ -3,6 +3,7 @@ package com.dianping.pigeon.remoting.netty.codec;
 import com.dianping.pigeon.log.LoggerLoader;
 import com.dianping.pigeon.remoting.common.codec.CodecConfig;
 import com.dianping.pigeon.log.Logger;
+import com.dianping.pigeon.remoting.common.codec.CodecConfigFactory;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.DynamicChannelBuffer;
 import org.jboss.netty.channel.*;
@@ -21,6 +22,12 @@ public class Crc32Handler extends SimpleChannelHandler {
     private static final Logger logger = LoggerLoader.getLogger(Crc32Handler.class);
 
     private static ThreadLocal<Adler32> adler32s = new ThreadLocal<Adler32>();
+
+    private CodecConfig codecConfig;
+
+    public Crc32Handler(CodecConfig codecConfig) {
+        this.codecConfig = codecConfig;
+    }
 
     @Override
     public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) throws Exception {
@@ -103,7 +110,7 @@ public class Crc32Handler extends SimpleChannelHandler {
     private ChannelBuffer doChecksum(Channel channel, CodecEvent codecEvent) {
         ChannelBuffer frame = codecEvent.getBuffer();
 
-        boolean isChecksum = CodecConfig.isChecksum();
+        boolean isChecksum = codecConfig.isChecksum();
 
         int command = frame.getByte(CodecConstants._FRONT_COMMAND_LENGTH);
         int frameLength = frame.readableBytes();

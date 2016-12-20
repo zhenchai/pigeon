@@ -26,7 +26,6 @@ import com.dianping.pigeon.remoting.invoker.exception.RequestTimeoutException;
 import com.dianping.pigeon.remoting.invoker.process.DegradationManager;
 import com.dianping.pigeon.remoting.invoker.process.ExceptionManager;
 import com.dianping.pigeon.remoting.invoker.process.filter.DegradationFilter;
-import com.dianping.pigeon.util.TimeUtils;
 
 public class ServiceFutureImpl extends CallbackFuture implements Future {
 
@@ -67,7 +66,7 @@ public class ServiceFutureImpl extends CallbackFuture implements Future {
                     "");
             transaction.logEvent("PigeonCall.timeout", timeoutMillis + "",
                     invocationContext.getInvokerConfig().getTimeout() + "");
-            invocationContext.getTimeline().add(new TimePoint(TimePhase.F, TimeUtils.currentTimeMillis()));
+            invocationContext.getTimeline().add(new TimePoint(TimePhase.F, System.currentTimeMillis()));
         }
         boolean isSuccess = false;
         try {
@@ -79,24 +78,21 @@ public class ServiceFutureImpl extends CallbackFuture implements Future {
                         transaction.logEvent("PigeonCall.responseSize", size, "" + response.getSize());
                     }
                     invocationContext.getTimeline().add(new TimePoint(TimePhase.R, response.getCreateMillisTime()));
-                    invocationContext.getTimeline().add(new TimePoint(TimePhase.F, TimeUtils.currentTimeMillis()));
+                    invocationContext.getTimeline().add(new TimePoint(TimePhase.F, System.currentTimeMillis()));
                 }
             } catch (RuntimeException e) {
                 // failure degrade condition
                 InvocationResponse degradedResponse = null;
                 if (DegradationManager.INSTANCE.needFailureDegrade(invocationContext)) {
                     try {
-                        degradedResponse = DegradationFilter.degradeCall(invocationContext);
+                        degradedResponse = DegradationFilter.degradeCall(invocationContext, true);
                     } catch (Throwable t) {
                         // won't happen
                         logger.warn("failure degrade in future call type error: " + t.toString());
                     }
                 }
                 if (degradedResponse != null) {// 返回同步调用模式的失败降级结果
-                    Future future = FutureFactory.getFuture();
-                    if (future != null) {
-                        return future.get();
-                    }
+                    return degradedResponse.getReturn();
                 }
                 // not failure degrade
                 DegradationManager.INSTANCE.addFailedRequest(invocationContext, e);
@@ -115,17 +111,14 @@ public class ServiceFutureImpl extends CallbackFuture implements Future {
                 InvocationResponse degradedResponse = null;
                 if (DegradationManager.INSTANCE.needFailureDegrade(invocationContext)) {
                     try {
-                        degradedResponse = DegradationFilter.degradeCall(invocationContext);
+                        degradedResponse = DegradationFilter.degradeCall(invocationContext, true);
                     } catch (Throwable t) {
                         // won't happen
                         logger.warn("failure degrade in future call type error: " + t.toString());
                     }
                 }
                 if (degradedResponse != null) {// 返回同步调用模式的失败降级结果
-                    Future future = FutureFactory.getFuture();
-                    if (future != null) {
-                        return future.get();
-                    }
+                    return degradedResponse.getReturn();
                 }
                 // not failure degrade
                 RpcException e = ExceptionManager.INSTANCE.logRemoteCallException(addr,
@@ -148,10 +141,10 @@ public class ServiceFutureImpl extends CallbackFuture implements Future {
             throw e;
         } finally {
             if (transaction != null) {
-            	if (invocationContext.isDegraded()) {
-					transaction.logEvent("PigeonCall.degrade", callInterface, "");
-				}
-                invocationContext.getTimeline().add(new TimePoint(TimePhase.E, TimeUtils.currentTimeMillis()));
+                if (invocationContext.isDegraded()) {
+                    transaction.logEvent("PigeonCall.degrade", callInterface, "");
+                }
+                invocationContext.getTimeline().add(new TimePoint(TimePhase.E, System.currentTimeMillis()));
                 try {
                     transaction.complete();
                 } catch (RuntimeException e) {
@@ -160,8 +153,10 @@ public class ServiceFutureImpl extends CallbackFuture implements Future {
             }
 
             InvokerMonitorData monitorData = (InvokerMonitorData) invocationContext.getMonitorData();
-            monitorData.setIsSuccess(isSuccess);
-            monitorData.complete();
+            if (monitorData != null) {
+                monitorData.setIsSuccess(isSuccess);
+                monitorData.complete();
+            }
         }
     }
 

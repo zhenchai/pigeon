@@ -94,12 +94,16 @@ public class DefaultClusterListener implements ClusterListener {
         if (client == null) {
             client = ClientSelector.selectClient(connectInfo);
         }
+
         if (!this.allClients.containsKey(connectInfo.getConnect())) {
             Client oldClient = this.allClients.putIfAbsent(connectInfo.getConnect(), client);
             if (oldClient != null) {
                 client = oldClient;
             }
+        } else {
+            client = this.allClients.get(connectInfo.getConnect());
         }
+
         try {
             if (client.isClosed()) {
                 client.open();

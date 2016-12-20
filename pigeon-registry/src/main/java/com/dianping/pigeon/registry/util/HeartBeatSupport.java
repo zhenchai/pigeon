@@ -5,10 +5,10 @@ package com.dianping.pigeon.registry.util;
  */
 public enum HeartBeatSupport {
 
-    UNSUPPORT((byte)0),
-    CLIENTTOSERVER((byte)1),
-    SCANNER((byte)2),
-    BOTH((byte)3);
+    NoSupport((byte)0),
+    P2POnly((byte)1),
+    ScannerOnly((byte)2),
+    BothSupport((byte)3);
 
     private final byte value;
 
@@ -23,15 +23,15 @@ public enum HeartBeatSupport {
     public static HeartBeatSupport findByValue(byte value) {
         switch(value) {
             case 0:
-                return UNSUPPORT;
+                return NoSupport;
             case 1:
-                return CLIENTTOSERVER;
+                return P2POnly;
             case 2:
-                return SCANNER;
+                return ScannerOnly;
             case 3:
-                return BOTH;
+                return BothSupport;
             default:
-                return BOTH;
+                return BothSupport;
         }
     }
 }

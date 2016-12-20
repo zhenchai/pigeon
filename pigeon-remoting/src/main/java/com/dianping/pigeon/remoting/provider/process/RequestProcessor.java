@@ -9,26 +9,29 @@ import java.util.concurrent.Future;
 import com.dianping.pigeon.remoting.common.domain.InvocationRequest;
 import com.dianping.pigeon.remoting.common.domain.InvocationResponse;
 import com.dianping.pigeon.remoting.provider.config.ProviderConfig;
+import com.dianping.pigeon.remoting.provider.config.ServerConfig;
 import com.dianping.pigeon.remoting.provider.domain.ProviderContext;
 import com.dianping.pigeon.threadpool.ThreadPool;
 
 public interface RequestProcessor {
 
-	public void start();
-	
-	public void stop();
+    void start(ServerConfig serverConfig);
 
-	public Future<InvocationResponse> processRequest(final InvocationRequest request, final ProviderContext providerContext);
+    void stop();
 
-	public String getProcessorStatistics();
-	
-	public String getProcessorStatistics(final InvocationRequest request);
-	
-	public <T> void addService(ProviderConfig<T> providerConfig);
-	
-	public <T> void removeService(ProviderConfig<T> providerConfig);
-	
-	public boolean needCancelRequest(InvocationRequest request);
+    Future<InvocationResponse> processRequest(final InvocationRequest request, final ProviderContext providerContext);
 
-	public ThreadPool getRequestProcessThreadPool();
+    String getProcessorStatistics();
+
+    String getProcessorStatistics(final InvocationRequest request);
+
+    String getProcessorStatistics(final ThreadPool threadPool);
+
+    <T> void addService(ProviderConfig<T> providerConfig);
+
+    <T> void removeService(ProviderConfig<T> providerConfig);
+
+    boolean needCancelRequest(InvocationRequest request);
+
+    ThreadPool getRequestProcessThreadPool();
 }

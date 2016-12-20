@@ -1,8 +1,6 @@
 package com.dianping.pigeon.remoting.common.monitor.trace;
 
 import com.dianping.pigeon.util.MapUtils;
-import com.dianping.pigeon.util.Pair;
-import com.dianping.pigeon.util.TimeUtils;
 
 /**
  * @author qi.yin
@@ -35,7 +33,7 @@ public class ProviderTraceRepository extends AbstractTraceRepository<ProviderMon
                 new PairKey<SourceKey, DestinationKey>(monitorData.getSrcKey(), monitorData.getDstKey()),
                 ProviderTraceData.class);
 
-        long elapsed = TimeUtils.currentTimeMillis() - monitorData.getStartMillisTime();
+        long elapsed = System.currentTimeMillis() - monitorData.getStartMillisTime();
 
         traceStatsData.setElapsed(elapsed);
 

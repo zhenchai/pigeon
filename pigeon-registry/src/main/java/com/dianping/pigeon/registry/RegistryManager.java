@@ -555,12 +555,12 @@ public class RegistryManager {
 			return heartBeatSupport;
 		}
 
-		return HeartBeatSupport.BOTH.getValue();
+		return HeartBeatSupport.BothSupport.getValue();
 	}
 
 	// invoker
 	public byte getServerHeartBeatSupport(String serviceAddress) {
-		byte heartBeatSupport = HeartBeatSupport.BOTH.getValue();
+		byte heartBeatSupport = HeartBeatSupport.BothSupport.getValue();
 
 		if (registry != null) {
 			try {

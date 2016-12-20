@@ -20,7 +20,6 @@ import com.dianping.pigeon.remoting.common.channel.ChannelFactory;
 import com.dianping.pigeon.remoting.common.exception.NetworkException;
 import com.dianping.pigeon.threadpool.DefaultThreadFactory;
 import com.dianping.pigeon.util.AtomicPositiveInteger;
-import com.dianping.pigeon.util.TimeUtils;
 
 /**
  * @author qi.yin 2016/09/23 上午10:52.

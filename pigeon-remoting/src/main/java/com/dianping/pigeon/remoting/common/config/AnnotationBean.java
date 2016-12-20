@@ -108,7 +108,7 @@ public class AnnotationBean extends ServiceInitializeListener implements Disposa
 
 	public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
 		Class<?> beanClass = AopUtils.getTargetClass(bean);
-		if (!isMatchPackage(beanClass.getName())) {
+		if (beanClass == null || !isMatchPackage(beanClass.getName())) {
 			return bean;
 		}
 		Service service = beanClass.getAnnotation(Service.class);

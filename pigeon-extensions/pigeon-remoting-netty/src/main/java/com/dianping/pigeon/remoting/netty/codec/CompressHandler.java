@@ -2,6 +2,7 @@ package com.dianping.pigeon.remoting.netty.codec;
 
 import com.dianping.pigeon.compress.*;
 import com.dianping.pigeon.remoting.common.codec.CodecConfig;
+import com.dianping.pigeon.remoting.common.codec.CodecConfigFactory;
 import com.dianping.pigeon.remoting.common.domain.generic.CompressType;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.channel.*;
@@ -20,6 +21,12 @@ public class CompressHandler extends SimpleChannelHandler {
     private static Compress gZipCompress = CompressFactory.getGZipCompress();
 
     private static Compress snappyCompress = CompressFactory.getSnappyCompress();
+
+    private CodecConfig codecConfig;
+
+    public CompressHandler(CodecConfig codecConfig) {
+        this.codecConfig = codecConfig;
+    }
 
     @Override
     public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) throws Exception {
@@ -123,8 +130,8 @@ public class CompressHandler extends SimpleChannelHandler {
         ChannelBuffer result = frame;
         int frameLength = frame.readableBytes();
 
-        if (CodecConfig.isCompress(frameLength)) {
-            CompressType compressType = CodecConfig.getCompressType();
+        if (codecConfig.isCompress(frameLength)) {
+            CompressType compressType = codecConfig.getCompressType();
 
             switch (compressType) {
                 case None:

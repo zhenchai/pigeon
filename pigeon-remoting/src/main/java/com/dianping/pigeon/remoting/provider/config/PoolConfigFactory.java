@@ -4,6 +4,8 @@ import com.dianping.pigeon.config.ConfigChangeListener;
 import com.dianping.pigeon.config.ConfigManagerLoader;
 import com.dianping.pigeon.log.Logger;
 import com.dianping.pigeon.log.LoggerLoader;
+import com.dianping.pigeon.remoting.provider.process.threadpool.DynamicThreadPoolFactory;
+import com.dianping.pigeon.threadpool.DynamicThreadPool;
 import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
 
@@ -83,6 +85,7 @@ public class PoolConfigFactory {
                                 throw new IllegalArgumentException("core size is illegal, please check: " + coreSize);
                             }
                             poolConfig.setCorePoolSize(coreSize);
+                            DynamicThreadPoolFactory.refreshThreadPool(poolConfig);
                         }
                         logger.info("changed core size of pool: " + poolName + ", key: " + key + ", value: " + value);
                     } catch (RuntimeException e) {
@@ -103,6 +106,7 @@ public class PoolConfigFactory {
                                 throw new IllegalArgumentException("max size is illegal, please check: " + maxSize);
                             }
                             poolConfig.setMaxPoolSize(maxSize);
+                            DynamicThreadPoolFactory.refreshThreadPool(poolConfig);
                         }
                         logger.info("changed max size of pool: " + poolName + ", key: " + key + ", value: " + value);
                     } catch (RuntimeException e) {
@@ -123,6 +127,7 @@ public class PoolConfigFactory {
                                 throw new IllegalArgumentException("queue size is illegal, please check: " + queueSize);
                             }
                             poolConfig.setWorkQueueSize(queueSize);
+                            DynamicThreadPoolFactory.refreshThreadPool(poolConfig);
                         }
                         logger.info("changed queue size of pool: " + poolName + ", key: " + key + ", value: " + value);
                     } catch (RuntimeException e) {

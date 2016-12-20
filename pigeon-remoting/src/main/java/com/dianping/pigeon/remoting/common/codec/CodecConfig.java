@@ -1,10 +1,11 @@
 package com.dianping.pigeon.remoting.common.codec;
 
+import com.dianping.pigeon.config.ConfigChangeListener;
 import com.dianping.pigeon.config.ConfigManager;
-import com.dianping.pigeon.config.ConfigManagerLoader;
 import com.dianping.pigeon.log.LoggerLoader;
 import com.dianping.pigeon.remoting.common.domain.generic.CompressType;
 import com.dianping.pigeon.log.Logger;
+import com.dianping.pigeon.remoting.common.util.Constants;
 
 /**
  * @author qi.yin
@@ -14,34 +15,51 @@ public class CodecConfig {
 
     private static final Logger logger = LoggerLoader.getLogger(CodecConfig.class);
 
-    private static final String COMPRESS_ENABLE_KEY = "pigeon.codec.compress.enable";
+    private ConfigManager configManager;
 
-    private static final String COMPRESS_THRESHOLD_KEY = "pigeon.codec.compress.threshold";
+    private volatile boolean compressed;
 
-    private static final String COMPRESS_TYPE_KEY = "pigeon.codec.compress.type";
+    private volatile CompressType compressType;
 
-    private static final String CHECKSUM_ENABLE_KEY = "pigeon.codec.checksum.enable";
+    private volatile int compressThreshold;
 
-    private static ConfigManager configManager = ConfigManagerLoader.getConfigManager();
+    private volatile boolean checksum;
 
-    public static boolean isCompress(int frameSize) {
+    public CodecConfig(ConfigManager configManager) {
+        this.configManager = configManager;
 
-        boolean isCompact = configManager.getBooleanValue(COMPRESS_ENABLE_KEY, false);
+        this.compressed = this.configManager.getBooleanValue(Constants.KEY_CODEC_COMPRESS_ENABLE,
+                Constants.DEFAULT_CODEC_COMPRESS_ENABLE);
 
-        if (isCompact) {
+        this.compressType = getCompressType((byte) this.configManager.getIntValue(Constants.KEY_CODEC_COMPRESS_TYPE,
+                Constants.DEFAULT_CODEC_COMPRESS_TYPE));
 
-            int threshold = configManager.getIntValue(COMPRESS_THRESHOLD_KEY, 5000);
+        this.compressThreshold = this.configManager.getIntValue(Constants.KEY_CODEC_COMPRESS_THRESHOLD,
+                Constants.DEFAULT_CODEC_COMPRESS_THRESHOLD);
 
-            if (frameSize > threshold) {
+        this.checksum = this.configManager.getBooleanValue(Constants.KEY_CODEC_CHECKSUM_ENABLE,
+                Constants.DEFAULT_CODEC_CHECKSUM_ENABLE);
+
+        configManager.registerConfigChangeListener(new InnerConfigChangeListener());
+    }
+
+    public boolean isCompress(int frameSize) {
+        if (compressed) {
+
+            if (frameSize > compressThreshold) {
                 return true;
             }
         }
         return false;
     }
 
-    public static final CompressType getCompressType() {
 
-        byte code = (byte) configManager.getIntValue(COMPRESS_TYPE_KEY, 1);
+    public CompressType getCompressType(){
+        return compressType;
+    }
+
+    private final CompressType getCompressType(byte code) {
+
         CompressType compressType = CompressType.None;
 
         try {
@@ -54,8 +72,49 @@ public class CodecConfig {
 
     }
 
-    public static boolean isChecksum() {
-        return configManager.getBooleanValue(CHECKSUM_ENABLE_KEY, false);
+    public boolean isChecksum() {
+        return checksum;
+    }
+
+    private class InnerConfigChangeListener implements ConfigChangeListener {
+
+        @Override
+        public void onKeyUpdated(String key, String value) {
+            if (key.endsWith(Constants.KEY_CODEC_COMPRESS_ENABLE)) {
+                try {
+                    compressed = Boolean.valueOf(value);
+                } catch (RuntimeException e) {
+                }
+            } else if (key.endsWith(Constants.KEY_CODEC_COMPRESS_TYPE)) {
+                try {
+                    compressType = getCompressType(Byte.valueOf(value));
+                } catch (RuntimeException e) {
+                }
+            } else if (key.endsWith(Constants.KEY_CODEC_COMPRESS_THRESHOLD)) {
+                try {
+                    compressThreshold = Integer.valueOf(value);
+                } catch (RuntimeException e) {
+                }
+            } else if (key.endsWith(Constants.KEY_CODEC_CHECKSUM_ENABLE)) {
+                try {
+                    checksum = Boolean.valueOf(value);
+                } catch (RuntimeException e) {
+                }
+            }
+        }
+
+        @Override
+        public void onKeyAdded(String key, String value) {
+            // TODO Auto-generated method stub
+
+        }
+
+        @Override
+        public void onKeyRemoved(String key) {
+            // TODO Auto-generated method stub
+
+        }
+
     }
 
 }

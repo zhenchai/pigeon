@@ -52,8 +52,11 @@ public class NettyClientFactory implements ClientFactory {
 
     @Override
     public Client createClient(ConnectInfo connectInfo) {
+        Client client = new NettyClient(clientConfig, getChannelFactory(), connectInfo, responseProcessor);
 
-        return new NettyClient(clientConfig, getChannelFactory(), connectInfo, responseProcessor);
+        logger.info("created netty client: " + connectInfo.getConnect());
+
+        return client;
     }
 
     public org.jboss.netty.channel.ChannelFactory getChannelFactory() {
@@ -83,7 +86,7 @@ public class NettyClientFactory implements ClientFactory {
                     new HashedWheelTimer(new DefaultThreadFactory("Pigeon-Netty-Client-Timer")));
 
         } catch (Error e) {
-            logger.warn("[createChannelFactory] netty version conflict, use runtime version", e);
+            logger.info("[createChannelFactory] netty version conflict, use runtime version", e);
 
             return new NioClientSocketChannelFactory(
                     Executors.newCachedThreadPool(new DefaultThreadFactory("Pigeon-Netty-Client-Boss")),

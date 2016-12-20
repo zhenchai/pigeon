@@ -15,6 +15,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.util.CollectionUtils;
 
+import com.dianping.pigeon.config.ConfigChangeListener;
 import com.dianping.pigeon.config.ConfigManager;
 import com.dianping.pigeon.config.ConfigManagerLoader;
 import com.dianping.pigeon.log.Logger;
@@ -59,21 +60,66 @@ public enum DegradationManager {
 			new DefaultThreadFactory("Pigeon-Client-Degrade-Checker"));
 	private static final Random random = new Random();
 	private final Monitor monitor = MonitorLoader.getMonitor();
+	private static volatile boolean isForceDegrade = configManager.getBooleanValue(KEY_DEGRADE_FORCE, false);
+	private static volatile boolean isAutoDegrade = configManager.getBooleanValue(KEY_DEGRADE_AUTO, false);
+	private static volatile boolean isFailureDegrade = configManager.getBooleanValue(KEY_DEGRADE_FAILURE, false);
+	private static volatile int degradeTotalThreshold = configManager.getIntValue(KEY_DEGRADE_THRESHOLD_TOTAL, 100);
+	private static volatile int degradeInvokeThreshold = configManager.getIntValue(KEY_DEGRADE_THRESHOLD_INVOKE, 2);
+	private static volatile float degradeRecoverPercent = configManager.getFloatValue(KEY_DEGRADE_RECOVER_PERCENT, 1);
+	private static volatile int degradeRecoverInterval = configManager.getIntValue(KEY_DEGRADE_RECOVER_INTERVAL, 10);
+	private static volatile float degradePercentMax = configManager.getFloatValue(KEY_DEGRADE_PERCENT_MAX, 99.90f);
+	private static volatile int degradeCheckSeconds = configManager.getIntValue(KEY_DEGRADE_CHECK_SECONDS, 10);
+	private static volatile int degradeCheckInterval = configManager.getIntValue(KEY_DEGRADE_CHECK_INTERVAL, 2);
+	private static volatile boolean isLogDegrade = configManager.getBooleanValue(KEY_DEGRADE_LOG_ENABLE, false);
 
 	private DegradationManager() {
+		ConfigManagerLoader.getConfigManager().registerConfigChangeListener(new InnerConfigChangeListener());
+	}
+
+	private static class InnerConfigChangeListener implements ConfigChangeListener {
+
+		@Override
+		public void onKeyUpdated(String key, String value) {
+			try {
+				if (key.endsWith(KEY_DEGRADE_FORCE)) {
+					isForceDegrade = Boolean.valueOf(value);
+				} else if (key.endsWith(KEY_DEGRADE_AUTO)) {
+					isAutoDegrade = Boolean.valueOf(value);
+				} else if (key.endsWith(KEY_DEGRADE_THRESHOLD_TOTAL)) {
+					degradeTotalThreshold = Integer.valueOf(value);
+				} else if (key.endsWith(KEY_DEGRADE_THRESHOLD_INVOKE)) {
+					degradeInvokeThreshold = Integer.valueOf(value);
+				} else if (key.endsWith(KEY_DEGRADE_RECOVER_PERCENT)) {
+					degradeRecoverPercent = Float.valueOf(value);
+				} else if (key.endsWith(KEY_DEGRADE_RECOVER_INTERVAL)) {
+					degradeRecoverInterval = Integer.valueOf(value);
+				} else if (key.endsWith(KEY_DEGRADE_PERCENT_MAX)) {
+					degradePercentMax = Float.valueOf(value);
+				} else if (key.endsWith(KEY_DEGRADE_CHECK_SECONDS)) {
+					degradeCheckSeconds = Integer.valueOf(value);
+				} else if (key.endsWith(KEY_DEGRADE_CHECK_INTERVAL)) {
+					degradeCheckInterval = Integer.valueOf(value);
+				} else if (key.endsWith(KEY_DEGRADE_LOG_ENABLE)) {
+					isLogDegrade = Boolean.valueOf(value);
+				}
+			} catch (RuntimeException e) {
+				logger.warn("invalid value for key " + key, e);
+			}
+		}
+
+		@Override
+		public void onKeyAdded(String key, String value) {
+
+		}
+
+		@Override
+		public void onKeyRemoved(String key) {
+
+		}
+
 	}
 
 	static {
-		configManager.getBooleanValue(KEY_DEGRADE_FORCE, false);
-		configManager.getBooleanValue(KEY_DEGRADE_AUTO, false);
-		configManager.getIntValue(KEY_DEGRADE_THRESHOLD_TOTAL, 100);
-		configManager.getIntValue(KEY_DEGRADE_THRESHOLD_INVOKE, 2);
-		configManager.getFloatValue(KEY_DEGRADE_RECOVER_PERCENT, 1);
-		configManager.getIntValue(KEY_DEGRADE_RECOVER_INTERVAL, 10);
-		configManager.getFloatValue(KEY_DEGRADE_PERCENT_MAX, 99.90f);
-		configManager.getIntValue(KEY_DEGRADE_CHECK_SECONDS, 10);
-		configManager.getIntValue(KEY_DEGRADE_CHECK_INTERVAL, 2);
-		configManager.getBooleanValue(KEY_DEGRADE_LOG_ENABLE, false);
 		checkThreadPool.execute(new Checker());
 	}
 
@@ -83,32 +129,28 @@ public enum DegradationManager {
 
 	public boolean needDegrade(InvokerContext context) {
 		if (degradationIsEnable(context)) {
-			if (configManager.getBooleanValue(KEY_DEGRADE_FORCE, false)) {
+			if (isForceDegrade) {
 				return true;
 			}
 
-			if (configManager.getBooleanValue(KEY_DEGRADE_AUTO, false)) {
+			if (isAutoDegrade) {
 				if (!CollectionUtils.isEmpty(requestCountMap)) {
-					String requestUrl = getRequestUrl(context); 
+					String requestUrl = getRequestUrl(context);
 					Count count = requestCountMap.get(requestUrl);
 					if (count != null) {
-						if (count.getTotalValue() >= configManager.getIntValue(KEY_DEGRADE_THRESHOLD_TOTAL, 100)) {
-							if ((count.getTotalValue() - count.getDegradedValue()) > configManager
-									.getIntValue(KEY_DEGRADE_THRESHOLD_INVOKE, 2)
-									&& count.getFailedPercent() < configManager
-											.getFloatValue(KEY_DEGRADE_RECOVER_PERCENT, 1)) {
-								return random(count.getDegradedPercent()
-										- configManager.getIntValue(KEY_DEGRADE_RECOVER_INTERVAL, 10));
-							} else if (count.getFailedPercent() >= configManager
-									.getFloatValue(KEY_DEGRADE_RECOVER_PERCENT, 1)) {
-								return random(configManager.getFloatValue(KEY_DEGRADE_PERCENT_MAX, 99.90f));
+						if (count.getTotalValue() >= degradeTotalThreshold) {
+							if ((count.getTotalValue() - count.getDegradedValue()) > degradeInvokeThreshold
+									&& count.getFailedPercent() < degradeRecoverPercent) {
+								return random(count.getDegradedPercent() - degradeRecoverInterval);
+							} else if (count.getFailedPercent() >= degradeRecoverPercent) {
+								return random(degradePercentMax);
 							}
 						}
 					}
 				}
 			}
 
-			if (configManager.getBooleanValue(KEY_DEGRADE_FAILURE, false)) {
+			if (isFailureDegrade) {
 				return false;
 			}
 		}
@@ -116,8 +158,8 @@ public enum DegradationManager {
 	}
 
 	public boolean needFailureDegrade(InvokerContext context) {
-		return degradationIsEnable(context) && (configManager.getBooleanValue(KEY_DEGRADE_AUTO, false)
-				|| configManager.getBooleanValue(KEY_DEGRADE_FAILURE, false));
+		return degradationIsEnable(context)
+				&& (isAutoDegrade || isFailureDegrade);
 	}
 
 	private boolean degradationIsEnable(InvokerContext context) {
@@ -139,7 +181,7 @@ public enum DegradationManager {
 
 	public void addDegradedRequest(InvokerContext context, Throwable t) {
 		addRequest(context, null, true);
-		if (configManager.getBooleanValue(KEY_DEGRADE_LOG_ENABLE, false) && !(t instanceof ServiceDegradedException)) {
+		if (isLogDegrade && !(t instanceof ServiceDegradedException)) {
 			ServiceDegradedException ex = new ServiceDegradedException(getRequestUrl(context), t);
 			ex.setStackTrace(new StackTraceElement[] {});
 			monitor.logError(ex);
@@ -147,8 +189,7 @@ public enum DegradationManager {
 	}
 
 	private void addRequest(InvokerContext context, Throwable t, boolean degraded) {
-		if (configManager.getBooleanValue(KEY_DEGRADE_AUTO, false)
-				|| configManager.getBooleanValue(KEY_DEGRADE_FORCE, false)) {
+		if (isAutoDegrade || isForceDegrade) {
 			int currentSecond = Calendar.getInstance().get(Calendar.SECOND);
 			String requestUrl = getRequestUrl(context);
 			ConcurrentHashMap<Integer, Count> secondCount = requestSecondCountMap.get(requestUrl);
@@ -357,7 +398,7 @@ public enum DegradationManager {
 		public void run() {
 			while (true) {
 				try {
-					Thread.sleep(1000 * configManager.getIntValue(KEY_DEGRADE_CHECK_INTERVAL, 2));
+					Thread.sleep(1000 * degradeCheckInterval);
 					checkRequestSecondCount();
 				} catch (Exception e) {
 					logger.error("", e);
@@ -367,7 +408,7 @@ public enum DegradationManager {
 
 		private void checkRequestSecondCount() {
 			Map<String, Count> countMap = new ConcurrentHashMap<String, Count>();
-			final int recentSeconds = configManager.getIntValue(KEY_DEGRADE_CHECK_SECONDS, 10);
+			final int recentSeconds = degradeCheckSeconds;
 			final int currentSecond = Calendar.getInstance().get(Calendar.SECOND);
 
 			for (String url : requestSecondCountMap.keySet()) {

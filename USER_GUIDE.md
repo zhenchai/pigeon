@@ -913,7 +913,7 @@ pool="poolM" useSharedPool="false" ref="testService">
 
 a、首先需要在应用lion里配置开关打开，例如xxx-service项目要配置以下lion配置：
 
-xxx-service.pigeon.provider.pool.config.enable=true
+xxx-service.pigeon.provider.pool.config.switch=true
 
 b、配置应用的自定义pool(与方法1中的pool无关)，添加配置项：
 
@@ -1361,6 +1361,13 @@ xxx-service.pigeon.provider.token.timestamp.diff，默认为120（单位秒）
 e、如果服务提供方只希望http客户端进行认证，而不希望默认的tcp客户端做认证（老业务），需要配置
 
 xxx-service.pigeon.provider.token.protocol.default.enable为false
+
+f、如果服务提供方希望部分服务或方法开启或不开启认证，需要配置
+
+xxx-service.pigeon.provider.token.switches，内容类似com.dianping.pigeon.demo.EchoService=false,com.dianping.pigeon.demo.EchoService#echo2=true
+
+这里边com.dianping.pigeon.demo.EchoService服务下所有方法是默认不开启认证，但echo2方法需要开启认证
+
 
 对于客户端：
 

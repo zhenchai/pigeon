@@ -21,6 +21,11 @@ public class TraceFilter implements ServiceInvocationFilter<ProviderContext> {
 
         InvocationRequest request = invocationContext.getRequest();
         ProviderMonitorData monitorData = (ProviderMonitorData) invocationContext.getMonitorData();
+
+        if (monitorData == null) {
+            return handler.handle(invocationContext);
+        }
+
         monitorData.trace();
 
         monitorData.setCallType((byte) request.getCallType());
@@ -46,4 +51,5 @@ public class TraceFilter implements ServiceInvocationFilter<ProviderContext> {
         return response;
 
     }
+
 }

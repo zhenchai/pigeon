@@ -10,7 +10,6 @@ import com.dianping.pigeon.monitor.MonitorLoader;
 import com.dianping.pigeon.registry.RegistryManager;
 import com.dianping.pigeon.registry.util.HeartBeatSupport;
 import com.dianping.pigeon.remoting.common.channel.Channel;
-import com.dianping.pigeon.remoting.common.codec.SerializerFactory;
 import com.dianping.pigeon.remoting.common.codec.SerializerType;
 import com.dianping.pigeon.remoting.common.domain.InvocationRequest;
 import com.dianping.pigeon.remoting.common.domain.InvocationResponse;
@@ -20,7 +19,6 @@ import com.dianping.pigeon.remoting.common.util.InvocationUtils;
 import com.dianping.pigeon.remoting.invoker.Client;
 import com.dianping.pigeon.remoting.invoker.concurrent.CallbackFuture;
 import com.dianping.pigeon.remoting.invoker.util.InvokerUtils;
-import com.dianping.pigeon.util.TimeUtils;
 
 /**
  * @author qi.yin
@@ -142,13 +140,13 @@ public class HeartbeatTask implements Runnable {
         byte heartBeatSupport = RegistryManager.getInstance().getServerHeartBeatSupportFromCache(address);
 
         switch (HeartBeatSupport.findByValue(heartBeatSupport)) {
-            case UNSUPPORT:
-            case SCANNER:
+            case NoSupport:
+            case ScannerOnly:
                 supported = false;
                 break;
 
-            case CLIENTTOSERVER:
-            case BOTH:
+            case P2POnly:
+            case BothSupport:
             default:
                 supported = true;
                 break;
@@ -173,7 +171,7 @@ public class HeartbeatTask implements Runnable {
         InvocationRequest request = InvocationUtils.newRequest(Constants.HEART_TASK_SERVICE + address, Constants.HEART_TASK_METHOD,
                 null, SerializerType.HESSIAN.getCode(), Constants.MESSAGE_TYPE_HEART, clientConfig.getHeartbeatTimeout(), null);
         request.setSequence(generateHeartSeq());
-        request.setCreateMillisTime(TimeUtils.currentTimeMillis());
+        request.setCreateMillisTime(System.currentTimeMillis());
         request.setCallType(Constants.CALLTYPE_REPLY);
         return request;
     }
@@ -182,7 +180,7 @@ public class HeartbeatTask implements Runnable {
         InvocationRequest request = new GenericRequest(Constants.HEART_TASK_SERVICE + address, Constants.HEART_TASK_METHOD,
                 null, SerializerType.THRIFT.getCode(), Constants.MESSAGE_TYPE_HEART, clientConfig.getHeartbeatTimeout());
         request.setSequence(generateHeartSeq());
-        request.setCreateMillisTime(TimeUtils.currentTimeMillis());
+        request.setCreateMillisTime(System.currentTimeMillis());
         request.setCallType(Constants.CALLTYPE_REPLY);
         return request;
     }

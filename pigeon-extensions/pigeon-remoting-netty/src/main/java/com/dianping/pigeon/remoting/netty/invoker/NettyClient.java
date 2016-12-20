@@ -77,9 +77,9 @@ public class NettyClient extends AbstractClient {
             initBootstrap();
 
             initChannelPool();
-            logger.info("[open] client is open success. remoteAddress: " + remoteAddressString);
+            logger.info("[open] client opened. remoteAddress: " + remoteAddressString);
         } catch (Exception e) {
-            logger.info("[open] client is open failed. remoteAddress: " + remoteAddressString);
+            logger.info("[open] client open failed. remoteAddress: " + remoteAddressString);
         }
     }
 
@@ -143,20 +143,24 @@ public class NettyClient extends AbstractClient {
     public void doClose() {
         try {
             channelPool.close();
-            logger.info("[close] client is close success. remoteAddress: " + remoteAddressString);
+            logger.info("[close] client closed. remoteAddress: " + remoteAddressString);
         } catch (Exception e) {
-            logger.info("[close] client is close failed. remoteAddress: " + remoteAddressString);
+            logger.info("[close] client close failed. remoteAddress: " + remoteAddressString);
         }
     }
 
     @Override
     public List<NettyChannel> getChannels() {
-        return channelPool.getChannels();
+        return channelPool == null ? null : channelPool.getChannels();
     }
 
     @Override
     public boolean isActive() {
-        return super.isActive() && channelPool.isAvaliable();
+        return super.isActive() && poolActive();
+    }
+
+    private boolean poolActive() {
+        return channelPool != null && channelPool.isAvaliable();
     }
 
     @Override
@@ -212,7 +216,7 @@ public class NettyClient extends AbstractClient {
 
     @Override
     public String toString() {
-        return "NettyClient[" + this.getAddress() + ", closed:" + isClosed() + ", active:" + isActive() + ", pool.Avaliable:" + channelPool.isAvaliable() + "]";
+        return "NettyClient[" + this.getAddress() + ", closed:" + isClosed() + ", active:" + isActive() + ", pool.Avaliable:" + poolActive() + "]";
     }
 
     public class MessageWriteListener implements ChannelFutureListener {

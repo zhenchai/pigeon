@@ -180,7 +180,7 @@ public class DegradationFilter extends InvocationInvokeFilter {
         context.getTimeline().add(new TimePoint(TimePhase.D));
         InvocationResponse response = null;
         if (DegradationManager.INSTANCE.needDegrade(context)) {
-            response = degradeCall(context);
+            response = degradeCall(context, false);
         }
         if (response != null) {// 返回三种调用模式的降级结果
             return response;
@@ -208,7 +208,7 @@ public class DegradationFilter extends InvocationInvokeFilter {
                 | RejectedException e) {
             failed = true;
             if (DegradationManager.INSTANCE.needFailureDegrade(context)) {
-                response = degradeCall(context);
+                response = degradeCall(context, false);
             }
             if (response != null) {// 返回同步调用模式的失败降级结果
                 return response;
@@ -220,13 +220,16 @@ public class DegradationFilter extends InvocationInvokeFilter {
         }
     }
 
-    public static InvocationResponse degradeCall(InvokerContext context) throws Throwable {
+    public static InvocationResponse degradeCall(InvokerContext context, boolean isFutureFailureDegrade) throws Throwable {
         try {
-            InvocationResponse resp = doDegradeCall(context);
+            InvocationResponse resp = doDegradeCall(context, isFutureFailureDegrade);
             if (resp != null) {
 
                 InvokerMonitorData monitorData = (InvokerMonitorData) context.getMonitorData();
-                monitorData.degrade();
+
+                if (monitorData != null) {
+                    monitorData.degrade();
+                }
 
                 DegradationManager.INSTANCE.addDegradedRequest(context, null);
             }
@@ -237,7 +240,7 @@ public class DegradationFilter extends InvocationInvokeFilter {
         }
     }
 
-    private static InvocationResponse doDegradeCall(InvokerContext context) throws Throwable {
+    private static InvocationResponse doDegradeCall(InvokerContext context, boolean isFutureFailureDegrade) throws Throwable {
         InvokerConfig<?> invokerConfig = context.getInvokerConfig();
 
         byte callMethodCode = invokerConfig.getCallMethod(context.getMethodName());
@@ -252,14 +255,21 @@ public class DegradationFilter extends InvocationInvokeFilter {
         }
 
         InvokerMonitorData monitorData = (InvokerMonitorData) context.getMonitorData();
-        monitorData.setCallMethod(invokerConfig.getCallMethod());
-        monitorData.setSerialize(invokerConfig.getSerialize());
-        monitorData.setTimeout(timeout);
-        monitorData.add();
+
+        if (monitorData != null) {
+            monitorData.setCallMethod(invokerConfig.getCallMethod());
+            monitorData.setSerialize(invokerConfig.getSerialize());
+            monitorData.setTimeout(timeout);
+            monitorData.add();
+        }
 
         Object defaultResult = InvokerHelper.getDefaultResult();
         String key = DegradationManager.INSTANCE.getRequestUrl(context);
         DegradeAction action = degradeMethodActions.get(key);
+
+        if (isFutureFailureDegrade) {
+            callMethod = CallMethod.SYNC;
+        }
 
         switch (callMethod) {
             case SYNC:

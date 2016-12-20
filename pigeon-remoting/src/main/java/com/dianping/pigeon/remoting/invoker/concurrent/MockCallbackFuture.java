@@ -38,8 +38,11 @@ public class MockCallbackFuture extends ServiceFutureImpl {
             throw (RuntimeException) t;
         } finally {
             InvokerMonitorData monitorData = (InvokerMonitorData) invocationContext.getMonitorData();
-            monitorData.setIsSuccess(isSuccess);
-            monitorData.complete();
+
+            if (monitorData != null) {
+                monitorData.setIsSuccess(isSuccess);
+                monitorData.complete();
+            }
         }
 
     }

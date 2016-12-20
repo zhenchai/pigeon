@@ -336,9 +336,9 @@ public class CuratorRegistry implements Registry {
     @Override
     public byte getServerHeartBeatSupport(String serviceAddress) throws RegistryException {
         if (isSupportNewProtocol(serviceAddress)) {
-            return HeartBeatSupport.BOTH.getValue();
+            return HeartBeatSupport.BothSupport.getValue();
         } else {
-            return HeartBeatSupport.CLIENTTOSERVER.getValue();
+            return HeartBeatSupport.P2POnly.getValue();
         }
     }
 
@@ -452,7 +452,7 @@ public class CuratorRegistry implements Registry {
         String version = getServerVersion(serviceAddress);
 
         if (StringUtils.isBlank(version)) {
-            version = "";
+            throw new RegistryException("version is blank");
         }
 
         return VersionUtils.isThriftSupported(version);

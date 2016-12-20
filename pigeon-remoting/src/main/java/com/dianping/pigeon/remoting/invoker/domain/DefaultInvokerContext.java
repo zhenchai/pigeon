@@ -10,7 +10,6 @@ import org.apache.commons.lang.builder.ToStringStyle;
 import com.dianping.pigeon.remoting.common.domain.AbstractInvocationContext;
 import com.dianping.pigeon.remoting.invoker.Client;
 import com.dianping.pigeon.remoting.invoker.config.InvokerConfig;
-import com.dianping.pigeon.util.TimeUtils;
 
 public class DefaultInvokerContext extends AbstractInvocationContext implements InvokerContext {
 
@@ -28,7 +27,7 @@ public class DefaultInvokerContext extends AbstractInvocationContext implements 
         this.methodName = methodName;
         this.parameterTypes = parameterTypes;
         this.arguments = arguments;
-        getTimeline().add(new TimePoint(TimePhase.S, TimeUtils.currentTimeMillis()));
+        getTimeline().add(new TimePoint(TimePhase.S, System.currentTimeMillis()));
     }
 
     public InvokerConfig<?> getInvokerConfig() {

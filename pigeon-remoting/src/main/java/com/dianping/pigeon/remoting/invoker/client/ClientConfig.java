@@ -34,15 +34,15 @@ public class ClientConfig {
 
     private boolean heartbeated;
 
-    private int heartbeatTimeout;
+    private volatile int heartbeatTimeout;
 
-    private int deadThreshold;
+    private volatile int deadThreshold;
 
-    private int healthThreshold;
+    private volatile int healthThreshold;
 
     private int heartbeatInterval;
 
-    private boolean isHeartbeatAutoPickOff;
+    private volatile boolean isHeartbeatAutoPickOff;
 
     public ClientConfig(ConfigManager configManager) {
         connectTimeout = configManager.getIntValue(Constants.KEY_NETTY_CONNECTTIMEOUT,

@@ -29,7 +29,6 @@ import com.dianping.pigeon.remoting.provider.Server;
 import com.dianping.pigeon.remoting.provider.domain.DefaultProviderContext;
 import com.dianping.pigeon.remoting.provider.domain.ProviderContext;
 import com.dianping.pigeon.remoting.provider.util.ProviderUtils;
-import com.dianping.pigeon.util.TimeUtils;
 
 public class HttpServerHandler implements HttpHandler {
 
@@ -45,7 +44,7 @@ public class HttpServerHandler implements HttpHandler {
 
 	@Override
 	public void handle(HttpServletRequest request, HttpServletResponse response) throws Exception {
-		long createTime = TimeUtils.currentTimeMillis();
+		long createTime = System.currentTimeMillis();
 		Object obj;
 		String customize = request.getParameter("customize");
 		if("true".equalsIgnoreCase(customize)) {

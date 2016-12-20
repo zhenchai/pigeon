@@ -120,10 +120,6 @@ public class CompositeRegistry implements Registry {
             }
         }
 
-        if (StringUtils.isBlank(addr)) {
-            throw new RegistryException("failed to get service address for " + serviceName);
-        }
-
         return addr;
     }
 
@@ -364,7 +360,7 @@ public class CompositeRegistry implements Registry {
 
     @Override
     public byte getServerHeartBeatSupport(String serviceAddress) throws RegistryException {
-        byte support = HeartBeatSupport.BOTH.getValue();
+        byte support = HeartBeatSupport.BothSupport.getValue();
         List<Byte> checkList = Lists.newArrayList();
 
         for (Registry registry : registryList) {

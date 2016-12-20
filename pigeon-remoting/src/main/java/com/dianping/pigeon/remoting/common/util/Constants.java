@@ -132,6 +132,11 @@ public final class Constants {
     public static final String KEY_PROVIDER_HEARTBEAT_INTERNAL = "pigeon.provider.heartbeat.internal";
     public static final String KEY_REGIONPOLICY = "pigeon.regionpolicy.defaulttype";
 
+    public static final String KEY_CODEC_COMPRESS_ENABLE = "pigeon.codec.compress.enable";
+    public static final String KEY_CODEC_COMPRESS_THRESHOLD = "pigeon.codec.compress.threshold";
+    public static final String KEY_CODEC_COMPRESS_TYPE = "pigeon.codec.compress.type";
+    public static final String KEY_CODEC_CHECKSUM_ENABLE = "pigeon.codec.checksum.enable";
+
     public static final int DEFAULT_INVOKER_TIMEOUT = 1000;
     public static final int DEFAULT_PROVIDER_COREPOOLSIZE = 60;
     public static final int DEFAULT_PROVIDER_MAXPOOLSIZE = 500;
@@ -165,6 +170,11 @@ public final class Constants {
     public static final int DEFAULT_WEIGHT_STARTDELAY = 30000;
     public static final int DEFAULT_PROVIDER_HEARTBEAT_INTERNAL = 60000;
 
+    public static final boolean DEFAULT_CODEC_COMPRESS_ENABLE = false;
+    public static final int DEFAULT_CODEC_COMPRESS_THRESHOLD = 5000;
+    public static final byte DEFAULT_CODEC_COMPRESS_TYPE = (byte) 1;
+    public static final boolean DEFAULT_CODEC_CHECKSUM_ENABLE = false;
+
     public static final String PROTOCOL_HTTP = "http";
     public static final String PROTOCOL_DEFAULT = "default";
     public static final String KEY_UNPUBLISH_WAITTIME = "pigeon.unpublish.waittime";
@@ -185,6 +195,11 @@ public final class Constants {
     public static final String KEY_AUTOREGISTER_ENABLE = "pigeon.autoregister.enable";
     public static final String KEY_AUTOPUBLISH_ENABLE = "pigeon.autopublish.enable";
     public static final String KEY_AUTOUNPUBLISH_ENABLE = "pigeon.autounpublish.enable";
+
+    public static final String KEY_INVOKER_TRACE_ENABLE = "pigeon.invoker.trace.enable";
+    public static final String KEY_PROVIDER_TRACE_ENABLE = "pigeon.provider.trace.enable";
+    public static final boolean DEFAULT_INVOKER_TRACE_ENABLE = true;
+    public static final boolean DEFAULT_PROVIDER_TRACE_ENABLE = true;
 
     public static final String KEY_LOG_PARAMETER = "pigeon.log.parameters";
     public static final String Key_REPLY_MANUAL = "pigeon.provider.reply.manual";
