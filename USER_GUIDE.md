@@ -143,10 +143,53 @@ app.name=xxx
 代表此应用名称为xxx，定义应用名称是基于规范应用的考虑
 
 
+## 配置管理
+pigeon内部有一系列配置，用于不同应用进行定制，应用级的配置是独立的config模块来支撑，配置的管理可以有以下3个选择：
+
+### 本地配置
+本地配置是在机器级别配置properties文件里存储，开源版本如果没有依赖其他扩展的配置中心，默认会用本地配置。
+
+本地配置是在应用的classpath下放config/pigeon.properties文件（该文件的配置是所有环境都生效，包括关闭线上自动注册，请谨慎使用）
+
+如果是只设置某个环境的配置，如开发环境可以用pigeon_dev.properties，测试环境可以用pigeon_qa.properties，环境定义如dev、qa可自行定义
+
+如果是全局配置，这个配置文件也可以放在绝对路径/data/webapps/config/pigeon/pigeon.properties文件里
+
+例如pigeon内部有一个全局默认配置pigeon.provider.applimit.enable，值为false，如果某个应用想修改这个默认配置，可以在properties文件里增加一行：
+
+pigeon.provider.applimit.enable=true
+
+### lion配置
+如果使用了点评内部的lion配置中心，相比本地配置管理上更加方便，在lion管理端进行配置的统一管理，无需在每台机器上的properties文件里进行配置
+
+lion配置需要按前面依赖里提到的引入以下依赖：
+
+<dependency>
+    <groupId>com.dianping</groupId>
+    <artifactId>pigeon-config-lion</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+</dependency>
+
+如果要设置某个应用级的pigeon配置，需要在lion里增加相应的pigeon配置，如pigeon内部有一个全局默认配置pigeon.provider.applimit.enable，值为false
+
+如果某个应用xxx-service（这个应用名就是app.properties里的app.name）想修改这个默认配置，那么可以在lion里增加一个key：xxx-service.pigeon.provider.applimit.enable，设置为true
+
+本文档里提到的所有配置，如果要在应用级修改配置，都需要按这个规则在lion进行配置。
+
+应用级的配置优先级高于pigeon内部的默认配置，比如xxx-service.pigeon.provider.applimit.enable的优先级高于pigeon.provider.applimit.enable
+
+### 扩展pigeon-config模块
+如果外部公司想集成自己公司内部的配置中心，可以扩展pigeon的pigeon-config模块，需要继承AbstractConfigManager：
+```java
+public class XXXConfigManager extends AbstractConfigManager
+```
+然后在自己的classpath下放META-INF/services/com.dianping.pigeon.config.ConfigManager文件，文件内容是扩展类的类名：
+
+com.xxx....XXXConfigManager
+
+完成以上步骤后，需要将这个扩展项目打成jar包，引入项目里，pigeon就会自动使用用户自己扩展的配置模块
+
 ## 快速入门
-
-本文档相关示例代码可以参考pigeon-demo模块：
-
 
 ### 定义服务
 
@@ -387,8 +430,8 @@ public @interface Reference {
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xmlns:context="http://wspringframework.org/schema/context"
-        xmlns:tx="http://www.spamework.org/schema/tx"
+        xmlns:context="http://www.springframework.org/schema/context"
+        xmlns:tx="http://www.springframework.org/schema/tx"
         xmlns:pigeon="http://code.dianping.com/schema/pigeon"
         xsi:schemaLocation="http://www.springframework.org/schema/beans
 http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
