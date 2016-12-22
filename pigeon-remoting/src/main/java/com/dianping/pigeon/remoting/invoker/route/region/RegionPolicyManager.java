@@ -293,7 +293,14 @@ public enum RegionPolicyManager {
     }
 
     private String getPattern(String host) {
-        return host.substring(0, host.indexOf(".", host.indexOf(".") + 1 ));
+        int firstDotIndex = host.indexOf(".");
+        if (firstDotIndex != -1) {
+            int secondDotIndex = host.indexOf(".", firstDotIndex + 1);
+            if (secondDotIndex != -1) {
+                return host.substring(0, secondDotIndex);
+            }
+        }
+        return "";
     }
 
     private void initPatterRegionMappings(Map<String, String> patternRegionNameMappings) {
