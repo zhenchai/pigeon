@@ -1,10 +1,12 @@
-package com.dianping.pigeon.config.group;
+package com.dianping.pigeon.registry.route;
 
 import com.dianping.pigeon.config.ConfigChangeListener;
 import com.dianping.pigeon.config.ConfigManager;
 import com.dianping.pigeon.config.ConfigManagerLoader;
 import com.dianping.pigeon.log.Logger;
 import com.dianping.pigeon.log.LoggerLoader;
+import com.dianping.pigeon.registry.listener.GroupChangeListener;
+import com.dianping.pigeon.registry.listener.RegistryEventListener;
 import com.dianping.pigeon.util.Utils;
 import org.apache.commons.lang.StringUtils;
 
@@ -18,8 +20,8 @@ public enum GroupManager {
 
     INSTANCE;
     GroupManager() {
-        //TODO 加载动态变更config listener
-        configManager.registerConfigChangeListener(new InnerConfigChangeListener());
+        //configManager.registerConfigChangeListener(new InnerConfigChangeListener());
+        RegistryEventListener.addListener(new InnerGroupChangeListener());
     }
 
     private final Logger logger = LoggerLoader.getLogger(this.getClass());
@@ -122,6 +124,18 @@ public enum GroupManager {
 
         @Override
         public void onKeyRemoved(String key) {
+
+        }
+    }
+
+    private class InnerGroupChangeListener implements GroupChangeListener {
+        @Override
+        public void onInvokerGroupChange() {
+
+        }
+
+        @Override
+        public void onProviderGroupChange() {
 
         }
     }

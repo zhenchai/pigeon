@@ -3,7 +3,7 @@ package com.dianping.pigeon.registry.zookeeper;
 import java.util.List;
 import java.util.Map;
 
-import com.dianping.pigeon.config.group.GroupManager;
+import com.dianping.pigeon.registry.route.GroupManager;
 import com.dianping.pigeon.registry.RegistryManager;
 import org.apache.commons.lang.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
@@ -167,9 +167,10 @@ public class CuratorEventListener implements CuratorListener {
 			Map<String, Boolean> infoMap = Utils.getProtocolInfoMap(info);
 			logger.info("protocol changed, path " + pathInfo.path + " value " + info);
 			RegistryEventListener.serverProtocolChanged(pathInfo.server, infoMap);
-			client.watch(pathInfo.path);
 		} catch (Throwable e) {
 			throw new RegistryException(e);
+		} finally {
+			client.watch(pathInfo.path);
 		}
 	}
 
