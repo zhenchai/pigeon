@@ -144,6 +144,7 @@
 				<groupId>junit</groupId>
 				<artifactId>junit</artifactId>
 				<version>${junit.version}</version>
+				<scope>test</scope>
 			</dependency>
 			<dependency>
 				<groupId>commons-lang</groupId>
@@ -199,6 +200,12 @@
 				<groupId>commons-httpclient</groupId>
 				<artifactId>commons-httpclient</artifactId>
 				<version>${commons-httpclient.version}</version>
+				<exclusions>
+					<exclusion>
+						<groupId>commons-logging</groupId>
+						<artifactId>commons-logging</artifactId>
+					</exclusion>
+				</exclusions>
 			</dependency>
 			<dependency>
 				<groupId>commons-codec</groupId>
@@ -284,6 +291,10 @@
 					<exclusion>
 						<artifactId>log4j</artifactId>
 						<groupId>log4j</groupId>
+					</exclusion>
+					<exclusion>
+						<groupId>io.netty</groupId>
+						<artifactId>netty</artifactId>
 					</exclusion>
 				</exclusions>
 			</dependency>
@@ -386,6 +397,14 @@
 					<exclusion>
 						<groupId>org.slf4j</groupId>
 						<artifactId>slf4j-api</artifactId>
+					</exclusion>
+					<exclusion>
+						<artifactId>httpclient</artifactId>
+						<groupId>org.apache.httpcomponents</groupId>
+					</exclusion>
+					<exclusion>
+						<artifactId>httpcore</artifactId>
+						<groupId>org.apache.httpcomponents</groupId>
 					</exclusion>
 				</exclusions>
 			</dependency>

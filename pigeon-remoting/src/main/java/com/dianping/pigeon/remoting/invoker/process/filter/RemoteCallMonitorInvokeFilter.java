@@ -108,7 +108,7 @@ public class RemoteCallMonitorInvokeFilter extends InvocationInvokeFilter {
 					targetApp = RegistryManager.getInstance().getReferencedAppFromCache(remoteAddress);
 					transaction.logEvent("PigeonCall.app", targetApp, "");
 					String parameters = "";
-					if (Constants.LOG_PARAMETERS) {
+					if (request != null && Constants.LOG_PARAMETERS) {
 						parameters = InvocationUtils.toJsonString(request.getParameters(), 1000, 50);
 					}
 					transaction.logEvent("PigeonCall.server", client.getAddress(), parameters);

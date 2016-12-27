@@ -40,9 +40,10 @@ public class LoggerLoader {
                 try {
                     ctx = new org.apache.logging.log4j.core.LoggerContext("Pigeon", null, url.toURI());
                     ((org.apache.logging.log4j.core.LoggerContext) ctx).start();
-                } catch (Exception e) {
-                    System.err.println("failed to initialize log4j2...");
-                    e.printStackTrace(System.err);
+                } catch (Throwable t) {
+                    String errMsg = "[" + LoggerLoader.class.getName() + "] Failed to initialize log4j2..."
+                            + "Please check the write permission of pigeon log dir: (" + LOG_ROOT + ").";
+                    System.err.println(errMsg);
                     ctx = LogManager.getContext(false);
                 }
             }
