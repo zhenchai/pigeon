@@ -31,6 +31,7 @@ public class CuratorEventListener implements CuratorListener {
 	private static final int APP = 3;
 	private static final int VERSION = 4;
 	private static final int PROTOCOL = 5;
+	private static final int HOST_CONFIG = 6;
 
 	private ConfigManager configManager = ConfigManagerLoader.getConfigManager();
 
@@ -206,6 +207,11 @@ public class CuratorEventListener implements CuratorListener {
 			pathInfo = new PathInfo(path);
 			pathInfo.type = PROTOCOL;
 			pathInfo.server = path.substring(Constants.PROTOCOL_PATH.length() + 1);
+		} else if (path.startsWith(Constants.HOST_CONFIG_PATH)) {
+			pathInfo = new PathInfo(path);
+			pathInfo.type = HOST_CONFIG;
+			//todo
+
 		}
 
 		return pathInfo;
