@@ -22,7 +22,7 @@ public enum SerializerType {
 
     PROTOBUF((byte) 9, "protobuf"),
 
-    THRIFT((byte) 10, "thrift"), ;
+    THRIFT((byte) 10, "thrift"),;
 
     private byte code;
     private String name;
@@ -143,4 +143,5 @@ public enum SerializerType {
     public static boolean isThrift(String desc) {
         return THRIFT.getName().equals(desc);
     }
+    
 }
