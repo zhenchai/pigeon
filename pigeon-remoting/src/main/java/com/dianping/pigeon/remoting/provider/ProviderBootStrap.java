@@ -65,6 +65,7 @@ public final class ProviderBootStrap {
                     if (server.support(config)) {
                         server.start(config);
                         registerConsoleServer(config);
+                        registerHostConfig(config);
 
                         httpServer = server;
                         serversMap.put(server.getProtocol() + server.getPort(), server);
@@ -144,6 +145,11 @@ public final class ProviderBootStrap {
 
     public static Server getHttpServer() {
         return httpServer;
+    }
+
+    private static void registerHostConfig(ServerConfig config) {
+        //todo
+        RegistryManager.getInstance().setHostConfig(config.getIp());
     }
 
     public static void registerConsoleServer(ServerConfig config) {

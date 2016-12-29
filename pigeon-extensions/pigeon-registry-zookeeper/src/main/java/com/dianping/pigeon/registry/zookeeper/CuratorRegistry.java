@@ -582,4 +582,9 @@ public class CuratorRegistry implements Registry {
 
         return consoleAddresses;
     }
+
+    @Override
+    public void setHostConfig(String ip) {
+
+    }
 }

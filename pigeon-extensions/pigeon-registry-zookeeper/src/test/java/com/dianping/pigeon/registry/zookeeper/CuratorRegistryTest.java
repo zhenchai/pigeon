@@ -9,6 +9,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.curator.test.TestingServer;
+import org.apache.zookeeper.KeeperException;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -29,6 +30,8 @@ public class CuratorRegistryTest {
 		server = new TestingServer();
 		ConfigManagerLoader.getConfigManager().setLocalStringValue(Constants.KEY_REGISTRY_ADDRESS,
 				server.getConnectString());
+		/*ConfigManagerLoader.getConfigManager().setLocalStringValue(Constants.KEY_REGISTRY_ADDRESS,
+				"10.66.15.109:2181");*/
 	}
 
 	@AfterClass
@@ -36,6 +39,22 @@ public class CuratorRegistryTest {
 		if (server != null) {
 			server.close();
 			server = null;
+		}
+	}
+
+	@Test
+	public void tsetCreate() {
+		CuratorRegistry registry = new CuratorRegistry();
+		registry.init();
+		assertEquals(registry.getName(), "curator");
+
+		try {
+			registry.getCuratorClient().create("/DP/APPNAME/pigeon-invoker-demo");
+		} catch (Exception e) {
+			if (e instanceof KeeperException.NodeExistsException) {
+				System.out.println(1111);
+			}
+			e.printStackTrace();
 		}
 	}
 

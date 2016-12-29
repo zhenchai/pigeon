@@ -31,7 +31,8 @@ public class CuratorEventListener implements CuratorListener {
 	private static final int APP = 3;
 	private static final int VERSION = 4;
 	private static final int PROTOCOL = 5;
-	private static final int HOST_CONFIG = 6;
+	private static final int HOST_CONFIG_INVOKER = 6;
+	private static final int HOST_CONFIG_PROVIDER = 7;
 
 	private ConfigManager configManager = ConfigManagerLoader.getConfigManager();
 
@@ -75,6 +76,10 @@ public class CuratorEventListener implements CuratorListener {
 				versionChanged(pathInfo);
 			} else if (pathInfo.type == PROTOCOL) {
 				protocolChanged(pathInfo);
+			} else if (pathInfo.type == HOST_CONFIG_INVOKER) {
+				HostConfig4InvokerChanged(pathInfo);
+			} else if (pathInfo.type == HOST_CONFIG_PROVIDER) {
+				HostConfig4ProviderChanged(pathInfo);
 			}
 		} catch (Throwable e) {
 			logger.error("Error in ZookeeperWatcher.process()", e);
@@ -175,6 +180,24 @@ public class CuratorEventListener implements CuratorListener {
 		}
 	}
 
+	private void HostConfig4InvokerChanged(PathInfo pathInfo) throws Exception {
+		try {
+			String info = client.get(pathInfo.path);
+			Map<String, String> infoMap = Utils.getHostConfigInfoMap(info);
+			logger.info("host config for invoker changed, path " + pathInfo.path + " value " + info);
+			//todo
+			//RegistryEventListener.(pathInfo.server, infoMap);
+		} catch (Throwable e) {
+			throw new RegistryException(e);
+		} finally {
+			client.watch(pathInfo.path);
+		}
+	}
+
+	private void HostConfig4ProviderChanged(PathInfo pathInfo) throws Exception {
+
+	}
+
 	public PathInfo parsePath(String path) {
 		if (path == null)
 			return null;
@@ -209,8 +232,19 @@ public class CuratorEventListener implements CuratorListener {
 			pathInfo.server = path.substring(Constants.PROTOCOL_PATH.length() + 1);
 		} else if (path.startsWith(Constants.HOST_CONFIG_PATH)) {
 			pathInfo = new PathInfo(path);
-			pathInfo.type = HOST_CONFIG;
-			//todo
+			// pick out ${ip}/invoker or ${ip}/provider
+			String hostWithType = path.substring(Constants.HOST_CONFIG_PATH.length() + 1);
+			int idx = hostWithType.indexOf(Constants.PATH_SEPARATOR);
+			if (idx != -1) {
+				// use ip as server(without port)
+				pathInfo.server = hostWithType.substring(0, idx);
+				String type = hostWithType.substring(idx + 1);
+				if (type.equals(Constants.HOST_CONFIG_INVOKER_ROLE)) {
+					pathInfo.type = HOST_CONFIG_INVOKER;
+				} else if (type.equals(Constants.HOST_CONFIG_PROVIDER_ROLE)) {
+					pathInfo.type = HOST_CONFIG_PROVIDER;
+				}
+			}
 
 		}
 

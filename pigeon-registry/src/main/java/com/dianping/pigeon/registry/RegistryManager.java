@@ -499,6 +499,12 @@ public class RegistryManager {
 		}
 	}
 
+	public void setHostConfig(String ip) {
+		if (registry != null) {
+			registry.setHostConfig(ip);
+		}
+	}
+
 	static class InnerServerInfoListener implements ServerInfoListener {
 
 		@Override

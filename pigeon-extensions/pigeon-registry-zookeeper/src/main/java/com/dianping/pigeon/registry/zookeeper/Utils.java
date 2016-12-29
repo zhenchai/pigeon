@@ -124,6 +124,15 @@ public class Utils {
         return new ConcurrentHashMap<String, Boolean>();
     }
 
+    public static ConcurrentHashMap getHostConfigInfoMap(String info) throws IOException {
+
+        if (StringUtils.isNotBlank(info)) {
+            return mapper.readValue(info, ConcurrentHashMap.class);
+        }
+
+        return new ConcurrentHashMap<String, String>();
+    }
+
     public static String getConsolePath(String clientAddress) {
         return Constants.CONSOLE_PATH + Constants.PATH_SEPARATOR + clientAddress;
     }

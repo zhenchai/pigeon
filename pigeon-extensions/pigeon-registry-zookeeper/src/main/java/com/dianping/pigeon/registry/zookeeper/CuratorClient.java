@@ -277,7 +277,7 @@ public class CuratorClient {
 
 	public void create(String path, Object value) throws Exception {
 		byte[] bytes = (value == null ? new byte[0] : value.toString().getBytes(CHARSET));
-		client.create().creatingParentsIfNeeded().forPath(path, bytes);
+		System.out.println(client.create().creatingParentsIfNeeded().forPath(path, bytes));
 		if (logger.isInfoEnabled()) {
 			logger.info("create node " + path + " value " + value);
 		}

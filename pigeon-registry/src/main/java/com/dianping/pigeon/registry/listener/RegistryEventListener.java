@@ -106,6 +106,13 @@ public class RegistryEventListener {
 		}
 	}
 
+	public static void hostConfig4InvokerChanged(String serverAddress, Map<String, String> hostConfigInfoMap) {
+		for (ServerInfoListener listener : serverInfoListeners) {
+			//todo
+			//listener.onServerProtocolChange(serverAddress, hostConfigInfoMap);
+		}
+	}
+
 	public static void serverInfoChanged(String serviceName, String serverAddress) {
 		RegistryManager.getInstance().getReferencedApp(serverAddress);
 		RegistryManager.getInstance().getReferencedVersion(serverAddress);

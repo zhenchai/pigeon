@@ -106,4 +106,5 @@ public interface Registry {
 
     List<String> getConsoleAddresses();
 
+    void setHostConfig(String ip);
 }
