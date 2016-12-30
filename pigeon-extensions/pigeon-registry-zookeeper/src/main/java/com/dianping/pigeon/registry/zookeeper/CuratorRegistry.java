@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.KeeperException.BadVersionException;
 import org.apache.zookeeper.KeeperException.NoNodeException;
 import org.apache.zookeeper.KeeperException.NodeExistsException;
@@ -585,6 +586,20 @@ public class CuratorRegistry implements Registry {
 
     @Override
     public void setHostConfig(String ip) {
+        try {
+            client.create(Utils.getHostConfig4InvokerPath(ip));
+        } catch (Exception e) {
+            if (!(e instanceof KeeperException.NodeExistsException)) {
+                logger.warn("failed to create host config for invoker path");
+            }
+        }
 
+        try {
+            client.create(Utils.getHostConfig4ProviderPath(ip));
+        } catch (Exception e) {
+            if (!(e instanceof KeeperException.NodeExistsException)) {
+                logger.warn("failed to create host config for provider path");
+            }
+        }
     }
 }
