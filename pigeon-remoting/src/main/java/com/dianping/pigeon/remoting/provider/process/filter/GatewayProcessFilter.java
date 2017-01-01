@@ -5,6 +5,7 @@
 package com.dianping.pigeon.remoting.provider.process.filter;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -90,6 +91,12 @@ public class GatewayProcessFilter implements ServiceInvocationFilter<ProviderCon
 			Map<String, Map<String, Long>> map = Maps.newConcurrentMap();
 			try {
 				map = (HashMap) jacksonSerializer.toObject(HashMap.class, methodAppLimitConfig);
+				for (Map<String, Long> appLimitMap : map.values()) {
+					for (String app : new HashSet<String>(appLimitMap.keySet())) {
+						Long limit = Long.parseLong("" + appLimitMap.get(app));
+						appLimitMap.put(app, limit);
+					}
+				}
 				methodAppLimitMap.clear();
 				methodAppLimitMap = new ConcurrentHashMap<>(map);
 			} catch (Throwable t) {
