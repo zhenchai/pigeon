@@ -8,7 +8,6 @@ import java.util.Map;
 
 import com.dianping.pigeon.remoting.common.codec.SerializerType;
 import com.dianping.pigeon.remoting.common.domain.CallMethod;
-import com.dianping.pigeon.remoting.common.domain.CallType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
@@ -60,7 +59,7 @@ public class InvokerConfig<T> {
 
     private InvocationCallback callback;
 
-    private String group = configManager.getGroup();
+    private String suffix = configManager.getGroup();
 
     private String loadbalance = LoadBalanceManager.DEFAULT_LOADBALANCE;
 
@@ -236,7 +235,7 @@ public class InvokerConfig<T> {
         this.setTimeout(timeout);
         this.setCallType(callMethod);
         this.setCallback(callback);
-        this.setGroup(group);
+        this.setSuffix(group);
         this.setCluster(cluster);
         this.setLoadbalance(loadbalance);
         this.setRetries(retries);
@@ -393,18 +392,18 @@ public class InvokerConfig<T> {
     }
 
     /**
-     * @return the group
+     * @return the suffix
      */
-    public String getGroup() {
-        return group;
+    public String getSuffix() {
+        return suffix;
     }
 
     /**
-     * @param group the group to set
+     * @param suffix the suffix to set
      */
-    public void setGroup(String group) {
-        if (!StringUtils.isBlank(group)) {
-            this.group = group.trim();
+    public void setSuffix(String suffix) {
+        if (!StringUtils.isBlank(suffix)) {
+            this.suffix = suffix.trim();
         }
     }
 

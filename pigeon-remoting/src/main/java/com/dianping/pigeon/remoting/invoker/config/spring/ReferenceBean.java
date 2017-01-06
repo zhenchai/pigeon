@@ -269,8 +269,6 @@ public class ReferenceBean implements FactoryBean {
             throw new IllegalArgumentException("invalid interface:" + interfaceName);
         }
         this.objType = ClassUtils.loadClass(this.classLoader, this.interfaceName.trim());
-        // group读取，lion配置读取失败的时候会读appenv配置
-        this.group = groupManager.getInvokerGroup(this.url);
         InvokerConfig<?> invokerConfig = new InvokerConfig(this.objType, this.url, this.timeout, this.callType,
                 this.serialize, this.callback, this.group, this.writeBufferLimit, this.loadBalance, this.cluster,
                 this.retries, this.timeoutRetry, this.vip, this.version, this.protocol);

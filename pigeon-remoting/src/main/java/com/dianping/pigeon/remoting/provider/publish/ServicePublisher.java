@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.dianping.pigeon.registry.route.GroupManager;
 import org.apache.commons.lang.StringUtils;
 
 import com.dianping.pigeon.config.ConfigManager;
@@ -38,6 +39,8 @@ public final class ServicePublisher {
 	private static ConcurrentHashMap<String, ProviderConfig<?>> serviceCache = new ConcurrentHashMap<String, ProviderConfig<?>>();
 
 	private static ConfigManager configManager = ConfigManagerLoader.getConfigManager();
+
+	private static final GroupManager groupManager = GroupManager.INSTANCE;
 
 	private static ServiceChangeListener serviceChangeListener = new DefaultServiceChangeListener();
 
@@ -130,8 +133,8 @@ public final class ServicePublisher {
 				List<Server> servers = ProviderBootStrap.getServers(providerConfig);
 				int registerCount = 0;
 				for (Server server : servers) {
-					publishServiceToRegistry(url, server.getRegistryUrl(url), server.getPort(), providerConfig.getServerConfig()
-							.getGroup(), providerConfig.isSupported());
+					publishServiceToRegistry(url, server.getRegistryUrl(url), server.getPort(),
+							groupManager.getProviderGroup(url), providerConfig.isSupported());
 					registerCount++;
 				}
 				if (registerCount > 0) {
@@ -276,7 +279,7 @@ public final class ServicePublisher {
 				String serverAddress = configManager.getLocalIp() + ":" + server.getPort();
 				String registryUrl = server.getRegistryUrl(providerConfig.getUrl());
 				RegistryManager.getInstance().unregisterService(registryUrl,
-						providerConfig.getServerConfig().getGroup(), serverAddress);
+						groupManager.getProviderGroup(url), serverAddress);
 				// unregister protocol, include http server
 				RegistryManager.getInstance().unregisterSupportNewProtocol(serverAddress, registryUrl,
 						providerConfig.isSupported());

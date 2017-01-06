@@ -78,7 +78,7 @@ public class LoadBalanceManager {
 	 * @return
 	 */
 	public static LoadBalance getLoadBalance(InvokerConfig<?> invokerConfig, int callType) {
-		String serviceId = ServiceUtils.getServiceId(invokerConfig.getUrl(), invokerConfig.getGroup());
+		String serviceId = ServiceUtils.getServiceId(invokerConfig.getUrl(), invokerConfig.getSuffix());
 		LoadBalance loadBalance = loadBalanceMap.get(serviceId);
 		if (loadBalance != null) {
 			return loadBalance;

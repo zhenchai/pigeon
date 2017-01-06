@@ -58,8 +58,8 @@ public class ServerBeanDefinitionParser implements BeanDefinitionParser {
 		beanDefinition.setInitMethodName("init");
 
 		MutablePropertyValues properties = beanDefinition.getPropertyValues();
-		if (element.hasAttribute("group")) {
-			properties.addPropertyValue("group", resolveReference(element, "group"));
+		if (element.hasAttribute("suffix")) {
+			properties.addPropertyValue("suffix", resolveReference(element, "suffix"));
 		}
 		if (element.hasAttribute("port")) {
 			properties.addPropertyValue("port", resolveReference(element, "port"));

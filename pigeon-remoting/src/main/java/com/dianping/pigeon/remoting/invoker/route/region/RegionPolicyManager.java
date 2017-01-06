@@ -109,7 +109,7 @@ public enum RegionPolicyManager {
     }
 
     public RegionPolicy getRegionPolicy(InvokerConfig<?> invokerConfig) {
-        String serviceId = ServiceUtils.getServiceId(invokerConfig.getUrl(), invokerConfig.getGroup());
+        String serviceId = ServiceUtils.getServiceId(invokerConfig.getUrl(), invokerConfig.getSuffix());
         RegionPolicy regionPolicy = regionPolicyMap.get(serviceId);
         if (regionPolicy != null) {
             return regionPolicy;

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentMap;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.zookeeper.KeeperException;
@@ -600,6 +601,24 @@ public class CuratorRegistry implements Registry {
             if (!(e instanceof KeeperException.NodeExistsException)) {
                 logger.warn("failed to create host config for provider path");
             }
+        }
+    }
+
+    @Override
+    public ConcurrentMap getHostConfig4Invoker() throws RegistryException {
+        try {
+            return Utils.getHostConfigInfoMap(client.get(Utils.getHostConfig4InvokerPath(configManager.getLocalIp())));
+        } catch (Exception e) {
+            throw new RegistryException(e);
+        }
+    }
+
+    @Override
+    public ConcurrentMap getHostConfig4Provider() throws RegistryException {
+        try {
+            return Utils.getHostConfigInfoMap(client.get(Utils.getHostConfig4ProviderPath(configManager.getLocalIp())));
+        } catch (Exception e) {
+            throw new RegistryException(e);
         }
     }
 }

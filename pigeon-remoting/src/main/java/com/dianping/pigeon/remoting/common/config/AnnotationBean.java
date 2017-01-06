@@ -129,7 +129,7 @@ public class AnnotationBean extends ServiceInitializeListener implements Disposa
 
 			ServerConfig serverConfig = new ServerConfig();
 			serverConfig.setPort(getDefaultPort(service.port()));
-			serverConfig.setGroup(service.group());
+			serverConfig.setSuffix(service.group());
 			serverConfig.setAutoSelectPort(service.autoSelectPort());
 			providerConfig.setServerConfig(serverConfig);
 			ServiceFactory.addService(providerConfig);

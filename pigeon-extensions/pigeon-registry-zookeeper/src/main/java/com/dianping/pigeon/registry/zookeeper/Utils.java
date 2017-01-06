@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -124,13 +125,13 @@ public class Utils {
         return new ConcurrentHashMap<String, Boolean>();
     }
 
-    public static ConcurrentHashMap getHostConfigInfoMap(String info) throws IOException {
+    public static ConcurrentMap getHostConfigInfoMap(String info) throws IOException {
 
         if (StringUtils.isNotBlank(info)) {
             return mapper.readValue(info, ConcurrentHashMap.class);
         }
 
-        return new ConcurrentHashMap<String, String>();
+        return new ConcurrentHashMap<>();
     }
 
     public static String getConsolePath(String clientAddress) {

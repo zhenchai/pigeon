@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import org.apache.commons.lang.StringUtils;
 
@@ -503,6 +504,22 @@ public class RegistryManager {
 		if (registry != null) {
 			registry.setHostConfig(ip);
 		}
+	}
+
+	public ConcurrentMap getHostConfig4Invoker() throws RegistryException {
+		if (registry != null) {
+			return registry.getHostConfig4Invoker();
+		}
+
+		return new ConcurrentHashMap<>();
+	}
+
+	public ConcurrentMap getHostConfig4Provider() throws RegistryException {
+		if (registry != null) {
+			return registry.getHostConfig4Provider();
+		}
+
+		return new ConcurrentHashMap<>();
 	}
 
 	static class InnerServerInfoListener implements ServerInfoListener {

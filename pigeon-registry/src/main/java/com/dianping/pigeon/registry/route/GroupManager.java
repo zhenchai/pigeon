@@ -1,13 +1,12 @@
 package com.dianping.pigeon.registry.route;
 
-import com.dianping.pigeon.config.ConfigChangeListener;
 import com.dianping.pigeon.config.ConfigManager;
 import com.dianping.pigeon.config.ConfigManagerLoader;
 import com.dianping.pigeon.log.Logger;
 import com.dianping.pigeon.log.LoggerLoader;
-import com.dianping.pigeon.registry.listener.GroupChangeListener;
+import com.dianping.pigeon.registry.RegistryManager;
+import com.dianping.pigeon.registry.exception.RegistryException;
 import com.dianping.pigeon.registry.listener.RegistryEventListener;
-import com.dianping.pigeon.util.Utils;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.concurrent.ConcurrentHashMap;
@@ -20,50 +19,102 @@ public enum GroupManager {
 
     INSTANCE;
     GroupManager() {
-        //configManager.registerConfigChangeListener(new InnerConfigChangeListener());
-        RegistryEventListener.addListener(new InnerGroupChangeListener());
+
     }
 
     private final Logger logger = LoggerLoader.getLogger(this.getClass());
     private final ConfigManager configManager = ConfigManagerLoader.getConfigManager();
+    private final RegistryManager registryManager = RegistryManager.getInstance();
 
-    private final String localIp = configManager.getLocalIp();
-    private final String envGroup = configManager.getGroup();
+    private final String UNKNOWN_GROUP = "unknown";
+    private final String BLANK_GROUP = "";
 
+    /*private final String localIp = configManager.getLocalIp();
     private final static String GROUP_INVOKER_BASE = "pigeon.group.invoker.";
     private final static String GROUP_PROVIDER_BASE = "pigeon.group.provider.";
     private final static int GROUP_INVOKER_BASE_LENGTH = GROUP_INVOKER_BASE.length();
-    private final static int GROUP_PROVIDER_BASE_LENGTH = GROUP_PROVIDER_BASE.length();
+    private final static int GROUP_PROVIDER_BASE_LENGTH = GROUP_PROVIDER_BASE.length();*/
 
-    private ConcurrentMap<String, String> invokerGroupCache = new ConcurrentHashMap<String, String>();
+    private volatile ConcurrentMap<String, String> invokerGroupCache = new ConcurrentHashMap<String, String>();
+    private volatile ConcurrentMap<String, String> providerGroupCache = new ConcurrentHashMap<String, String>();
+
+    public ConcurrentMap<String, String> getInvokerGroupCache() {
+        return invokerGroupCache;
+    }
+
+    public void setInvokerGroupCache(ConcurrentMap<String, String> invokerGroupCache) {
+        this.invokerGroupCache = invokerGroupCache;
+    }
+
+    public ConcurrentMap<String, String> getProviderGroupCache() {
+        return providerGroupCache;
+    }
+
+    public void setProviderGroupCache(ConcurrentMap<String, String> providerGroupCache) {
+        this.providerGroupCache = providerGroupCache;
+    }
 
     public String getInvokerGroup(String serviceName) {
+        if (StringUtils.isNotBlank(configManager.getGroup())) { // swimlane is set, do not cache and watch
+            return configManager.getGroup();
+        }
+
+        //todo 添加监听和缓存
         String group = invokerGroupCache.get(serviceName);
-
-        if(group == null) {
-            String groupConfigs = configManager.getStringValue(GROUP_INVOKER_BASE + Utils.escapeServiceName(serviceName));
-
-            if(StringUtils.isNotBlank(groupConfigs)) {
-                group = parseLocalGroup(groupConfigs);
-            } else {
-                group = envGroup;
+        if (group == null) {
+            synchronized (this) {
+                group = invokerGroupCache.get(serviceName);
+                if (group == null) {
+                    try {
+                        setInvokerGroupCache(registryManager.getHostConfig4Invoker());
+                        group = invokerGroupCache.get(serviceName);
+                        if (group == null) {
+                            group = BLANK_GROUP;
+                            invokerGroupCache.put(serviceName, group);
+                        }
+                    } catch (RegistryException e) {
+                        logger.warn("failed to get group info for invoker: " + serviceName
+                                + ", set group to" + UNKNOWN_GROUP, e);
+                        group = UNKNOWN_GROUP;
+                    }
+                }
             }
-
-            invokerGroupCache.put(serviceName, group);
         }
 
         return group;
     }
 
-    public String getProviderGroup(String serviceName) {
-        String groupConfigs = configManager.getStringValue(GROUP_PROVIDER_BASE + Utils.escapeServiceName(serviceName));
-        if(StringUtils.isBlank(groupConfigs)) {
-            return parseLocalGroup(groupConfigs);
+    public synchronized String getProviderGroup(String serviceName) {
+        if (StringUtils.isNotBlank(configManager.getGroup())) { // swimlane is set, do not cache and watch
+            return configManager.getGroup();
         }
-        return envGroup;
+
+        //todo 添加监听和缓存
+        String group = providerGroupCache.get(serviceName);
+        if (group == null) {
+            synchronized (this) {
+                group = providerGroupCache.get(serviceName);
+                if (group == null) {
+                    try {
+                        setProviderGroupCache(registryManager.getHostConfig4Provider());
+                        group = providerGroupCache.get(serviceName);
+                        if (group == null) {
+                            group = BLANK_GROUP;
+                            providerGroupCache.put(serviceName, group);
+                        }
+                    } catch (RegistryException e) {
+                        logger.warn("failed to get group info for provider: " + serviceName
+                                + ", set group to" + UNKNOWN_GROUP, e);
+                        group = UNKNOWN_GROUP;
+                    }
+                }
+            }
+        }
+
+        return group;
     }
 
-    private String parseLocalGroup(String groupConfigs) {
+    /*private String parseLocalGroup(String groupConfigs) {
         try {
             String[] keyVals = groupConfigs.split(",");
             for(String keyVal : keyVals) {
@@ -73,70 +124,18 @@ public enum GroupManager {
                     return ipGroupArray[1];
                 }
             }
-            return envGroup;
+            return BLANK_GROUP;
         } catch (Throwable t) {
-            logger.warn("Parse group config error! return appenv group: " + envGroup, t);
-            return envGroup;
+            logger.warn("Parse group config error! return unknown group: " + UNKNOWN_GROUP, t);
+            return UNKNOWN_GROUP;
         }
+    }*/
+
+    public void hostConfig4InvokerChanged(String ip, ConcurrentMap<String, String> hostConfigInfoMap) {
+        RegistryEventListener.hostConfig4InvokerChanged(ip, hostConfigInfoMap);
     }
 
-    private class InnerConfigChangeListener implements ConfigChangeListener {
-
-        @Override
-        public void onKeyUpdated(String key, String value) {
-            int _index = key.indexOf(GROUP_INVOKER_BASE);
-            if(_index != -1) {
-                //TODO invoker改变分组设置时，通知变化，重新连接新分组和断开旧分组
-                String _serviceName = Utils.unescapeServiceName(key.substring(_index + GROUP_INVOKER_BASE_LENGTH));
-                //TODO 比对serviceName，找到invoker，修改invokerGroupCache和invokerConfig配置
-                for(String serviceName : invokerGroupCache.keySet()) {
-                    if(serviceName.equals(_serviceName)) {
-                        String group = envGroup;
-
-                        if(StringUtils.isNotBlank(value)) {
-                            group = parseLocalGroup(value);
-                        }
-
-                        invokerGroupCache.put(serviceName, group);
-                        // TODO invokerConfig修改
-
-                    }
-                }
-
-                return;
-            }
-
-            _index = key.indexOf(GROUP_PROVIDER_BASE);
-            if(_index != -1) {
-
-            }
-
-
-            /*if(key.contains(GROUP_INVOKER_BASE)) {
-            } else if(key.contains(GROUP_PROVIDER_BASE)) {
-            }*/
-        }
-
-        @Override
-        public void onKeyAdded(String key, String value) {
-
-        }
-
-        @Override
-        public void onKeyRemoved(String key) {
-
-        }
-    }
-
-    private class InnerGroupChangeListener implements GroupChangeListener {
-        @Override
-        public void onInvokerGroupChange() {
-
-        }
-
-        @Override
-        public void onProviderGroupChange() {
-
-        }
+    public void hostConfig4ProviderChanged(String ip, ConcurrentMap<String, String> hostConfigInfoMap) {
+        RegistryEventListener.hostConfig4ProviderChanged(ip, hostConfigInfoMap);
     }
 }

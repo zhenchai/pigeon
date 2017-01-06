@@ -1,6 +1,7 @@
 package com.dianping.pigeon.registry;
 
 import java.util.List;
+import java.util.concurrent.ConcurrentMap;
 
 import com.dianping.pigeon.registry.exception.RegistryException;
 
@@ -107,4 +108,8 @@ public interface Registry {
     List<String> getConsoleAddresses();
 
     void setHostConfig(String ip);
+
+    ConcurrentMap getHostConfig4Invoker() throws RegistryException;
+
+    ConcurrentMap getHostConfig4Provider() throws RegistryException;
 }

@@ -11,7 +11,6 @@ import com.dianping.pigeon.remoting.invoker.config.InvokerConfig;
 import com.dianping.pigeon.remoting.invoker.exception.RouteException;
 import com.dianping.pigeon.remoting.invoker.route.balance.LoadBalanceManager;
 import com.dianping.pigeon.remoting.invoker.route.region.RegionPolicyManager;
-import com.dianping.pigeon.remoting.provider.config.PoolConfig;
 import com.google.common.collect.Interner;
 import com.google.common.collect.Interners;
 import org.apache.commons.lang.StringUtils;
@@ -25,7 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public abstract class AbstractServiceProxy implements ServiceProxy {
 
-    protected static Map<InvokerConfig<?>, Object> services = new ConcurrentHashMap<InvokerConfig<?>, Object>();
+    protected final static Map<InvokerConfig<?>, Object> services = new ConcurrentHashMap<InvokerConfig<?>, Object>();
     protected Logger logger = LoggerLoader.getLogger(this.getClass());
 
     private static final Interner<InvokerConfig<?>> interner = Interners.newWeakInterner();
@@ -63,7 +62,7 @@ public abstract class AbstractServiceProxy implements ServiceProxy {
 
                         service = SerializerFactory.getSerializer(invokerConfig.getSerialize()).proxyRequest(invokerConfig);
                         if (StringUtils.isNotBlank(invokerConfig.getLoadbalance())) {
-                            LoadBalanceManager.register(invokerConfig.getUrl(), invokerConfig.getGroup(),
+                            LoadBalanceManager.register(invokerConfig.getUrl(), invokerConfig.getSuffix(),
                                     invokerConfig.getLoadbalance());
                         }
                     } catch (Throwable t) {
@@ -72,7 +71,7 @@ public abstract class AbstractServiceProxy implements ServiceProxy {
 
                     // setup region policy for service
                     try {
-                        regionPolicyManager.register(invokerConfig.getUrl(), invokerConfig.getGroup(),
+                        regionPolicyManager.register(invokerConfig.getUrl(), invokerConfig.getSuffix(),
                                 invokerConfig.getRegionPolicy());
                     } catch (Throwable t) {
                         throw new RouteException("error while setup region route policy: " + invokerConfig, t);

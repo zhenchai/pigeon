@@ -14,9 +14,11 @@ import com.dianping.pigeon.registry.util.Utils;
 
 public class DefaultServiceChangeListener implements ServiceChangeListener {
 
+	public final static DefaultServiceChangeListener INSTANCE = new DefaultServiceChangeListener();
+
 	private static final Logger logger = LoggerLoader.getLogger(DefaultServiceChangeListener.class);
 
-	public DefaultServiceChangeListener() {
+	private DefaultServiceChangeListener() {
 	}
 
 	@Override

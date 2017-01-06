@@ -91,7 +91,7 @@ public class ServerBean {
 				if (serverConfig == null) {
 					serverConfig = new ServerConfig();
 					serverConfig.setPort(port);
-					serverConfig.setGroup(group);
+					serverConfig.setSuffix(group);
 					serverConfig.setAutoSelectPort(autoSelectPort);
 					serverConfig.setCorePoolSize(corePoolSize);
 					serverConfig.setMaxPoolSize(maxPoolSize);

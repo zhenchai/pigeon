@@ -1,6 +1,8 @@
 package com.dianping.pigeon.registry.composite;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import org.apache.commons.lang.StringUtils;
 
@@ -574,11 +576,66 @@ public class CompositeRegistry implements Registry {
                     consoleAddresses.addAll(tempAddresses);
                 }
             } catch (Throwable t) {
-                logger.info("failed to unregister console address from registry: " + registry.getName(), t);
+                logger.info("failed to get console address from registry: " + registry.getName(), t);
             }
         }
 
         return consoleAddresses;
+    }
+
+    @Override
+    public void setHostConfig(String ip) {
+        for (Registry registry : registryList) {
+            try {
+                registry.setHostConfig(ip);
+            } catch (Throwable t) {
+                logger.info("failed to set host config to registry: " + registry.getName(), t);
+            }
+        }
+    }
+
+    @Override
+    public ConcurrentMap getHostConfig4Invoker() throws RegistryException {
+        ConcurrentMap infos;
+        List<ConcurrentMap> checkList = Lists.newArrayList();
+
+        for (Registry registry : registryList) {
+            try {
+                checkList.add(registry.getHostConfig4Invoker());
+            } catch (Throwable t) {
+                logger.info("failed to get host config for invoker from registry: " + registry.getName());
+            }
+        }
+
+        if (checkList.size() == 0) {
+            throw new RegistryException("failed to get host config for invoker");
+        }
+
+        infos = checkValueConsistency(checkList, "host config for invoker");
+
+        return infos;
+    }
+
+    @Override
+    public ConcurrentMap getHostConfig4Provider() throws RegistryException {
+        ConcurrentMap infos;
+        List<ConcurrentMap> checkList = Lists.newArrayList();
+
+        for (Registry registry : registryList) {
+            try {
+                checkList.add(registry.getHostConfig4Provider());
+            } catch (Throwable t) {
+                logger.info("failed to get host config for provider from registry: " + registry.getName());
+            }
+        }
+
+        if (checkList.size() == 0) {
+            throw new RegistryException("failed to get host config for provider");
+        }
+
+        infos = checkValueConsistency(checkList, "host config for provider");
+
+        return infos;
     }
 
     private String mergeAddress(String address, String anotherAddress) {

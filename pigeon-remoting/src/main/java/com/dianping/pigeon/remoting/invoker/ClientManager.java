@@ -9,19 +9,22 @@ import com.dianping.pigeon.config.ConfigManagerLoader;
 import com.dianping.pigeon.domain.HostInfo;
 import com.dianping.pigeon.log.LoggerLoader;
 import com.dianping.pigeon.registry.RegistryManager;
-import com.dianping.pigeon.registry.listener.RegistryConnectionListener;
-import com.dianping.pigeon.registry.listener.RegistryEventListener;
-import com.dianping.pigeon.registry.listener.ServiceProviderChangeEvent;
-import com.dianping.pigeon.registry.listener.ServiceProviderChangeListener;
+import com.dianping.pigeon.registry.exception.RegistryException;
+import com.dianping.pigeon.registry.listener.*;
+import com.dianping.pigeon.registry.route.GroupManager;
+import com.dianping.pigeon.registry.util.Constants;
 import com.dianping.pigeon.remoting.ServiceFactory;
 import com.dianping.pigeon.remoting.common.domain.Disposable;
 import com.dianping.pigeon.remoting.common.domain.InvocationRequest;
+import com.dianping.pigeon.remoting.common.util.Utils;
 import com.dianping.pigeon.remoting.invoker.config.InvokerConfig;
 import com.dianping.pigeon.remoting.invoker.domain.ConnectInfo;
 import com.dianping.pigeon.remoting.invoker.exception.ServiceUnavailableException;
 import com.dianping.pigeon.remoting.invoker.listener.*;
 import com.dianping.pigeon.remoting.invoker.route.DefaultRouteManager;
 import com.dianping.pigeon.remoting.invoker.route.RouteManager;
+import com.dianping.pigeon.remoting.provider.config.ProviderConfig;
+import com.dianping.pigeon.remoting.provider.publish.ServicePublisher;
 import com.dianping.pigeon.threadpool.DefaultThreadFactory;
 import com.dianping.pigeon.threadpool.DefaultThreadPool;
 import com.dianping.pigeon.threadpool.ThreadPool;
@@ -69,6 +72,10 @@ public class ClientManager {
 
 	private RegistryConnectionListener registryConnectionListener = new InnerRegistryConnectionListener();
 
+	private GroupChangeListener groupChangeListener = new InnerGroupChangeListener();
+
+	private final static GroupManager groupManager = GroupManager.INSTANCE;
+
 	private static boolean enableVip = ConfigManagerLoader.getConfigManager()
 			.getBooleanValue("pigeon.invoker.vip.enable", false);
 
@@ -86,6 +93,7 @@ public class ClientManager {
 		providerAvailableThreadPool.execute(this.providerAvailableListener);
 		RegistryEventListener.addListener(providerChangeListener);
 		RegistryEventListener.addListener(registryConnectionListener);
+		RegistryEventListener.addListener(groupChangeListener);
 		registerThreadPool.getExecutor().allowCoreThreadTimeOut(true);
 	}
 
@@ -126,7 +134,7 @@ public class ClientManager {
 	public String getServiceAddress(InvokerConfig invokerConfig) {
 		String remoteAppkey = invokerConfig.getRemoteAppKey();
 		String serviceName = invokerConfig.getUrl();
-		String group = invokerConfig.getGroup();
+		String group = groupManager.getInvokerGroup(serviceName);
 		String vip = invokerConfig.getVip();
 
 		String serviceAddress = null;
@@ -170,7 +178,7 @@ public class ClientManager {
 	public Set<HostInfo> registerClients(InvokerConfig invokerConfig) {
 		String remoteAppkey = invokerConfig.getRemoteAppKey();
 		String serviceName = invokerConfig.getUrl();
-		String group = invokerConfig.getGroup();
+		String group = groupManager.getInvokerGroup(serviceName);
 		String vip = invokerConfig.getVip();
 
 		logger.info("start to register clients for service '" + serviceName + "#" + group + "'");
@@ -315,6 +323,69 @@ public class ClientManager {
 			logger.info("succeed to sync service addresses");
 		}
 
+	}
+
+	private class InnerGroupChangeListener implements GroupChangeListener {
+		@Override
+		public void onInvokerGroupChange(String ip, ConcurrentMap<String, String> hostConfigInfoMap) {
+			// refresh invoker group config cache
+			//todo 比较一下,更细致一些的变化
+			ConcurrentMap oldInvokerGroupCache = groupManager.getInvokerGroupCache();
+			groupManager.setInvokerGroupCache(hostConfigInfoMap);
+
+			// reconnect to new ip:port list
+			for (InvokerConfig<?> invokerConfig : ServiceFactory.getAllServiceInvokers().keySet()) {
+				try {
+					// todo 新旧比较
+					logger.info("invoker group changed, service: " + invokerConfig.getUrl()
+							+ ", new group: " + groupManager.getInvokerGroup(invokerConfig.getUrl()));
+					String hosts = getServiceAddress(invokerConfig);
+					List<String[]> hostDetail = Utils.getServiceIpPortList(hosts);
+					DefaultServiceChangeListener.INSTANCE.onServiceHostChange(invokerConfig.getUrl(), hostDetail);
+				} catch (Throwable e) {
+					logger.warn("failed to change refresh invoker to new group, caused by: " + e.getMessage());
+				}
+			}
+
+		}
+
+		@Override
+		public void onProviderGroupChange(String ip, ConcurrentMap<String, String> hostConfigInfoMap) {
+			// save old cache and refresh provider group config cache
+			ConcurrentMap<String, String> oldProviderGroupCache = groupManager.getProviderGroupCache();
+			groupManager.setProviderGroupCache(hostConfigInfoMap);
+
+			for (ProviderConfig<?> providerConfig : ServiceFactory.getAllServiceProviders().values()) {
+				if (StringUtils.isBlank(configManager.getGroup())) {
+					String host = ip + ":" + providerConfig.getServerConfig().getActualPort();
+					Integer weight = ServicePublisher.getServerWeight().get(host);
+					if (weight == null) {
+						weight = Constants.DEFAULT_WEIGHT;
+					}
+					String oldGroup = oldProviderGroupCache.get(providerConfig.getUrl());
+					if (oldGroup == null) {
+						oldGroup = "";
+					}
+					String newGroup = groupManager.getProviderGroupCache().get(providerConfig.getUrl());
+					if (newGroup == null) {
+						newGroup = "";
+					}
+
+					if (!newGroup.equals(oldGroup)) {
+						try {
+							// remove ip:port in old group
+							RegistryManager.getInstance().unregisterService(providerConfig.getUrl(), oldGroup, host);
+							// add ip:port to new group
+							RegistryManager.getInstance().registerService(providerConfig.getUrl(), newGroup, host, weight);
+						} catch (RegistryException e) {
+							logger.error("error while change provider group of " + providerConfig.getUrl()
+									+ "from group" + oldGroup + "to group" + newGroup, e);
+						}
+					}
+				}
+			}
+
+		}
 	}
 
 	public void clear() {

@@ -70,7 +70,7 @@
 					<xsd:attribute name="timeoutRetry" type="xsd:string"
 						default="false" />
 					<xsd:attribute name="callback" type="xsd:string" />
-					<xsd:attribute name="group" type="xsd:string" />
+					<xsd:attribute name="suffix" type="xsd:string" />
 					<xsd:attribute name="vip" type="xsd:string" />
 					<xsd:attribute name="version" type="xsd:string" />
 					<xsd:attribute name="secret" type="xsd:string" default="" />	
@@ -108,7 +108,7 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="beans:identifiedType">
-					<xsd:attribute name="group" type="xsd:string" />
+					<xsd:attribute name="suffix" type="xsd:string" />
 					<xsd:attribute name="port" type="xsd:string" default="4040" />
 					<xsd:attribute name="httpPort" type="xsd:string"
 						default="4080" />

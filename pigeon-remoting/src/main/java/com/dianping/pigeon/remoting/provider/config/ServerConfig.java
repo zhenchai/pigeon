@@ -26,7 +26,7 @@ public class ServerConfig {
 	private int corePoolSize = Constants.PROVIDER_POOL_CORE_SIZE;
 	private int maxPoolSize = Constants.PROVIDER_POOL_MAX_SIZE;
 	private int workQueueSize = Constants.PROVIDER_POOL_QUEUE_SIZE;
-	private String group = configManager.getGroup();
+	private String suffix = configManager.getGroup();
 	private String protocol = Constants.PROTOCOL_DEFAULT;
 	private String env;
 	private String ip;
@@ -103,13 +103,13 @@ public class ServerConfig {
 		this.protocol = protocol;
 	}
 
-	public String getGroup() {
-		return group;
+	public String getSuffix() {
+		return suffix;
 	}
 
-	public void setGroup(String group) {
-		if (!StringUtils.isBlank(group)) {
-			this.group = group;
+	public void setSuffix(String suffix) {
+		if (!StringUtils.isBlank(suffix)) {
+			this.suffix = suffix;
 		}
 	}
 

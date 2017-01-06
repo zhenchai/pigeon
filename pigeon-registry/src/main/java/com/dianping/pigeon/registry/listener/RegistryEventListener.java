@@ -7,6 +7,7 @@ package com.dianping.pigeon.registry.listener;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentMap;
 
 import com.dianping.pigeon.log.Logger;
 
@@ -106,10 +107,15 @@ public class RegistryEventListener {
 		}
 	}
 
-	public static void hostConfig4InvokerChanged(String serverAddress, Map<String, String> hostConfigInfoMap) {
-		for (ServerInfoListener listener : serverInfoListeners) {
-			//todo
-			//listener.onServerProtocolChange(serverAddress, hostConfigInfoMap);
+	public static void hostConfig4InvokerChanged(String ip, ConcurrentMap<String, String> hostConfigInfoMap) {
+		for (GroupChangeListener listener : groupChangeListeners) {
+			listener.onInvokerGroupChange(ip, hostConfigInfoMap);
+		}
+	}
+
+	public static void hostConfig4ProviderChanged(String ip, ConcurrentMap<String, String> hostConfigInfoMap) {
+		for (GroupChangeListener listener : groupChangeListeners) {
+			listener.onProviderGroupChange(ip, hostConfigInfoMap);
 		}
 	}
 

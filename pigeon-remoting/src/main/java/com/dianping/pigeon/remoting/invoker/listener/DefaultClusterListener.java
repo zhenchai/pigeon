@@ -8,6 +8,7 @@ import com.dianping.pigeon.config.ConfigManager;
 import com.dianping.pigeon.config.ConfigManagerLoader;
 import com.dianping.pigeon.log.LoggerLoader;
 import com.dianping.pigeon.registry.listener.RegistryEventListener;
+import com.dianping.pigeon.registry.route.GroupManager;
 import com.dianping.pigeon.remoting.invoker.Client;
 import com.dianping.pigeon.remoting.invoker.ClientSelector;
 import com.dianping.pigeon.remoting.invoker.config.InvokerConfig;
@@ -43,6 +44,8 @@ public class DefaultClusterListener implements ClusterListener {
 
     private ConfigManager configManager = ConfigManagerLoader.getConfigManager();
 
+    private final GroupManager groupManager = GroupManager.INSTANCE;
+
     public DefaultClusterListener(ProviderAvailableListener providerAvailableListener) {
         providerAvailableListener.setWorkingClients(serviceClients);
     }
@@ -60,7 +63,7 @@ public class DefaultClusterListener implements ClusterListener {
         List<Client> clientList = this.serviceClients.get(invokerConfig.getUrl());
         if (CollectionUtils.isEmpty(clientList)) {
             throw new ServiceUnavailableException("no available provider for service:" + invokerConfig.getUrl()
-                    + ", group:" + invokerConfig.getGroup() + ", env:"
+                    + ", group:" + groupManager.getInvokerGroup(invokerConfig.getUrl()) + ", env:"
                     + ConfigManagerLoader.getConfigManager().getEnv());
         }
         String vip = invokerConfig.getVip();

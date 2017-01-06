@@ -148,7 +148,6 @@ public final class ProviderBootStrap {
     }
 
     private static void registerHostConfig(ServerConfig config) {
-        //todo
         RegistryManager.getInstance().setHostConfig(config.getIp());
     }
 

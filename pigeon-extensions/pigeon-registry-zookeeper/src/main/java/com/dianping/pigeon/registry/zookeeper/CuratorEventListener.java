@@ -2,6 +2,7 @@ package com.dianping.pigeon.registry.zookeeper;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentMap;
 
 import com.dianping.pigeon.registry.route.GroupManager;
 import com.dianping.pigeon.registry.RegistryManager;
@@ -40,7 +41,7 @@ public class CuratorEventListener implements CuratorListener {
 
 	private CuratorClient client;
 
-	private ServiceChangeListener serviceChangeListener = new DefaultServiceChangeListener();
+	private ServiceChangeListener serviceChangeListener = DefaultServiceChangeListener.INSTANCE;
 
 	public CuratorEventListener(CuratorClient client) {
 		this.client = client;
@@ -117,16 +118,16 @@ public class CuratorEventListener implements CuratorListener {
 		currentGroup = Utils.normalizeGroup(currentGroup);
 		if (currentGroup.equals(pathInfo.group))
 			return true;
-		if (StringUtils.isEmpty(currentGroup) && !StringUtils.isEmpty(pathInfo.group))
+		if (StringUtils.isEmpty(currentGroup) && !StringUtils.isEmpty(pathInfo.group)) // 当前无group配置, 通知来自group
 			return false;
 		if (!StringUtils.isEmpty(currentGroup) && StringUtils.isEmpty(pathInfo.group)
-				&& RegistryManager.fallbackDefaultGroup) {
+				&& RegistryManager.fallbackDefaultGroup) { // group中 && 默认group改变的通知 && 可fallback
 			String servicePath = Utils.getServicePath(pathInfo.serviceName, currentGroup);
-			if (!client.exists(servicePath)) {
+			if (!client.exists(servicePath)) { // group地址为空或被删除,fallback
 				return true;
 			}
-			String addr = client.get(servicePath);
-			if (!Utils.isValidAddress(addr)) {
+			String addr = client.get(servicePath); // group地址不为空,取出group的value
+			if (!Utils.isValidAddress(addr)) { // group地址的value有效
 				return true;
 			}
 		}
@@ -183,10 +184,9 @@ public class CuratorEventListener implements CuratorListener {
 	private void HostConfig4InvokerChanged(PathInfo pathInfo) throws Exception {
 		try {
 			String info = client.get(pathInfo.path);
-			Map<String, String> infoMap = Utils.getHostConfigInfoMap(info);
+			ConcurrentMap<String, String> infoMap = Utils.getHostConfigInfoMap(info);
 			logger.info("host config for invoker changed, path " + pathInfo.path + " value " + info);
-			//todo
-			//RegistryEventListener.(pathInfo.server, infoMap);
+			GroupManager.INSTANCE.hostConfig4InvokerChanged(pathInfo.server, infoMap);
 		} catch (Throwable e) {
 			throw new RegistryException(e);
 		} finally {
@@ -195,7 +195,16 @@ public class CuratorEventListener implements CuratorListener {
 	}
 
 	private void HostConfig4ProviderChanged(PathInfo pathInfo) throws Exception {
-
+		try {
+			String info = client.get(pathInfo.path);
+			ConcurrentMap<String, String> infoMap = Utils.getHostConfigInfoMap(info);
+			logger.info("host config for provider changed, path " + pathInfo.path + " value " + info);
+			GroupManager.INSTANCE.hostConfig4ProviderChanged(pathInfo.server, infoMap);
+		} catch (Throwable e) {
+			throw new RegistryException(e);
+		} finally {
+			client.watch(pathInfo.path);
+		}
 	}
 
 	public PathInfo parsePath(String path) {
