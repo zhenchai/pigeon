@@ -50,6 +50,7 @@ public enum GroupManager {
         return providerGroupCache;
     }
 
+    //todo 重构为refresh,后加入的融合进之前的map
     public void setProviderGroupCache(ConcurrentMap<String, String> providerGroupCache) {
         this.providerGroupCache = providerGroupCache;
     }

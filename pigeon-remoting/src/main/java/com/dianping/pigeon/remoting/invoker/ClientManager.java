@@ -330,7 +330,8 @@ public class ClientManager {
 		public void onInvokerGroupChange(String ip, ConcurrentMap<String, String> hostConfigInfoMap) {
 			// refresh invoker group config cache
 			//todo 比较一下,更细致一些的变化
-			ConcurrentMap oldInvokerGroupCache = groupManager.getInvokerGroupCache();
+			// todo 这里有个坑,比较新旧值的多线程更新问题
+			ConcurrentMap<String, String> oldInvokerGroupCache = groupManager.getInvokerGroupCache();
 			groupManager.setInvokerGroupCache(hostConfigInfoMap);
 
 			// reconnect to new ip:port list
@@ -352,6 +353,7 @@ public class ClientManager {
 		@Override
 		public void onProviderGroupChange(String ip, ConcurrentMap<String, String> hostConfigInfoMap) {
 			// save old cache and refresh provider group config cache
+			// todo 这里有个坑,比较新旧值的多线程更新问题
 			ConcurrentMap<String, String> oldProviderGroupCache = groupManager.getProviderGroupCache();
 			groupManager.setProviderGroupCache(hostConfigInfoMap);
 
