@@ -29,12 +29,6 @@ public enum GroupManager {
     private final String UNKNOWN_GROUP = "unknown";
     private final String BLANK_GROUP = "";
 
-    /*private final String localIp = configManager.getLocalIp();
-    private final static String GROUP_INVOKER_BASE = "pigeon.group.invoker.";
-    private final static String GROUP_PROVIDER_BASE = "pigeon.group.provider.";
-    private final static int GROUP_INVOKER_BASE_LENGTH = GROUP_INVOKER_BASE.length();
-    private final static int GROUP_PROVIDER_BASE_LENGTH = GROUP_PROVIDER_BASE.length();*/
-
     private volatile ConcurrentMap<String, String> invokerGroupCache = new ConcurrentHashMap<String, String>();
     private volatile ConcurrentMap<String, String> providerGroupCache = new ConcurrentHashMap<String, String>();
 
@@ -114,23 +108,6 @@ public enum GroupManager {
 
         return group;
     }
-
-    /*private String parseLocalGroup(String groupConfigs) {
-        try {
-            String[] keyVals = groupConfigs.split(",");
-            for(String keyVal : keyVals) {
-                String[] ipGroupArray = keyVal.split(":");
-                String ip = ipGroupArray[0];
-                if(localIp.equals(ip)) {
-                    return ipGroupArray[1];
-                }
-            }
-            return BLANK_GROUP;
-        } catch (Throwable t) {
-            logger.warn("Parse group config error! return unknown group: " + UNKNOWN_GROUP, t);
-            return UNKNOWN_GROUP;
-        }
-    }*/
 
     public void hostConfig4InvokerChanged(String ip, ConcurrentMap<String, String> hostConfigInfoMap) {
         RegistryEventListener.hostConfig4InvokerChanged(ip, hostConfigInfoMap);

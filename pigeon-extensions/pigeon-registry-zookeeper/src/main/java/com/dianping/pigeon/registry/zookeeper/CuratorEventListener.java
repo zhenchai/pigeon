@@ -35,10 +35,6 @@ public class CuratorEventListener implements CuratorListener {
 	private static final int HOST_CONFIG_INVOKER = 6;
 	private static final int HOST_CONFIG_PROVIDER = 7;
 
-	private ConfigManager configManager = ConfigManagerLoader.getConfigManager();
-
-	private final GroupManager groupManager = GroupManager.INSTANCE;
-
 	private CuratorClient client;
 
 	private ServiceChangeListener serviceChangeListener = DefaultServiceChangeListener.INSTANCE;
@@ -113,8 +109,7 @@ public class CuratorEventListener implements CuratorListener {
 
 	private boolean shouldNotify(PathInfo pathInfo) throws Exception {
 		String serviceName = pathInfo.serviceName;
-		String currentGroup = groupManager.getInvokerGroup(serviceName);
-		//String currentGroup = configManager.getGroup();
+		String currentGroup = GroupManager.INSTANCE.getInvokerGroup(serviceName);
 		currentGroup = Utils.normalizeGroup(currentGroup);
 		if (currentGroup.equals(pathInfo.group))
 			return true;
