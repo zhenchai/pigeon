@@ -137,10 +137,6 @@ public class CompositeRegistry implements Registry {
             }
         }
 
-        if (StringUtils.isBlank(addr)) {
-            throw new RegistryException("failed to get service address for " + serviceName + "/" + group);
-        }
-
         return addr;
     }
 
@@ -155,10 +151,6 @@ public class CompositeRegistry implements Registry {
             } catch (Throwable t) {
                 logger.info("failed to get service address from registry: " + registry.getName());
             }
-        }
-
-        if (StringUtils.isBlank(addr)) {
-            throw new RegistryException("failed to get service address for " + serviceName + "/" + group);
         }
 
         return addr;
@@ -176,10 +168,6 @@ public class CompositeRegistry implements Registry {
             } catch (Throwable t) {
                 logger.info("failed to get service address from registry: " + registry.getName());
             }
-        }
-
-        if (StringUtils.isBlank(addr)) {
-            throw new RegistryException("failed to get service address for " + remoteAppkey + "/" + serviceName + "/" + group);
         }
 
         return addr;

@@ -340,7 +340,12 @@ public class ClientManager {
 					// todo 新旧比较
 					logger.info("invoker group changed, service: " + invokerConfig.getUrl()
 							+ ", new group: " + groupManager.getInvokerGroup(invokerConfig.getUrl()));
-					String hosts = getServiceAddress(invokerConfig);
+					String hosts = "";
+					try {
+						hosts = getServiceAddress(invokerConfig);
+					} catch (ServiceUnavailableException e) {
+						logger.info("hosts is empty!", e);
+					}
 					List<String[]> hostDetail = Utils.getServiceIpPortList(hosts);
 					DefaultServiceChangeListener.INSTANCE.onServiceHostChange(invokerConfig.getUrl(), hostDetail);
 				} catch (Throwable e) {
