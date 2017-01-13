@@ -1164,6 +1164,7 @@ try {
 } catch (RpcException e) {
 	return "default value";
 }
+```
 
 ## 配置客户端调用模式
 
