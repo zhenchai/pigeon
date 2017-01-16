@@ -1,5 +1,7 @@
 package com.dianping.pigeon.console.servlet;
 
+import com.dianping.pigeon.console.domain.GroupInfo;
+import com.dianping.pigeon.registry.route.GroupManager;
 import com.dianping.pigeon.remoting.provider.config.ServerConfig;
 
 import javax.servlet.http.HttpServletRequest;
@@ -17,7 +19,10 @@ public class GroupInfoServlet extends ServiceServlet {
 
     @Override
     protected boolean initServicePage(HttpServletRequest request, HttpServletResponse response) throws IOException {
-
+        GroupInfo groupInfo = new GroupInfo();
+        groupInfo.setInvokerGroupCache(GroupManager.INSTANCE.getInvokerGroupCache());
+        groupInfo.setProviderGroupCache(GroupManager.INSTANCE.getProviderGroupCache());
+        this.model = groupInfo;
         return true;
     }
 

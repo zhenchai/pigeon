@@ -45,6 +45,7 @@ public enum GroupManager {
     }
 
     //todo 重构为refresh,后加入的融合进之前的map
+    //todo 有值设值,无值的设为空字符串
     public void setProviderGroupCache(ConcurrentMap<String, String> providerGroupCache) {
         this.providerGroupCache = providerGroupCache;
     }
