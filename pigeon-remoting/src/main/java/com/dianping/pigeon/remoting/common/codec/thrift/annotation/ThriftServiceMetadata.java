@@ -8,7 +8,6 @@ import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.*;
 
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 import java.lang.reflect.Method;
 import java.util.Map;
@@ -22,23 +21,20 @@ import static com.facebook.swift.codec.metadata.ReflectionHelper.getEffectiveCla
  *         2016/05/23  下午6:07.
  */
 @Immutable
-public class ThriftServiceMetadata
-{
+public class ThriftServiceMetadata {
     private final String name;
     private final Map<String, ThriftMethodMetadata> methods;
     private final Map<String, ThriftMethodMetadata> declaredMethods;
     private final ImmutableList<ThriftServiceMetadata> parentServices;
     private final ImmutableList<String> documentation;
 
-    public ThriftServiceMetadata(Class<?> serviceClass, ThriftCatalog catalog)
-    {
+    public ThriftServiceMetadata(Class<?> serviceClass, ThriftCatalog catalog) {
         Preconditions.checkNotNull(serviceClass, "serviceClass is null");
         ThriftService thriftService = getThriftServiceAnnotation(serviceClass);
 
         if (thriftService.value().length() == 0) {
             name = serviceClass.getSimpleName();
-        }
-        else {
+        } else {
             name = thriftService.value();
         }
 
@@ -47,10 +43,8 @@ public class ThriftServiceMetadata
         ImmutableMap.Builder<String, ThriftMethodMetadata> builder = ImmutableMap.builder();
 
         Function<ThriftMethodMetadata, String> methodMetadataNamer = new Function<ThriftMethodMetadata, String>() {
-            @Nullable
             @Override
-            public String apply(@Nullable ThriftMethodMetadata methodMetadata)
-            {
+            public String apply(ThriftMethodMetadata methodMetadata) {
                 return methodMetadata.getName();
             }
         };
@@ -82,8 +76,7 @@ public class ThriftServiceMetadata
         this.parentServices = parentServiceBuilder.build();
     }
 
-    public ThriftServiceMetadata(String name, ThriftMethodMetadata... methods)
-    {
+    public ThriftServiceMetadata(String name, ThriftMethodMetadata... methods) {
         this.name = name;
 
         ImmutableMap.Builder<String, ThriftMethodMetadata> builder = ImmutableMap.builder();
@@ -96,33 +89,27 @@ public class ThriftServiceMetadata
         this.documentation = ImmutableList.of();
     }
 
-    public String getName()
-    {
+    public String getName() {
         return name;
     }
 
-    public ThriftMethodMetadata getMethod(String name)
-    {
+    public ThriftMethodMetadata getMethod(String name) {
         return methods.get(name);
     }
 
-    public Map<String, ThriftMethodMetadata> getMethods()
-    {
+    public Map<String, ThriftMethodMetadata> getMethods() {
         return methods;
     }
 
-    public Map<String, ThriftMethodMetadata> getDeclaredMethods()
-    {
+    public Map<String, ThriftMethodMetadata> getDeclaredMethods() {
         return declaredMethods;
     }
 
-    public ImmutableList<String> getDocumentation()
-    {
+    public ImmutableList<String> getDocumentation() {
         return documentation;
     }
 
-    public static ThriftService getThriftServiceAnnotation(Class<?> serviceClass)
-    {
+    public static ThriftService getThriftServiceAnnotation(Class<?> serviceClass) {
         Set<ThriftService> serviceAnnotations = getEffectiveClassAnnotations(serviceClass, ThriftService.class);
         Preconditions.checkArgument(!serviceAnnotations.isEmpty(), "Service class %s is not annotated with @ThriftService", serviceClass.getName());
         Preconditions.checkArgument(serviceAnnotations.size() == 1,
@@ -134,13 +121,11 @@ public class ThriftServiceMetadata
         return Iterables.getOnlyElement(serviceAnnotations);
     }
 
-    public ImmutableList<ThriftServiceMetadata> getParentServices()
-    {
+    public ImmutableList<ThriftServiceMetadata> getParentServices() {
         return parentServices;
     }
 
-    public ThriftServiceMetadata getParentService()
-    {
+    public ThriftServiceMetadata getParentService() {
         // Assert that we have 0 or 1 parent.
         // Having multiple @ThriftService parents is generally supported by swift,
         // but this is a restriction that applies to swift2thrift generator (because the Thrift IDL doesn't)
@@ -154,14 +139,12 @@ public class ThriftServiceMetadata
     }
 
     @Override
-    public int hashCode()
-    {
+    public int hashCode() {
         return ObjectUtils.hash(name, methods, parentServices);
     }
 
     @Override
-    public boolean equals(Object obj)
-    {
+    public boolean equals(Object obj) {
         if (this == obj) {
             return true;
         }

@@ -35,10 +35,13 @@
         <Async name="AsyncAccessInfo">
             <AppenderRef ref="AccessInfo" level="info" />
         </Async>
+        <Async name="AsyncConsoleError">
+            <AppenderRef ref="ConsoleError" level="error" />
+        </Async>
     </Appenders>
     <Loggers>
         <Logger name="com.dianping.pigeon" additivity="true">
-            <AppenderRef ref="ConsoleError" level="error" />
+            <AppenderRef ref="AsyncConsoleError" level="error" />
             <AppenderRef ref="ConsoleWarn" level="warn" />
             <AppenderRef ref="FileInfo" level="info" />
         </Logger>

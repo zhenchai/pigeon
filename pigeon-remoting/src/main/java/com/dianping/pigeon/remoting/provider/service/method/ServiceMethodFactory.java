@@ -10,6 +10,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.dianping.pigeon.config.ConfigChangeListener;
+import com.dianping.pigeon.config.ConfigManager;
+import com.dianping.pigeon.config.ConfigManagerLoader;
 import org.apache.commons.lang.StringUtils;
 
 import com.dianping.pigeon.log.Logger;
@@ -32,6 +35,11 @@ public final class ServiceMethodFactory {
 
 	private static Set<String> ingoreMethods = new HashSet<String>();
 
+	private static final String KEY_COMPACT = "pigeon.invoker.request.compact";
+
+	private static final ConfigManager configManager = ConfigManagerLoader.getConfigManager();
+	private static volatile boolean isCompact = configManager.getBooleanValue(KEY_COMPACT, true);
+
 	static {
 		Method[] objectMethodArray = Object.class.getMethods();
 		for (Method method : objectMethodArray) {
@@ -42,6 +50,8 @@ public final class ServiceMethodFactory {
 		for (Method method : classMethodArray) {
 			ingoreMethods.add(method.getName());
 		}
+
+		configManager.registerConfigChangeListener(new InnerConfigChangeListener());
 	}
 
 	public static ServiceMethod getMethod(InvocationRequest request) throws InvocationFailureException {
@@ -83,13 +93,17 @@ public final class ServiceMethodFactory {
 					if (!ingoreMethods.contains(method.getName())) {
 						method.setAccessible(true);
 						serviceMethodCache.addMethod(method.getName(), new ServiceMethod(service, method));
-						int id = LangUtils.hash(url + "#" + method.getName(), 0, Integer.MAX_VALUE);
-						ServiceId serviceId = new ServiceId(url, method.getName());
-						ServiceId lastId = CompactRequest.PROVIDER_ID_MAP.putIfAbsent(id, serviceId);
-						if (lastId != null && !serviceId.equals(lastId)) {
-							throw new IllegalArgumentException("same id for service:" + url + ", method:"
-									+ method.getName());
+
+						if (isCompact) {
+							int id = LangUtils.hash(url + "#" + method.getName(), 0, Integer.MAX_VALUE);
+							ServiceId serviceId = new ServiceId(url, method.getName());
+							ServiceId lastId = CompactRequest.PROVIDER_ID_MAP.putIfAbsent(id, serviceId);
+							if (lastId != null && !serviceId.equals(lastId)) {
+								throw new IllegalArgumentException("same id for service:" + url + ", method:"
+										+ method.getName());
+							}
 						}
+
 					}
 				}
 				methods.put(url, serviceMethodCache);
@@ -106,4 +120,26 @@ public final class ServiceMethodFactory {
 		return methods;
 	}
 
+	private static class InnerConfigChangeListener implements ConfigChangeListener {
+		@Override
+		public void onKeyUpdated(String key, String value) {
+			if (key.endsWith(KEY_COMPACT)) {
+				try {
+					isCompact = Boolean.valueOf(value);
+				} catch (RuntimeException e) {
+					logger.warn("invalid value for key " + key, e);
+				}
+			}
+		}
+
+		@Override
+		public void onKeyAdded(String key, String value) {
+
+		}
+
+		@Override
+		public void onKeyRemoved(String key) {
+
+		}
+	}
 }
