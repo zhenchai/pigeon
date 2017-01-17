@@ -179,7 +179,7 @@ public class CuratorEventListener implements CuratorListener {
 	private void HostConfig4InvokerChanged(PathInfo pathInfo) throws Exception {
 		try {
 			String info = client.get(pathInfo.path);
-			ConcurrentMap<String, String> infoMap = Utils.getHostConfigInfoMap(info);
+			ConcurrentMap infoMap = Utils.getHostConfigInfoMap(info);
 			logger.info("host config for invoker changed, path " + pathInfo.path + " value " + info);
 			GroupManager.INSTANCE.hostConfig4InvokerChanged(pathInfo.server, infoMap);
 		} catch (Throwable e) {
@@ -192,7 +192,7 @@ public class CuratorEventListener implements CuratorListener {
 	private void HostConfig4ProviderChanged(PathInfo pathInfo) throws Exception {
 		try {
 			String info = client.get(pathInfo.path);
-			ConcurrentMap<String, String> infoMap = Utils.getHostConfigInfoMap(info);
+			ConcurrentMap infoMap = Utils.getHostConfigInfoMap(info);
 			logger.info("host config for provider changed, path " + pathInfo.path + " value " + info);
 			GroupManager.INSTANCE.hostConfig4ProviderChanged(pathInfo.server, infoMap);
 		} catch (Throwable e) {

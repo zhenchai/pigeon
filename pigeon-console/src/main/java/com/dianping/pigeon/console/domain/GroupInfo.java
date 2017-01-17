@@ -1,30 +1,42 @@
 package com.dianping.pigeon.console.domain;
 
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
+import com.dianping.pigeon.config.ConfigManagerLoader;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by chenchongze on 17/1/12.
  */
 public class GroupInfo {
 
-    private ConcurrentMap<String, String> invokerGroupCache = new ConcurrentHashMap<String, String>();
+    private String swimlane = ConfigManagerLoader.getConfigManager().getGroup();
 
-    private ConcurrentMap<String, String> providerGroupCache = new ConcurrentHashMap<String, String>();
+    private Map<String, String> invokerGroupCache = new HashMap<String, String>();
 
-    public ConcurrentMap<String, String> getInvokerGroupCache() {
+    private Map<String, String> providerGroupCache = new HashMap<String, String>();
+
+    public String getSwimlane() {
+        return swimlane;
+    }
+
+    public void setSwimlane(String swimlane) {
+        this.swimlane = swimlane;
+    }
+
+    public Map<String, String> getInvokerGroupCache() {
         return invokerGroupCache;
     }
 
-    public void setInvokerGroupCache(ConcurrentMap<String, String> invokerGroupCache) {
+    public void setInvokerGroupCache(Map<String, String> invokerGroupCache) {
         this.invokerGroupCache = invokerGroupCache;
     }
 
-    public ConcurrentMap<String, String> getProviderGroupCache() {
+    public Map<String, String> getProviderGroupCache() {
         return providerGroupCache;
     }
 
-    public void setProviderGroupCache(ConcurrentMap<String, String> providerGroupCache) {
+    public void setProviderGroupCache(Map<String, String> providerGroupCache) {
         this.providerGroupCache = providerGroupCache;
     }
 }

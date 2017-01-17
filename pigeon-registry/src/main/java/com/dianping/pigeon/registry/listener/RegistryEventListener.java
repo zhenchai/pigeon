@@ -107,15 +107,15 @@ public class RegistryEventListener {
 		}
 	}
 
-	public static void hostConfig4InvokerChanged(String ip, ConcurrentMap<String, String> hostConfigInfoMap) {
+	public static void hostConfig4InvokerChanged(String ip, ConcurrentMap oldInvokerGroupCache, ConcurrentMap newInvokerGroupCache) {
 		for (GroupChangeListener listener : groupChangeListeners) {
-			listener.onInvokerGroupChange(ip, hostConfigInfoMap);
+			listener.onInvokerGroupChange(ip, oldInvokerGroupCache, newInvokerGroupCache);
 		}
 	}
 
-	public static void hostConfig4ProviderChanged(String ip, ConcurrentMap<String, String> hostConfigInfoMap) {
+	public static void hostConfig4ProviderChanged(String ip, ConcurrentMap oldProviderGroupCache, ConcurrentMap newProviderGroupCache) {
 		for (GroupChangeListener listener : groupChangeListeners) {
-			listener.onProviderGroupChange(ip, hostConfigInfoMap);
+			listener.onProviderGroupChange(ip, oldProviderGroupCache, newProviderGroupCache);
 		}
 	}
 

@@ -7,9 +7,11 @@ import com.dianping.pigeon.log.LoggerLoader;
 import com.dianping.pigeon.registry.RegistryManager;
 import com.dianping.pigeon.registry.exception.RegistryException;
 import com.dianping.pigeon.registry.listener.RegistryEventListener;
+import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang.StringUtils;
 
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
 
 /**
@@ -26,28 +28,18 @@ public enum GroupManager {
     private final ConfigManager configManager = ConfigManagerLoader.getConfigManager();
     private final RegistryManager registryManager = RegistryManager.getInstance();
 
-    private final String UNKNOWN_GROUP = "unknown";
+    //private final String UNKNOWN_GROUP = "unknown";
     private final String BLANK_GROUP = "";
 
-    private volatile ConcurrentMap<String, String> invokerGroupCache = new ConcurrentHashMap<String, String>();
-    private volatile ConcurrentMap<String, String> providerGroupCache = new ConcurrentHashMap<String, String>();
+    private volatile ConcurrentMap<String, String> invokerGroupCache;
+    private volatile ConcurrentMap<String, String> providerGroupCache;
 
-    public ConcurrentMap<String, String> getInvokerGroupCache() {
-        return invokerGroupCache;
+    public Map<String, String> getInvokerGroupCache() {
+        return invokerGroupCache != null ? ImmutableMap.copyOf(invokerGroupCache) : new HashMap<String, String>();
     }
 
-    public void setInvokerGroupCache(ConcurrentMap<String, String> invokerGroupCache) {
-        this.invokerGroupCache = invokerGroupCache;
-    }
-
-    public ConcurrentMap<String, String> getProviderGroupCache() {
-        return providerGroupCache;
-    }
-
-    //todo 重构为refresh,后加入的融合进之前的map
-    //todo 有值设值,无值的设为空字符串
-    public void setProviderGroupCache(ConcurrentMap<String, String> providerGroupCache) {
-        this.providerGroupCache = providerGroupCache;
+    public Map<String, String> getProviderGroupCache() {
+        return providerGroupCache != null ? ImmutableMap.copyOf(providerGroupCache) : new HashMap<String, String>();
     }
 
     public String getInvokerGroup(String serviceName) {
@@ -56,65 +48,68 @@ public enum GroupManager {
         }
 
         //todo 添加监听和缓存
-        String group = invokerGroupCache.get(serviceName);
-        if (group == null) {
-            synchronized (this) {
-                group = invokerGroupCache.get(serviceName);
-                if (group == null) {
-                    try {
-                        setInvokerGroupCache(registryManager.getHostConfig4Invoker());
-                        group = invokerGroupCache.get(serviceName);
-                        if (group == null) {
-                            group = BLANK_GROUP;
-                            invokerGroupCache.put(serviceName, group);
-                        }
-                    } catch (RegistryException e) {
-                        logger.warn("failed to get group info for invoker: " + serviceName
-                                + ", set group to" + UNKNOWN_GROUP, e);
-                        group = UNKNOWN_GROUP;
-                    }
-                }
-            }
+        initInvokerGroupCache();
+        String group = null;
+        if (invokerGroupCache != null) {
+            group = invokerGroupCache.get(serviceName);
         }
 
-        return group;
+        return StringUtils.isBlank(group) ? BLANK_GROUP : group;
+
     }
 
-    public synchronized String getProviderGroup(String serviceName) {
+    public String getProviderGroup(String serviceName) {
         if (StringUtils.isNotBlank(configManager.getGroup())) { // swimlane is set, do not cache and watch
             return configManager.getGroup();
         }
 
         //todo 添加监听和缓存
-        String group = providerGroupCache.get(serviceName);
-        if (group == null) {
+        initProviderGroupCache();
+        String group = null;
+        if (providerGroupCache != null) {
+            group = providerGroupCache.get(serviceName);
+        }
+
+        return StringUtils.isBlank(group) ? BLANK_GROUP : group;
+    }
+
+    public synchronized void hostConfig4InvokerChanged(String ip, ConcurrentMap hostConfigInfoMap) {
+        ConcurrentMap oldCache = invokerGroupCache;
+        invokerGroupCache = hostConfigInfoMap;
+        RegistryEventListener.hostConfig4InvokerChanged(ip, oldCache, hostConfigInfoMap);
+    }
+
+    public synchronized void hostConfig4ProviderChanged(String ip, ConcurrentMap hostConfigInfoMap) {
+        ConcurrentMap oldCache = providerGroupCache;
+        providerGroupCache = hostConfigInfoMap;
+        RegistryEventListener.hostConfig4ProviderChanged(ip, oldCache, hostConfigInfoMap);
+    }
+
+    private void initInvokerGroupCache() {
+        if (invokerGroupCache == null) {
             synchronized (this) {
-                group = providerGroupCache.get(serviceName);
-                if (group == null) {
+                if (invokerGroupCache == null) {
                     try {
-                        setProviderGroupCache(registryManager.getHostConfig4Provider());
-                        group = providerGroupCache.get(serviceName);
-                        if (group == null) {
-                            group = BLANK_GROUP;
-                            providerGroupCache.put(serviceName, group);
-                        }
+                        invokerGroupCache = registryManager.getHostConfig4Invoker();
                     } catch (RegistryException e) {
-                        logger.warn("failed to get group info for provider: " + serviceName
-                                + ", set group to" + UNKNOWN_GROUP, e);
-                        group = UNKNOWN_GROUP;
+                        logger.error("error while getting group info for invoker, please check!", e);
                     }
                 }
             }
         }
-
-        return group;
     }
 
-    public void hostConfig4InvokerChanged(String ip, ConcurrentMap<String, String> hostConfigInfoMap) {
-        RegistryEventListener.hostConfig4InvokerChanged(ip, hostConfigInfoMap);
-    }
-
-    public void hostConfig4ProviderChanged(String ip, ConcurrentMap<String, String> hostConfigInfoMap) {
-        RegistryEventListener.hostConfig4ProviderChanged(ip, hostConfigInfoMap);
+    private void initProviderGroupCache() {
+        if (providerGroupCache == null) {
+            synchronized (this) {
+                if (providerGroupCache == null) {
+                    try {
+                        providerGroupCache = registryManager.getHostConfig4Provider();
+                    } catch (RegistryException e) {
+                        logger.error("error while getting group info for provider, please check!", e);
+                    }
+                }
+            }
+        }
     }
 }

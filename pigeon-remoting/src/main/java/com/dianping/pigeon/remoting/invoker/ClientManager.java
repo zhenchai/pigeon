@@ -326,14 +326,9 @@ public class ClientManager {
 	}
 
 	private class InnerGroupChangeListener implements GroupChangeListener {
-		@Override
-		public void onInvokerGroupChange(String ip, ConcurrentMap<String, String> hostConfigInfoMap) {
-			// refresh invoker group config cache
-			//todo 比较一下,更细致一些的变化
-			// todo 这里有个坑,比较新旧值的多线程更新问题
-			ConcurrentMap<String, String> oldInvokerGroupCache = groupManager.getInvokerGroupCache();
-			groupManager.setInvokerGroupCache(hostConfigInfoMap);
 
+		@Override
+		public void onInvokerGroupChange(String ip, ConcurrentMap oldInvokerGroupCache, ConcurrentMap newInvokerGroupCache) {
 			// reconnect to new ip:port list
 			for (InvokerConfig<?> invokerConfig : ServiceFactory.getAllServiceInvokers().keySet()) {
 				try {
@@ -352,15 +347,12 @@ public class ClientManager {
 					logger.warn("failed to change refresh invoker to new group, caused by: " + e.getMessage());
 				}
 			}
-
 		}
 
 		@Override
-		public void onProviderGroupChange(String ip, ConcurrentMap<String, String> hostConfigInfoMap) {
+		public void onProviderGroupChange(String ip, ConcurrentMap oldProviderGroupCache, ConcurrentMap newProviderGroupCache) {
 			// save old cache and refresh provider group config cache
 			// todo 这里有个坑,比较新旧值的多线程更新问题
-			ConcurrentMap<String, String> oldProviderGroupCache = groupManager.getProviderGroupCache();
-			groupManager.setProviderGroupCache(hostConfigInfoMap);
 
 			for (ProviderConfig<?> providerConfig : ServiceFactory.getAllServiceProviders().values()) {
 				if (StringUtils.isBlank(configManager.getGroup())) {
@@ -369,11 +361,11 @@ public class ClientManager {
 					if (weight == null) {
 						weight = Constants.DEFAULT_WEIGHT;
 					}
-					String oldGroup = oldProviderGroupCache.get(providerConfig.getUrl());
+					String oldGroup = (String) oldProviderGroupCache.get(providerConfig.getUrl());
 					if (oldGroup == null) {
 						oldGroup = "";
 					}
-					String newGroup = groupManager.getProviderGroupCache().get(providerConfig.getUrl());
+					String newGroup = (String) newProviderGroupCache.get(providerConfig.getUrl());
 					if (newGroup == null) {
 						newGroup = "";
 					}
@@ -391,7 +383,6 @@ public class ClientManager {
 					}
 				}
 			}
-
 		}
 	}
 

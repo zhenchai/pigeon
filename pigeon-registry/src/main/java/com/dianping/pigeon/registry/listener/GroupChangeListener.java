@@ -7,7 +7,7 @@ import java.util.concurrent.ConcurrentMap;
  */
 public interface GroupChangeListener {
 
-    void onInvokerGroupChange(String ip, ConcurrentMap<String, String> hostConfigInfoMap);
+    void onInvokerGroupChange(String ip, ConcurrentMap oldInvokerGroupCache, ConcurrentMap newInvokerGroupCache);
 
-    void onProviderGroupChange(String ip, ConcurrentMap<String, String> hostConfigInfoMap);
+    void onProviderGroupChange(String ip, ConcurrentMap oldProviderGroupCache, ConcurrentMap newProviderGroupCache);
 }

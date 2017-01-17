@@ -1,4 +1,5 @@
 {
+    "swimlane" : "${swimlane}",
     "invoker" : [
         <#list invokerGroupCache?keys as key>
         {

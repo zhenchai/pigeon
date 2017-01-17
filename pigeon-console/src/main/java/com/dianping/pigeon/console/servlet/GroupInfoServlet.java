@@ -3,6 +3,7 @@ package com.dianping.pigeon.console.servlet;
 import com.dianping.pigeon.console.domain.GroupInfo;
 import com.dianping.pigeon.registry.route.GroupManager;
 import com.dianping.pigeon.remoting.provider.config.ServerConfig;
+import com.dianping.pigeon.util.CollectionUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
