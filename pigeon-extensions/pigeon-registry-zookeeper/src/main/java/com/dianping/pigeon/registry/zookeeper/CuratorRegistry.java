@@ -587,43 +587,6 @@ public class CuratorRegistry implements Registry {
     }
 
     @Override
-    public void setHostConfig(String ip) {
-        try {
-            client.create(Utils.getHostConfig4InvokerPath(ip));
-        } catch (Exception e) {
-            if (!(e instanceof KeeperException.NodeExistsException)) {
-                logger.warn("failed to create host config for invoker path");
-            }
-        }
-
-        try {
-            client.create(Utils.getHostConfig4ProviderPath(ip));
-        } catch (Exception e) {
-            if (!(e instanceof KeeperException.NodeExistsException)) {
-                logger.warn("failed to create host config for provider path");
-            }
-        }
-    }
-
-    @Override
-    public ConcurrentMap getHostConfig4Invoker() throws RegistryException {
-        try {
-            return Utils.getHostConfigInfoMap(client.get(Utils.getHostConfig4InvokerPath(configManager.getLocalIp())));
-        } catch (Exception e) {
-            throw new RegistryException(e);
-        }
-    }
-
-    @Override
-    public ConcurrentMap getHostConfig4Provider() throws RegistryException {
-        try {
-            return Utils.getHostConfigInfoMap(client.get(Utils.getHostConfig4ProviderPath(configManager.getLocalIp())));
-        } catch (Exception e) {
-            throw new RegistryException(e);
-        }
-    }
-
-    @Override
     public RegistryConfig getRegistryConfig(String ip) throws RegistryException {
         try {
             return Utils.getRegistryConfig(client.get(Utils.getRegistryConfigPath(configManager.getLocalIp())));

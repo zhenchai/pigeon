@@ -108,11 +108,6 @@ public interface Registry {
 
     List<String> getConsoleAddresses();
 
-    void setHostConfig(String ip);
-
-    ConcurrentMap getHostConfig4Invoker() throws RegistryException;
-
-    ConcurrentMap getHostConfig4Provider() throws RegistryException;
-
+    // for invoker/provider
     RegistryConfig getRegistryConfig(String ip) throws RegistryException;
 }

@@ -506,28 +506,6 @@ public class RegistryManager {
 		}
 	}
 
-	public void setHostConfig(String ip) {
-		if (registry != null) {
-			registry.setHostConfig(ip);
-		}
-	}
-
-	public ConcurrentMap getHostConfig4Invoker() throws RegistryException {
-		if (registry != null) {
-			return registry.getHostConfig4Invoker();
-		}
-
-		return new ConcurrentHashMap<>();
-	}
-
-	public ConcurrentMap getHostConfig4Provider() throws RegistryException {
-		if (registry != null) {
-			return registry.getHostConfig4Provider();
-		}
-
-		return new ConcurrentHashMap<>();
-	}
-
 	public void initRegistryConfig(String ip) throws RegistryException {
 		if (registry != null) {
 			registryConfig = registry.getRegistryConfig(ip);

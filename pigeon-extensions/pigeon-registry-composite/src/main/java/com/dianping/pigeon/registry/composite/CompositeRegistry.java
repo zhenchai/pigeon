@@ -573,61 +573,6 @@ public class CompositeRegistry implements Registry {
     }
 
     @Override
-    public void setHostConfig(String ip) {
-        for (Registry registry : registryList) {
-            try {
-                registry.setHostConfig(ip);
-            } catch (Throwable t) {
-                logger.info("failed to set host config to registry: " + registry.getName(), t);
-            }
-        }
-    }
-
-    @Override
-    public ConcurrentMap getHostConfig4Invoker() throws RegistryException {
-        ConcurrentMap infos;
-        List<ConcurrentMap> checkList = Lists.newArrayList();
-
-        for (Registry registry : registryList) {
-            try {
-                checkList.add(registry.getHostConfig4Invoker());
-            } catch (Throwable t) {
-                logger.info("failed to get host config for invoker from registry: " + registry.getName());
-            }
-        }
-
-        if (checkList.size() == 0) {
-            throw new RegistryException("failed to get host config for invoker");
-        }
-
-        infos = checkValueConsistency(checkList, "host config for invoker");
-
-        return infos;
-    }
-
-    @Override
-    public ConcurrentMap getHostConfig4Provider() throws RegistryException {
-        ConcurrentMap infos;
-        List<ConcurrentMap> checkList = Lists.newArrayList();
-
-        for (Registry registry : registryList) {
-            try {
-                checkList.add(registry.getHostConfig4Provider());
-            } catch (Throwable t) {
-                logger.info("failed to get host config for provider from registry: " + registry.getName());
-            }
-        }
-
-        if (checkList.size() == 0) {
-            throw new RegistryException("failed to get host config for provider");
-        }
-
-        infos = checkValueConsistency(checkList, "host config for provider");
-
-        return infos;
-    }
-
-    @Override
     public RegistryConfig getRegistryConfig(String ip) throws RegistryException {
         RegistryConfig registryConfig;
         List<RegistryConfig> checkList = Lists.newArrayList();
