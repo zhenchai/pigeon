@@ -7,7 +7,6 @@ package com.dianping.pigeon.remoting.invoker.route;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.dianping.pigeon.registry.route.GroupManager;
 import org.apache.commons.lang.StringUtils;
 import com.dianping.pigeon.log.Logger;
 import org.springframework.util.CollectionUtils;
@@ -41,8 +40,6 @@ public class DefaultRouteManager implements RouteManager, Disposable {
     private final RegionPolicyManager regionPolicyManager = RegionPolicyManager.INSTANCE;
 
     private final RequestQualityManager requestQualityManager = RequestQualityManager.INSTANCE;
-
-    private final GroupManager groupManager = GroupManager.INSTANCE;
 
     private static final ClusterListenerManager clusterListenerManager = ClusterListenerManager.getInstance();
 
@@ -138,7 +135,7 @@ public class DefaultRouteManager implements RouteManager, Disposable {
         }
         if (filteredClients.isEmpty()) {
             throw new ServiceUnavailableException("no available server exists for service[" + invokerConfig.getUrl()
-                    + "] and group[" + groupManager.getInvokerGroup(invokerConfig.getUrl()) + "].");
+                    + "] and group[" + RegistryManager.getInstance().getGroup(invokerConfig.getUrl()) + "].");
         }
         return filteredClients;
     }

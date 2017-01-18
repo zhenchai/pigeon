@@ -1,5 +1,7 @@
 package com.dianping.pigeon.registry.listener;
 
+import com.dianping.pigeon.registry.config.RegistryConfig;
+
 import java.util.concurrent.ConcurrentMap;
 
 /**
@@ -7,7 +9,5 @@ import java.util.concurrent.ConcurrentMap;
  */
 public interface GroupChangeListener {
 
-    void onInvokerGroupChange(String ip, ConcurrentMap oldInvokerGroupCache, ConcurrentMap newInvokerGroupCache);
-
-    void onProviderGroupChange(String ip, ConcurrentMap oldProviderGroupCache, ConcurrentMap newProviderGroupCache);
+    void onGroupChange(String ip, RegistryConfig oldRegistryConfig, RegistryConfig newRegistryConfig);
 }

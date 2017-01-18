@@ -1,27 +1,23 @@
 package com.dianping.pigeon.registry.zookeeper;
 
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentMap;
-
-import com.dianping.pigeon.registry.route.GroupManager;
-import com.dianping.pigeon.registry.RegistryManager;
-import org.apache.commons.lang.StringUtils;
-import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.api.CuratorEvent;
-import org.apache.curator.framework.api.CuratorListener;
 import com.dianping.pigeon.log.Logger;
-import org.apache.zookeeper.WatchedEvent;
-import org.apache.zookeeper.Watcher.Event.EventType;
-
-import com.dianping.pigeon.config.ConfigManager;
-import com.dianping.pigeon.config.ConfigManagerLoader;
 import com.dianping.pigeon.log.LoggerLoader;
+import com.dianping.pigeon.registry.RegistryManager;
+import com.dianping.pigeon.registry.config.RegistryConfig;
 import com.dianping.pigeon.registry.exception.RegistryException;
 import com.dianping.pigeon.registry.listener.DefaultServiceChangeListener;
 import com.dianping.pigeon.registry.listener.RegistryEventListener;
 import com.dianping.pigeon.registry.listener.ServiceChangeListener;
 import com.dianping.pigeon.registry.util.Constants;
+import org.apache.commons.lang.StringUtils;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.api.CuratorEvent;
+import org.apache.curator.framework.api.CuratorListener;
+import org.apache.zookeeper.WatchedEvent;
+import org.apache.zookeeper.Watcher.Event.EventType;
+
+import java.util.List;
+import java.util.Map;
 
 public class CuratorEventListener implements CuratorListener {
 
@@ -32,8 +28,7 @@ public class CuratorEventListener implements CuratorListener {
 	private static final int APP = 3;
 	private static final int VERSION = 4;
 	private static final int PROTOCOL = 5;
-	private static final int HOST_CONFIG_INVOKER = 6;
-	private static final int HOST_CONFIG_PROVIDER = 7;
+	private static final int HOST_CONFIG= 6;
 
 	private CuratorClient client;
 
@@ -73,10 +68,8 @@ public class CuratorEventListener implements CuratorListener {
 				versionChanged(pathInfo);
 			} else if (pathInfo.type == PROTOCOL) {
 				protocolChanged(pathInfo);
-			} else if (pathInfo.type == HOST_CONFIG_INVOKER) {
-				HostConfig4InvokerChanged(pathInfo);
-			} else if (pathInfo.type == HOST_CONFIG_PROVIDER) {
-				HostConfig4ProviderChanged(pathInfo);
+			} else if (pathInfo.type == HOST_CONFIG) {
+				registryConfigChanged(pathInfo);
 			}
 		} catch (Throwable e) {
 			logger.error("Error in ZookeeperWatcher.process()", e);
@@ -109,7 +102,7 @@ public class CuratorEventListener implements CuratorListener {
 
 	private boolean shouldNotify(PathInfo pathInfo) throws Exception {
 		String serviceName = pathInfo.serviceName;
-		String currentGroup = GroupManager.INSTANCE.getInvokerGroup(serviceName);
+		String currentGroup = RegistryManager.getInstance().getGroup(serviceName);
 		currentGroup = Utils.normalizeGroup(currentGroup);
 		if (currentGroup.equals(pathInfo.group))
 			return true;
@@ -176,25 +169,12 @@ public class CuratorEventListener implements CuratorListener {
 		}
 	}
 
-	private void HostConfig4InvokerChanged(PathInfo pathInfo) throws Exception {
+	private void registryConfigChanged(PathInfo pathInfo) throws Exception {
 		try {
 			String info = client.get(pathInfo.path);
-			ConcurrentMap infoMap = Utils.getHostConfigInfoMap(info);
-			logger.info("host config for invoker changed, path " + pathInfo.path + " value " + info);
-			GroupManager.INSTANCE.hostConfig4InvokerChanged(pathInfo.server, infoMap);
-		} catch (Throwable e) {
-			throw new RegistryException(e);
-		} finally {
-			client.watch(pathInfo.path);
-		}
-	}
-
-	private void HostConfig4ProviderChanged(PathInfo pathInfo) throws Exception {
-		try {
-			String info = client.get(pathInfo.path);
-			ConcurrentMap infoMap = Utils.getHostConfigInfoMap(info);
-			logger.info("host config for provider changed, path " + pathInfo.path + " value " + info);
-			GroupManager.INSTANCE.hostConfig4ProviderChanged(pathInfo.server, infoMap);
+			RegistryConfig registryConfig = Utils.getRegistryConfig(info);
+			logger.info("registry config changed, path " + pathInfo.path + " value " + info);
+			RegistryManager.getInstance().registryConfigChanged(pathInfo.server, registryConfig);
 		} catch (Throwable e) {
 			throw new RegistryException(e);
 		} finally {
@@ -236,20 +216,9 @@ public class CuratorEventListener implements CuratorListener {
 			pathInfo.server = path.substring(Constants.PROTOCOL_PATH.length() + 1);
 		} else if (path.startsWith(Constants.HOST_CONFIG_PATH)) {
 			pathInfo = new PathInfo(path);
-			// pick out ${ip}/invoker or ${ip}/provider
-			String hostWithType = path.substring(Constants.HOST_CONFIG_PATH.length() + 1);
-			int idx = hostWithType.indexOf(Constants.PATH_SEPARATOR);
-			if (idx != -1) {
-				// use ip as server(without port)
-				pathInfo.server = hostWithType.substring(0, idx);
-				String type = hostWithType.substring(idx + 1);
-				if (type.equals(Constants.HOST_CONFIG_INVOKER_ROLE)) {
-					pathInfo.type = HOST_CONFIG_INVOKER;
-				} else if (type.equals(Constants.HOST_CONFIG_PROVIDER_ROLE)) {
-					pathInfo.type = HOST_CONFIG_PROVIDER;
-				}
-			}
-
+			pathInfo.type = HOST_CONFIG;
+			// use ip as server(without port)
+			pathInfo.server = path.substring(Constants.HOST_CONFIG_PATH.length() + 1);
 		}
 
 		return pathInfo;

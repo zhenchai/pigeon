@@ -12,6 +12,8 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import com.dianping.pigeon.registry.config.RegistryConfig;
+import com.dianping.pigeon.registry.config.ServiceConfig;
 import org.apache.commons.lang.StringUtils;
 
 import com.dianping.pigeon.config.ConfigChangeListener;
@@ -44,9 +46,13 @@ public class RegistryManager {
 
 	private static final String KEY_PIGEON_REGISTRY_CUSTOMIZED = "pigeon.registry.customized";
 
+	private static final String BLANK_GROUP = "";
+
 	private static ConcurrentHashMap<String, Set<HostInfo>> referencedServiceAddresses = new ConcurrentHashMap<String, Set<HostInfo>>();
 
 	private static ConcurrentHashMap<String, HostInfo> referencedAddresses = new ConcurrentHashMap<String, HostInfo>();
+
+	private volatile static RegistryConfig registryConfig = new RegistryConfig();
 
 	private static ConfigManager configManager = ConfigManagerLoader.getConfigManager();
 
@@ -520,6 +526,37 @@ public class RegistryManager {
 		}
 
 		return new ConcurrentHashMap<>();
+	}
+
+	public void initRegistryConfig(String ip) throws RegistryException {
+		if (registry != null) {
+			registryConfig = registry.getRegistryConfig(ip);
+		}
+	}
+
+	public String getGroup(String serviceName) {
+		if (StringUtils.isNotBlank(configManager.getGroup())) { // swimlane is set, do not cache and watch
+			return configManager.getGroup();
+		}
+
+		String group = null;
+		ServiceConfig serviceConfig = registryConfig.getServices().get(serviceName);
+		if (serviceConfig != null) {
+			group = serviceConfig.getGroup();
+		}
+
+		return StringUtils.isBlank(group) ? BLANK_GROUP : group;
+
+	}
+
+	public static RegistryConfig getRegistryConfig() {
+		return registryConfig;
+	}
+
+	public synchronized void registryConfigChanged(String ip, RegistryConfig registryConfig) {
+		RegistryConfig oldRegistryConfig = RegistryManager.registryConfig;
+		RegistryManager.registryConfig = registryConfig;
+		RegistryEventListener.registryConfigChanged(ip, oldRegistryConfig, registryConfig);
 	}
 
 	static class InnerServerInfoListener implements ServerInfoListener {

@@ -8,7 +8,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.dianping.pigeon.registry.route.GroupManager;
 import com.dianping.pigeon.remoting.common.codec.SerializerType;
 import com.dianping.pigeon.remoting.common.domain.CallMethod;
 import org.apache.commons.lang.StringUtils;
@@ -36,8 +35,6 @@ public class ReferenceBean implements FactoryBean {
     private ConfigManager configManager = ConfigManagerLoader.getConfigManager();
 
     private static final Logger logger = LoggerLoader.getLogger(ReferenceBean.class);
-
-    private final GroupManager groupManager = GroupManager.INSTANCE;
 
     private String url;
 

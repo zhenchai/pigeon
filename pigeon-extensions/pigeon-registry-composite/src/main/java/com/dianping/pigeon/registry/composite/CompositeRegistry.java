@@ -4,6 +4,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import com.dianping.pigeon.registry.config.RegistryConfig;
 import org.apache.commons.lang.StringUtils;
 
 import com.dianping.pigeon.config.ConfigChangeListener;
@@ -624,6 +625,28 @@ public class CompositeRegistry implements Registry {
         infos = checkValueConsistency(checkList, "host config for provider");
 
         return infos;
+    }
+
+    @Override
+    public RegistryConfig getRegistryConfig(String ip) throws RegistryException {
+        RegistryConfig registryConfig;
+        List<RegistryConfig> checkList = Lists.newArrayList();
+
+        for (Registry registry : registryList) {
+            try {
+                checkList.add(registry.getRegistryConfig(ip));
+            } catch (Throwable t) {
+                logger.info("failed to get registry config from registry: " + registry.getName());
+            }
+        }
+
+        if (checkList.size() == 0) {
+            throw new RegistryException("failed to get registry config");
+        }
+
+        registryConfig = checkValueConsistency(checkList, "registry config");
+
+        return registryConfig;
     }
 
     private String mergeAddress(String address, String anotherAddress) {

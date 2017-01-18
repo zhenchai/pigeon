@@ -8,7 +8,7 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
-import com.dianping.pigeon.registry.route.GroupManager;
+import com.dianping.pigeon.registry.RegistryManager;
 import com.dianping.pigeon.remoting.provider.ProviderBootStrap;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpConnectionManager;
@@ -34,8 +34,6 @@ public class DefaultServiceChangeListener implements ServiceChangeListener {
 	private static ConfigManager configManager = ConfigManagerLoader.getConfigManager();
 
 	private static final Monitor monitor = MonitorLoader.getMonitor();
-
-	private static final GroupManager groupManager = GroupManager.INSTANCE;
 
 	public DefaultServiceChangeListener() {
 	}
@@ -77,7 +75,7 @@ public class DefaultServiceChangeListener implements ServiceChangeListener {
 		if (StringUtils.isBlank(ip)) {
 			ip = configManager.getLocalIp();
 		}
-		String group = groupManager.getProviderGroup(providerConfig.getUrl());
+		String group = RegistryManager.getInstance().getGroup(providerConfig.getUrl());
 		if (StringUtils.isBlank(group)) {
 			group = Constants.DEFAULT_GROUP;
 		}

@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import com.dianping.pigeon.registry.config.RegistryConfig;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang.StringUtils;
@@ -134,12 +135,25 @@ public class Utils {
         return new ConcurrentHashMap<>();
     }
 
+    public static RegistryConfig getRegistryConfig(String info) throws IOException {
+
+        if (StringUtils.isNotBlank(info)) {
+            return mapper.readValue(info, RegistryConfig.class);
+        }
+
+        return new RegistryConfig();
+    }
+
     public static String getConsolePath(String clientAddress) {
         return Constants.CONSOLE_PATH + Constants.PATH_SEPARATOR + clientAddress;
     }
 
     public static String getConsoleRootPath() {
         return Constants.CONSOLE_PATH;
+    }
+
+    public static String getRegistryConfigPath(String ip) {
+        return Constants.HOST_CONFIG_PATH + Constants.PATH_SEPARATOR + ip;
     }
 
     public static String getHostConfig4InvokerPath(String ip) {

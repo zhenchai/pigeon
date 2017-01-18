@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
 
+import com.dianping.pigeon.registry.config.RegistryConfig;
 import org.apache.commons.lang.StringUtils;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.KeeperException.BadVersionException;
@@ -617,6 +618,15 @@ public class CuratorRegistry implements Registry {
     public ConcurrentMap getHostConfig4Provider() throws RegistryException {
         try {
             return Utils.getHostConfigInfoMap(client.get(Utils.getHostConfig4ProviderPath(configManager.getLocalIp())));
+        } catch (Exception e) {
+            throw new RegistryException(e);
+        }
+    }
+
+    @Override
+    public RegistryConfig getRegistryConfig(String ip) throws RegistryException {
+        try {
+            return Utils.getRegistryConfig(client.get(Utils.getRegistryConfigPath(configManager.getLocalIp())));
         } catch (Exception e) {
             throw new RegistryException(e);
         }

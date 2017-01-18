@@ -3,6 +3,7 @@ package com.dianping.pigeon.registry;
 import java.util.List;
 import java.util.concurrent.ConcurrentMap;
 
+import com.dianping.pigeon.registry.config.RegistryConfig;
 import com.dianping.pigeon.registry.exception.RegistryException;
 
 public interface Registry {
@@ -112,4 +113,6 @@ public interface Registry {
     ConcurrentMap getHostConfig4Invoker() throws RegistryException;
 
     ConcurrentMap getHostConfig4Provider() throws RegistryException;
+
+    RegistryConfig getRegistryConfig(String ip) throws RegistryException;
 }

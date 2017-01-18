@@ -7,12 +7,12 @@ package com.dianping.pigeon.registry.listener;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentMap;
 
 import com.dianping.pigeon.log.Logger;
 
 import com.dianping.pigeon.log.LoggerLoader;
 import com.dianping.pigeon.registry.RegistryManager;
+import com.dianping.pigeon.registry.config.RegistryConfig;
 
 /**
  * 将lion推送的动态服务信息发送到感兴趣的listener
@@ -107,22 +107,16 @@ public class RegistryEventListener {
 		}
 	}
 
-	public static void hostConfig4InvokerChanged(String ip, ConcurrentMap oldInvokerGroupCache, ConcurrentMap newInvokerGroupCache) {
-		for (GroupChangeListener listener : groupChangeListeners) {
-			listener.onInvokerGroupChange(ip, oldInvokerGroupCache, newInvokerGroupCache);
-		}
-	}
-
-	public static void hostConfig4ProviderChanged(String ip, ConcurrentMap oldProviderGroupCache, ConcurrentMap newProviderGroupCache) {
-		for (GroupChangeListener listener : groupChangeListeners) {
-			listener.onProviderGroupChange(ip, oldProviderGroupCache, newProviderGroupCache);
-		}
-	}
-
 	public static void serverInfoChanged(String serviceName, String serverAddress) {
 		RegistryManager.getInstance().getReferencedApp(serverAddress);
 		RegistryManager.getInstance().getReferencedVersion(serverAddress);
 		RegistryManager.getInstance().getServerHeartBeatSupport(serverAddress);
 		RegistryManager.getInstance().getReferencedProtocol(serverAddress, serviceName);
+	}
+
+	public static void registryConfigChanged(String ip, RegistryConfig oldRegistryConfig, RegistryConfig newRegistryConfig) {
+		for (GroupChangeListener listener : groupChangeListeners) {
+			listener.onGroupChange(ip, oldRegistryConfig, newRegistryConfig);
+		}
 	}
 }

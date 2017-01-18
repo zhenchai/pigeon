@@ -18,6 +18,7 @@ import com.dianping.pigeon.log.LoggerLoader;
 import com.dianping.pigeon.monitor.Monitor;
 import com.dianping.pigeon.monitor.MonitorLoader;
 import com.dianping.pigeon.registry.RegistryManager;
+import com.dianping.pigeon.registry.exception.RegistryException;
 import com.dianping.pigeon.remoting.common.codec.SerializerFactory;
 import com.dianping.pigeon.remoting.common.util.Constants;
 import com.dianping.pigeon.remoting.provider.config.ProviderConfig;
@@ -43,37 +44,41 @@ public final class ProviderBootStrap {
 
     public static void init() {
         if (!isInitialized) {
-            LoggerLoader.init();
-            ConfigManager configManager = ConfigManagerLoader.getConfigManager();
-            ProviderProcessHandlerFactory.init();
-            SerializerFactory.init();
-            ClassUtils.loadClasses("com.dianping.pigeon");
-            Monitor monitor = MonitorLoader.getMonitor();
-            if (monitor != null) {
-                monitor.init();
-            }
-            Thread shutdownHook = new Thread(new ShutdownHookListener());
-            shutdownHook.setDaemon(true);
-            shutdownHook.setPriority(Thread.MAX_PRIORITY);
-            Runtime.getRuntime().addShutdownHook(shutdownHook);
-            ServerConfig config = new ServerConfig();
-            config.setProtocol(Constants.PROTOCOL_HTTP);
-            RegistryManager.getInstance();
-            List<Server> servers = ExtensionLoader.getExtensionList(Server.class);
-            for (Server server : servers) {
-                if (!server.isStarted()) {
-                    if (server.support(config)) {
-                        server.start(config);
-                        registerConsoleServer(config);
-                        registerHostConfig(config);
-
-                        httpServer = server;
-                        serversMap.put(server.getProtocol() + server.getPort(), server);
-                        logger.warn("pigeon " + server + "[version:" + VersionUtils.VERSION + "] has been started");
+            synchronized (ProviderBootStrap.class) {
+                if (!isInitialized) {
+                    LoggerLoader.init();
+                    ConfigManager configManager = ConfigManagerLoader.getConfigManager();
+                    ProviderProcessHandlerFactory.init();
+                    SerializerFactory.init();
+                    ClassUtils.loadClasses("com.dianping.pigeon");
+                    Monitor monitor = MonitorLoader.getMonitor();
+                    if (monitor != null) {
+                        monitor.init();
                     }
+                    Thread shutdownHook = new Thread(new ShutdownHookListener());
+                    shutdownHook.setDaemon(true);
+                    shutdownHook.setPriority(Thread.MAX_PRIORITY);
+                    Runtime.getRuntime().addShutdownHook(shutdownHook);
+                    ServerConfig config = new ServerConfig();
+                    config.setProtocol(Constants.PROTOCOL_HTTP);
+                    RegistryManager.getInstance();
+                    List<Server> servers = ExtensionLoader.getExtensionList(Server.class);
+                    for (Server server : servers) {
+                        if (!server.isStarted()) {
+                            if (server.support(config)) {
+                                server.start(config);
+                                registerConsoleServer(config);
+                                initRegistryConfig(config);
+
+                                httpServer = server;
+                                serversMap.put(server.getProtocol() + server.getPort(), server);
+                                logger.warn("pigeon " + server + "[version:" + VersionUtils.VERSION + "] has been started");
+                            }
+                        }
+                    }
+                    isInitialized = true;
                 }
             }
-            isInitialized = true;
         }
     }
 
@@ -147,8 +152,12 @@ public final class ProviderBootStrap {
         return httpServer;
     }
 
-    private static void registerHostConfig(ServerConfig config) {
-        RegistryManager.getInstance().setHostConfig(config.getIp());
+    private static void initRegistryConfig(ServerConfig config) {
+        try {
+            RegistryManager.getInstance().initRegistryConfig(config.getIp());
+        } catch (RegistryException e) {
+            logger.warn("failed to init registry config, set config to blank, please check!", e);
+        }
     }
 
     public static void registerConsoleServer(ServerConfig config) {

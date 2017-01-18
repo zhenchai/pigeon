@@ -7,11 +7,12 @@ package com.dianping.pigeon.remoting.invoker;
 import com.dianping.pigeon.config.ConfigManager;
 import com.dianping.pigeon.config.ConfigManagerLoader;
 import com.dianping.pigeon.domain.HostInfo;
+import com.dianping.pigeon.log.Logger;
 import com.dianping.pigeon.log.LoggerLoader;
 import com.dianping.pigeon.registry.RegistryManager;
+import com.dianping.pigeon.registry.config.RegistryConfig;
 import com.dianping.pigeon.registry.exception.RegistryException;
 import com.dianping.pigeon.registry.listener.*;
-import com.dianping.pigeon.registry.route.GroupManager;
 import com.dianping.pigeon.registry.util.Constants;
 import com.dianping.pigeon.remoting.ServiceFactory;
 import com.dianping.pigeon.remoting.common.domain.Disposable;
@@ -20,7 +21,9 @@ import com.dianping.pigeon.remoting.common.util.Utils;
 import com.dianping.pigeon.remoting.invoker.config.InvokerConfig;
 import com.dianping.pigeon.remoting.invoker.domain.ConnectInfo;
 import com.dianping.pigeon.remoting.invoker.exception.ServiceUnavailableException;
-import com.dianping.pigeon.remoting.invoker.listener.*;
+import com.dianping.pigeon.remoting.invoker.listener.ClusterListenerManager;
+import com.dianping.pigeon.remoting.invoker.listener.DefaultClusterListener;
+import com.dianping.pigeon.remoting.invoker.listener.ProviderAvailableListener;
 import com.dianping.pigeon.remoting.invoker.route.DefaultRouteManager;
 import com.dianping.pigeon.remoting.invoker.route.RouteManager;
 import com.dianping.pigeon.remoting.provider.config.ProviderConfig;
@@ -30,7 +33,6 @@ import com.dianping.pigeon.threadpool.DefaultThreadPool;
 import com.dianping.pigeon.threadpool.ThreadPool;
 import com.dianping.pigeon.util.ThreadPoolUtils;
 import org.apache.commons.lang.StringUtils;
-import com.dianping.pigeon.log.Logger;
 
 import java.util.*;
 import java.util.concurrent.*;
@@ -73,8 +75,6 @@ public class ClientManager {
 	private RegistryConnectionListener registryConnectionListener = new InnerRegistryConnectionListener();
 
 	private GroupChangeListener groupChangeListener = new InnerGroupChangeListener();
-
-	private final static GroupManager groupManager = GroupManager.INSTANCE;
 
 	private static boolean enableVip = ConfigManagerLoader.getConfigManager()
 			.getBooleanValue("pigeon.invoker.vip.enable", false);
@@ -134,7 +134,7 @@ public class ClientManager {
 	public String getServiceAddress(InvokerConfig invokerConfig) {
 		String remoteAppkey = invokerConfig.getRemoteAppKey();
 		String serviceName = invokerConfig.getUrl();
-		String group = groupManager.getInvokerGroup(serviceName);
+		String group = RegistryManager.getInstance().getGroup(serviceName);
 		String vip = invokerConfig.getVip();
 
 		String serviceAddress = null;
@@ -178,7 +178,7 @@ public class ClientManager {
 	public Set<HostInfo> registerClients(InvokerConfig invokerConfig) {
 		String remoteAppkey = invokerConfig.getRemoteAppKey();
 		String serviceName = invokerConfig.getUrl();
-		String group = groupManager.getInvokerGroup(serviceName);
+		String group = RegistryManager.getInstance().getGroup(serviceName);
 		String vip = invokerConfig.getVip();
 
 		logger.info("start to register clients for service '" + serviceName + "#" + group + "'");
@@ -328,13 +328,12 @@ public class ClientManager {
 	private class InnerGroupChangeListener implements GroupChangeListener {
 
 		@Override
-		public void onInvokerGroupChange(String ip, ConcurrentMap oldInvokerGroupCache, ConcurrentMap newInvokerGroupCache) {
+		public void onGroupChange(String ip, RegistryConfig oldRegistryConfig, RegistryConfig newRegistryConfig) {
 			// reconnect to new ip:port list
 			for (InvokerConfig<?> invokerConfig : ServiceFactory.getAllServiceInvokers().keySet()) {
 				try {
-					// todo 新旧比较
 					logger.info("invoker group changed, service: " + invokerConfig.getUrl()
-							+ ", new group: " + groupManager.getInvokerGroup(invokerConfig.getUrl()));
+							+ ", new group: " + RegistryManager.getInstance().getGroup(invokerConfig.getUrl()));
 					String hosts = "";
 					try {
 						hosts = getServiceAddress(invokerConfig);
@@ -345,42 +344,6 @@ public class ClientManager {
 					DefaultServiceChangeListener.INSTANCE.onServiceHostChange(invokerConfig.getUrl(), hostDetail);
 				} catch (Throwable e) {
 					logger.warn("failed to change refresh invoker to new group, caused by: " + e.getMessage());
-				}
-			}
-		}
-
-		@Override
-		public void onProviderGroupChange(String ip, ConcurrentMap oldProviderGroupCache, ConcurrentMap newProviderGroupCache) {
-			// save old cache and refresh provider group config cache
-			// todo 这里有个坑,比较新旧值的多线程更新问题
-
-			for (ProviderConfig<?> providerConfig : ServiceFactory.getAllServiceProviders().values()) {
-				if (StringUtils.isBlank(configManager.getGroup())) {
-					String host = ip + ":" + providerConfig.getServerConfig().getActualPort();
-					Integer weight = ServicePublisher.getServerWeight().get(host);
-					if (weight == null) {
-						weight = Constants.DEFAULT_WEIGHT;
-					}
-					String oldGroup = (String) oldProviderGroupCache.get(providerConfig.getUrl());
-					if (oldGroup == null) {
-						oldGroup = "";
-					}
-					String newGroup = (String) newProviderGroupCache.get(providerConfig.getUrl());
-					if (newGroup == null) {
-						newGroup = "";
-					}
-
-					if (!newGroup.equals(oldGroup)) {
-						try {
-							// remove ip:port in old group
-							RegistryManager.getInstance().unregisterService(providerConfig.getUrl(), oldGroup, host);
-							// add ip:port to new group
-							RegistryManager.getInstance().registerService(providerConfig.getUrl(), newGroup, host, weight);
-						} catch (RegistryException e) {
-							logger.error("error while change provider group of " + providerConfig.getUrl()
-									+ "from group" + oldGroup + "to group" + newGroup, e);
-						}
-					}
 				}
 			}
 		}
