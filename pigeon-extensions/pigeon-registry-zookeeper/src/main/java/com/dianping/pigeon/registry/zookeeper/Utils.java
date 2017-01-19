@@ -155,14 +155,4 @@ public class Utils {
     public static String getRegistryConfigPath(String ip) {
         return Constants.HOST_CONFIG_PATH + Constants.PATH_SEPARATOR + ip;
     }
-
-    public static String getHostConfig4InvokerPath(String ip) {
-        return Constants.HOST_CONFIG_PATH + Constants.PATH_SEPARATOR + ip
-                + Constants.PATH_SEPARATOR + Constants.HOST_CONFIG_INVOKER_ROLE;
-    }
-
-    public static String getHostConfig4ProviderPath(String ip) {
-        return Constants.HOST_CONFIG_PATH + Constants.PATH_SEPARATOR + ip
-                + Constants.PATH_SEPARATOR + Constants.HOST_CONFIG_PROVIDER_ROLE;
-    }
 }

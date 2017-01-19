@@ -22,8 +22,6 @@ public final class Constants {
 	public static final String PROTOCOL_PATH = "/DP/PROTOCOL";
 	public static final String CONSOLE_PATH="/DP/CONSOLE";
 	public static final String HOST_CONFIG_PATH = "/pigeon/config";
-	public static final String HOST_CONFIG_INVOKER_ROLE = "invoker";
-	public static final String HOST_CONFIG_PROVIDER_ROLE = "provider";
 	public static final String PATH_SEPARATOR = "/";
 	public static final String PLACEHOLDER = "^";
 
