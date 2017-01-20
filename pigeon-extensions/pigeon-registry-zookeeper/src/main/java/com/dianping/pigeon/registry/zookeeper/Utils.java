@@ -126,13 +126,8 @@ public class Utils {
         return new ConcurrentHashMap<String, Boolean>();
     }
 
-    public static ConcurrentMap getHostConfigInfoMap(String info) throws IOException {
-
-        if (StringUtils.isNotBlank(info)) {
-            return mapper.readValue(info, ConcurrentHashMap.class);
-        }
-
-        return new ConcurrentHashMap<>();
+    public static String getRegistryConfigInfo(RegistryConfig registryConfig) throws JsonProcessingException {
+        return mapper.writeValueAsString(registryConfig);
     }
 
     public static RegistryConfig getRegistryConfig(String info) throws IOException {
