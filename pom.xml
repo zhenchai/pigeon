@@ -43,7 +43,6 @@
 		<jetty-servlet-api.version>2.5-20081211</jetty-servlet-api.version>
 		<freemarker.version>2.3.22</freemarker.version>
 		<slf4j.version>1.7.12</slf4j.version>
-		<disruptor.version>3.3.6</disruptor.version>
 	</properties>
 
 	<modules>
@@ -165,11 +164,6 @@
 				<groupId>org.apache.logging.log4j</groupId>
 				<artifactId>log4j-core</artifactId>
 				<version>${log4j-core.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>com.lmax</groupId>
-				<artifactId>disruptor</artifactId>
-				<version>${disruptor.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>io.netty</groupId>
