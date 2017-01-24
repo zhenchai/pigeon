@@ -25,6 +25,8 @@ import com.dianping.pigeon.remoting.provider.process.statistics.ProviderSystemIn
  */
 public class ThriftMapper {
 
+    private static final String appName = ConfigManagerLoader.getConfigManager().getAppName();
+
 
     public static Header convertRequestToHeader(GenericRequest request) {
         Header header = new Header();
@@ -95,7 +97,7 @@ public class ThriftMapper {
             header.setMessageType(MessageType.ScannerHeartbeat.getCode());
             // 响应心跳信息
             HeartbeatInfo heartbeatInfo = new HeartbeatInfo();
-            heartbeatInfo.setAppkey(ConfigManagerLoader.getConfigManager().getAppName());
+            heartbeatInfo.setAppkey(appName);
             heartbeatInfo.setSendTime(response.getCreateMillisTime());
             ProviderSystemInfoCollector providerSystemInfoCollector = ProviderSystemInfoCollector.INSTANCE;
             heartbeatInfo.setStatus(providerSystemInfoCollector.getStatus(response.getPort()));

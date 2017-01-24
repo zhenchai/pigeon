@@ -50,6 +50,8 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
 
     private static volatile boolean isTrace = true;
 
+    private volatile boolean poolConfigSwitchable = false;
+
     private static DynamicThreadPool sharedRequestProcessThreadPool = null;
 
     private static final int SLOW_POOL_CORESIZE = configManager.getIntValue(
@@ -113,6 +115,7 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
 
     public RequestThreadPoolProcessor() {
         isTrace = configManager.getBooleanValue(Constants.KEY_PROVIDER_TRACE_ENABLE, Constants.DEFAULT_PROVIDER_TRACE_ENABLE);
+        poolConfigSwitchable = configManager.getBooleanValue(KEY_PROVIDER_POOL_CONFIG_ENABLE, false);
         configManager.registerConfigChangeListener(new InnerConfigChangeListener());
     }
 
@@ -179,7 +182,7 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
 
     public Future<InvocationResponse> doProcessRequest(final InvocationRequest request,
                                                        final ProviderContext providerContext) {
-        requestContextMap.put(request, providerContext);
+//        requestContextMap.put(request, providerContext);
 
         doMonitorData(request, providerContext);
 
@@ -198,7 +201,7 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
                 } catch (Throwable t) {
                     logger.error("Process request failed with invocation handler, you should never be here.", t);
                 } finally {
-                    requestContextMap.remove(request);
+//                    requestContextMap.remove(request);
                 }
                 return null;
             }
@@ -210,7 +213,7 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
             providerContext.getTimeline().add(new TimePoint(TimePhase.T));
             return pool.submit(requestExecutor);
         } catch (RejectedExecutionException e) {
-            requestContextMap.remove(request);
+//            requestContextMap.remove(request);
             throw new RejectedException(getProcessorStatistics(pool), e);
         }
 
@@ -252,8 +255,7 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
         }
 
         // lion poolConfig
-        if (pool == null && configManager.getBooleanValue(KEY_PROVIDER_POOL_CONFIG_ENABLE, false)
-                && !CollectionUtils.isEmpty(apiPoolNameMapping)) {
+        if (pool == null && poolConfigSwitchable && !CollectionUtils.isEmpty(apiPoolNameMapping)) {
             PoolConfig poolConfig = null;
             String poolName = apiPoolNameMapping.get(methodKey);
             if (StringUtils.isNotBlank(poolName)) { // 方法级别
@@ -635,6 +637,8 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
                     isTrace = Boolean.valueOf(value);
                 } catch (RuntimeException e) {
                 }
+            } else if (key.endsWith(KEY_PROVIDER_POOL_CONFIG_ENABLE)) {
+                poolConfigSwitchable = Boolean.valueOf(value);
             } else {
                 for (String k : methodPoolConfigKeys.keySet()) {
                     String v = methodPoolConfigKeys.get(k);
