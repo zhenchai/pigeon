@@ -191,6 +191,8 @@ com.xxx....XXXConfigManager
 
 ## 快速入门
 
+本文档相关代码示例也可以参考[pigeon-demo](https://github.com/dianping/pigeon-demo)项目
+
 ### 定义服务
 
 定义服务接口: (该接口需单独打包，在服务提供方和调用方共享)
