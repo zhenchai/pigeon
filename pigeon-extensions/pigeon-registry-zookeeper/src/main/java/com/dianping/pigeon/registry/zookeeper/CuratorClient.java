@@ -89,11 +89,12 @@ public class CuratorClient {
 		CuratorFramework oldClient = this.client;
 		this.client = client;
 		close(oldClient);
-		logger.info("succeed to create zookeeper client, connected:" + isConnected);
 
 		if (isConnected) {
+			logger.info("succeed to connect to zookeeper");
 			monitor.logEvent(EVENT_NAME, "zookeeper:rebuild_success", "");
 		} else {
+			logger.warn("unable to connect to zookeeper:" + address);
 			monitor.logEvent(EVENT_NAME, "zookeeper:rebuild_failure", "");
 		}
 
