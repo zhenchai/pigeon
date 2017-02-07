@@ -18,9 +18,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.dianping.pigeon.remoting.invoker.config.InvokerConfig;
 import org.apache.commons.lang.StringUtils;
-import com.dianping.pigeon.log.Logger;
+import org.springframework.aop.support.AopUtils;
 
 import com.dianping.pigeon.config.ConfigManager;
 import com.dianping.pigeon.config.ConfigManagerLoader;
@@ -30,10 +29,12 @@ import com.dianping.pigeon.console.domain.ServiceMethod;
 import com.dianping.pigeon.console.status.checker.GlobalStatusChecker;
 import com.dianping.pigeon.console.status.checker.ProviderStatusChecker;
 import com.dianping.pigeon.console.status.checker.StatusChecker;
+import com.dianping.pigeon.log.Logger;
 import com.dianping.pigeon.log.LoggerLoader;
 import com.dianping.pigeon.registry.RegistryManager;
 import com.dianping.pigeon.remoting.ServiceFactory;
 import com.dianping.pigeon.remoting.common.util.ServiceConfigUtils;
+import com.dianping.pigeon.remoting.invoker.config.InvokerConfig;
 import com.dianping.pigeon.remoting.provider.ProviderBootStrap;
 import com.dianping.pigeon.remoting.provider.Server;
 import com.dianping.pigeon.remoting.provider.config.ProviderConfig;
@@ -46,7 +47,6 @@ import freemarker.template.Configuration;
 import freemarker.template.DefaultObjectWrapper;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
-import org.springframework.aop.support.AopUtils;
 
 /**
  * @author sean.wang
@@ -114,7 +114,7 @@ public class ServiceServlet extends HttpServlet {
 		return ServiceFactory.getAllServiceProviders();
 	}
 
-	public Map<InvokerConfig<?>, Object> getInvokerConfigs(){
+	public Map<InvokerConfig<?>, Object> getInvokerConfigs() {
 		return ServiceFactory.getAllServiceInvokers();
 	}
 
@@ -174,8 +174,10 @@ public class ServiceServlet extends HttpServlet {
 		page.setAppName(configManager.getAppName());
 		page.setStartTime(ProviderBootStrap.getStartTime() + "");
 		page.setValidate("" + isValidate);
-		page.setGovernorUrl(configManager.getStringValue("pigeon.governor.address")
-				+ "/services/" + configManager.getAppName());
+		String governorAddr = configManager.getStringValue("pigeon.governor.address");
+		if (StringUtils.isNotBlank(governorAddr)) {
+			page.setGovernorUrl(governorAddr + "/services/" + configManager.getAppName());
+		}
 		this.model = page;
 		return true;
 	}
@@ -220,7 +222,8 @@ public class ServiceServlet extends HttpServlet {
 		return "text/html; charset=UTF-8";
 	}
 
-	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+	protected void doGet(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
 		response.setContentType(getContentType());
 		response.setStatus(HttpServletResponse.SC_OK);
 
@@ -232,8 +235,8 @@ public class ServiceServlet extends HttpServlet {
 		doGet(req, resp);
 	}
 
-	protected void generateView(HttpServletRequest request, HttpServletResponse response) throws IOException,
-			ServletException {
+	protected void generateView(HttpServletRequest request, HttpServletResponse response)
+			throws IOException, ServletException {
 		Template temp = cfg.getTemplate(getView());
 		boolean result = initServicePage(request, response);
 		if (result) {

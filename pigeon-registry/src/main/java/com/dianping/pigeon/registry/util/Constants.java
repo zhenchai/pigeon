@@ -34,11 +34,6 @@ public final class Constants {
 	public static final boolean DEFAULT_AUTO_REGISTER_BOOL = Boolean.parseBoolean(DEFAULT_AUTO_REGISTER);
 	public static final String KEY_LOCAL_IP = "local.ip";
 
-	public static final String KEY_REGISTRY_ADDRESS = "pigeon.registry.address";
-	public static final String KEY_REGISTRY_TYPE = "pigeon.registry.type";
-	public static final String REGISTRY_TYPE_ZOOKEEPER = "zookeeper";
-	public static final String REGISTRY_TYPE_LOCAL = "local";
-	public static final String DEFAULT_REGISTRY_TYPE = REGISTRY_TYPE_ZOOKEEPER;
 	public static final String REGISTRY_MNS_NAME = "mns";
 	public static final String REGISTRY_CURATOR_NAME = "curator";
 	public static final String REGISTRY_COMPOSITE_NAME = "composite";

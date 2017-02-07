@@ -163,13 +163,13 @@ pigeon.provider.applimit.enable=true
 如果使用了点评内部的lion配置中心，相比本地配置管理上更加方便，在lion管理端进行配置的统一管理，无需在每台机器上的properties文件里进行配置
 
 lion配置需要按前面依赖里提到的引入以下依赖：
-
+```xml
 <dependency>
     <groupId>com.dianping</groupId>
     <artifactId>pigeon-config-lion</artifactId>
     <version>1.0.0-SNAPSHOT</version>
 </dependency>
-
+```
 如果要设置某个应用级的pigeon配置，需要在lion里增加相应的pigeon配置，如pigeon内部有一个全局默认配置pigeon.provider.applimit.enable，值为false
 
 如果某个应用xxx-service（这个应用名就是app.properties里的app.name）想修改这个默认配置，那么可以在lion里增加一个key：xxx-service.pigeon.provider.applimit.enable，设置为true
@@ -190,6 +190,8 @@ com.xxx....XXXConfigManager
 完成以上步骤后，需要将这个扩展项目打成jar包，引入项目里，pigeon就会自动使用用户自己扩展的配置模块
 
 ## 快速入门
+
+本文档相关代码示例也可以参考[pigeon-demo](https://github.com/dianping/pigeon-demo)项目
 
 ### 定义服务
 

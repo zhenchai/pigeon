@@ -11,6 +11,7 @@ import java.util.concurrent.TimeoutException;
 
 import com.dianping.pigeon.log.Logger;
 import com.dianping.pigeon.log.LoggerLoader;
+import com.dianping.pigeon.registry.RegistryManager;
 import com.dianping.pigeon.remoting.common.monitor.trace.InvokerMonitorData;
 import com.dianping.pigeon.remoting.common.domain.InvocationContext.TimePhase;
 import com.dianping.pigeon.remoting.common.domain.InvocationContext.TimePoint;
@@ -21,6 +22,7 @@ import com.dianping.pigeon.remoting.common.exception.RpcException;
 import com.dianping.pigeon.remoting.common.monitor.SizeMonitor;
 import com.dianping.pigeon.remoting.common.util.Constants;
 import com.dianping.pigeon.remoting.common.util.InvocationUtils;
+import com.dianping.pigeon.remoting.invoker.Client;
 import com.dianping.pigeon.remoting.invoker.domain.InvokerContext;
 import com.dianping.pigeon.remoting.invoker.exception.RequestTimeoutException;
 import com.dianping.pigeon.remoting.invoker.process.DegradationManager;
@@ -29,170 +31,176 @@ import com.dianping.pigeon.remoting.invoker.process.filter.DegradationFilter;
 
 public class ServiceFutureImpl extends CallbackFuture implements Future {
 
-    private static final Logger logger = LoggerLoader.getLogger(ServiceFutureImpl.class);
+	private static final Logger logger = LoggerLoader.getLogger(ServiceFutureImpl.class);
 
-    private long timeout = Long.MAX_VALUE;
+	private long timeout = Long.MAX_VALUE;
 
-    protected Thread callerThread;
+	protected Thread callerThread;
 
-    protected InvokerContext invocationContext;
+	protected InvokerContext invocationContext;
 
-    public ServiceFutureImpl(InvokerContext invocationContext, long timeout) {
-        super();
-        this.invocationContext = invocationContext;
-        this.timeout = timeout;
-        callerThread = Thread.currentThread();
-    }
+	public ServiceFutureImpl(InvokerContext invocationContext, long timeout) {
+		super();
+		this.invocationContext = invocationContext;
+		this.timeout = timeout;
+		callerThread = Thread.currentThread();
+	}
 
-    @Override
-    public Object get() throws InterruptedException, ExecutionException {
-        return get(this.timeout);
-    }
+	@Override
+	public Object get() throws InterruptedException, ExecutionException {
+		return get(this.timeout);
+	}
 
-    public Object get(long timeoutMillis) throws InterruptedException, ExecutionException {
-        InvocationResponse response = null;
-        String addr = null;
-        if (client != null) {
-            addr = client.getAddress();
-        }
-        String callInterface = InvocationUtils.getRemoteCallFullName(invocationContext.getInvokerConfig().getUrl(),
-                invocationContext.getMethodName(), invocationContext.getParameterTypes());
-        transaction = monitor.createTransaction("PigeonFuture", callInterface, invocationContext);
-        if (transaction != null) {
-            transaction.setStatusOk();
-            transaction.logEvent("PigeonCall.callType", invocationContext.getInvokerConfig().getCallType(), "");
-            transaction.logEvent("PigeonCall.serialize", ""
-                            + (request == null ? invocationContext.getInvokerConfig().getSerialize() : request.getSerialize()),
-                    "");
-            transaction.logEvent("PigeonCall.timeout", timeoutMillis + "",
-                    invocationContext.getInvokerConfig().getTimeout() + "");
-            invocationContext.getTimeline().add(new TimePoint(TimePhase.F, System.currentTimeMillis()));
-        }
-        boolean isSuccess = false;
-        try {
-            try {
-                response = super.waitResponse(timeoutMillis);
-                if (transaction != null && response != null) {
-                    String size = SizeMonitor.getInstance().getLogSize(response.getSize());
-                    if (size != null) {
-                        transaction.logEvent("PigeonCall.responseSize", size, "" + response.getSize());
-                    }
-                    invocationContext.getTimeline().add(new TimePoint(TimePhase.R, response.getCreateMillisTime()));
-                    invocationContext.getTimeline().add(new TimePoint(TimePhase.F, System.currentTimeMillis()));
-                }
-            } catch (RuntimeException e) {
-                // failure degrade condition
-                InvocationResponse degradedResponse = null;
-                if (DegradationManager.INSTANCE.needFailureDegrade(invocationContext)) {
-                    try {
-                        degradedResponse = DegradationFilter.degradeCall(invocationContext, true);
-                    } catch (Throwable t) {
-                        // won't happen
-                        logger.warn("failure degrade in future call type error: " + t.toString());
-                    }
-                }
-                if (degradedResponse != null) {// 返回同步调用模式的失败降级结果
-                    return degradedResponse.getReturn();
-                }
-                // not failure degrade
-                DegradationManager.INSTANCE.addFailedRequest(invocationContext, e);
-                ExceptionManager.INSTANCE.logRpcException(addr, invocationContext.getInvokerConfig().getUrl(),
-                        invocationContext.getMethodName(), "error with future call", e, request, response, transaction);
-                throw e;
-            }
+	public Object get(long timeoutMillis) throws InterruptedException, ExecutionException {
+		InvocationResponse response = null;
+		String addr = null;
+		if (client != null) {
+			addr = client.getAddress();
+		}
+		String callInterface = InvocationUtils.getRemoteCallFullName(invocationContext.getInvokerConfig().getUrl(),
+				invocationContext.getMethodName(), invocationContext.getParameterTypes());
+		transaction = monitor.createTransaction("PigeonFuture", callInterface, invocationContext);
+		if (transaction != null) {
+			transaction.setStatusOk();
+			transaction.logEvent("PigeonCall.callType", invocationContext.getInvokerConfig().getCallType(), "");
+			transaction.logEvent("PigeonCall.serialize", ""
+					+ (request == null ? invocationContext.getInvokerConfig().getSerialize() : request.getSerialize()),
+					"");
+			transaction.logEvent("PigeonCall.timeout", timeoutMillis + "",
+					invocationContext.getInvokerConfig().getTimeout() + "");
+			Client client = invocationContext.getClient();
+			if (client != null) {
+				String targetApp = RegistryManager.getInstance().getReferencedAppFromCache(client.getAddress());
+				transaction.logEvent("PigeonCall.app", targetApp, "");
+				transaction.logEvent("PigeonCall.server", client.getAddress(), "");
+			}
+			invocationContext.getTimeline().add(new TimePoint(TimePhase.F, System.currentTimeMillis()));
+		}
+		boolean isSuccess = false;
+		try {
+			try {
+				response = super.waitResponse(timeoutMillis);
+				if (transaction != null && response != null) {
+					String size = SizeMonitor.getInstance().getLogSize(response.getSize());
+					if (size != null) {
+						transaction.logEvent("PigeonCall.responseSize", size, "" + response.getSize());
+					}
+					invocationContext.getTimeline().add(new TimePoint(TimePhase.R, response.getCreateMillisTime()));
+					invocationContext.getTimeline().add(new TimePoint(TimePhase.F, System.currentTimeMillis()));
+				}
+			} catch (RuntimeException e) {
+				// failure degrade condition
+				InvocationResponse degradedResponse = null;
+				if (DegradationManager.INSTANCE.needFailureDegrade(invocationContext)) {
+					try {
+						degradedResponse = DegradationFilter.degradeCall(invocationContext, true);
+					} catch (Throwable t) {
+						// won't happen
+						logger.warn("failure degrade in future call type error: " + t.toString());
+					}
+				}
+				if (degradedResponse != null) {// 返回同步调用模式的失败降级结果
+					return degradedResponse.getReturn();
+				}
+				// not failure degrade
+				DegradationManager.INSTANCE.addFailedRequest(invocationContext, e);
+				ExceptionManager.INSTANCE.logRpcException(addr, invocationContext.getInvokerConfig().getUrl(),
+						invocationContext.getMethodName(), "error with future call", e, request, response, transaction);
+				throw e;
+			}
 
-            setResponseContext(response);
+			setResponseContext(response);
 
-            if (response.getMessageType() == Constants.MESSAGE_TYPE_SERVICE) {
-                isSuccess = true;
-                return response.getReturn();
-            } else if (response.getMessageType() == Constants.MESSAGE_TYPE_EXCEPTION) {
-                // failure degrade condition
-                InvocationResponse degradedResponse = null;
-                if (DegradationManager.INSTANCE.needFailureDegrade(invocationContext)) {
-                    try {
-                        degradedResponse = DegradationFilter.degradeCall(invocationContext, true);
-                    } catch (Throwable t) {
-                        // won't happen
-                        logger.warn("failure degrade in future call type error: " + t.toString());
-                    }
-                }
-                if (degradedResponse != null) {// 返回同步调用模式的失败降级结果
-                    return degradedResponse.getReturn();
-                }
-                // not failure degrade
-                RpcException e = ExceptionManager.INSTANCE.logRemoteCallException(addr,
-                        invocationContext.getInvokerConfig().getUrl(), invocationContext.getMethodName(),
-                        "remote call error with future call", request, response, transaction);
-                if (e != null) {
-                    DegradationManager.INSTANCE.addFailedRequest(invocationContext, e);
-                    throw e;
-                }
-            } else if (response.getMessageType() == Constants.MESSAGE_TYPE_SERVICE_EXCEPTION) {
-                Throwable e = ExceptionManager.INSTANCE
-                        .logRemoteServiceException("remote service biz error with future call", request, response);
-                if (e instanceof RuntimeException) {
-                    throw (RuntimeException) e;
-                } else if (e != null) {
-                    throw new ApplicationException(e);
-                }
-            }
-            RpcException e = new BadResponseException(response.toString());
-            throw e;
-        } finally {
-            if (transaction != null) {
-                if (invocationContext.isDegraded()) {
-                    transaction.logEvent("PigeonCall.degrade", callInterface, "");
-                }
-                invocationContext.getTimeline().add(new TimePoint(TimePhase.E, System.currentTimeMillis()));
-                try {
-                    transaction.complete();
-                } catch (RuntimeException e) {
-                    monitor.logMonitorError(e);
-                }
-            }
+			if (response.getMessageType() == Constants.MESSAGE_TYPE_SERVICE) {
+				isSuccess = true;
+				return response.getReturn();
+			} else if (response.getMessageType() == Constants.MESSAGE_TYPE_EXCEPTION) {
+				// failure degrade condition
+				InvocationResponse degradedResponse = null;
+				if (DegradationManager.INSTANCE.needFailureDegrade(invocationContext)) {
+					try {
+						degradedResponse = DegradationFilter.degradeCall(invocationContext, true);
+					} catch (Throwable t) {
+						// won't happen
+						logger.warn("failure degrade in future call type error: " + t.toString());
+					}
+				}
+				if (degradedResponse != null) {// 返回同步调用模式的失败降级结果
+					return degradedResponse.getReturn();
+				}
+				// not failure degrade
+				RpcException e = ExceptionManager.INSTANCE.logRemoteCallException(addr,
+						invocationContext.getInvokerConfig().getUrl(), invocationContext.getMethodName(),
+						"remote call error with future call", request, response, transaction);
+				if (e != null) {
+					DegradationManager.INSTANCE.addFailedRequest(invocationContext, e);
+					throw e;
+				}
+			} else if (response.getMessageType() == Constants.MESSAGE_TYPE_SERVICE_EXCEPTION) {
+				Throwable e = ExceptionManager.INSTANCE
+						.logRemoteServiceException("remote service biz error with future call", request, response);
+				if (e instanceof RuntimeException) {
+					throw (RuntimeException) e;
+				} else if (e != null) {
+					throw new ApplicationException(e);
+				}
+			}
+			RpcException e = new BadResponseException(response.toString());
+			throw e;
+		} finally {
+			if (transaction != null) {
+				if (invocationContext.isDegraded()) {
+					transaction.logEvent("PigeonCall.degrade", callInterface, "");
+				}
+				invocationContext.getTimeline().add(new TimePoint(TimePhase.E, System.currentTimeMillis()));
+				try {
+					transaction.complete();
+				} catch (RuntimeException e) {
+					monitor.logMonitorError(e);
+				}
+			}
 
-            InvokerMonitorData monitorData = (InvokerMonitorData) invocationContext.getMonitorData();
-            if (monitorData != null) {
-                monitorData.setIsSuccess(isSuccess);
-                monitorData.complete();
-            }
-        }
-    }
+			InvokerMonitorData monitorData = (InvokerMonitorData) invocationContext.getMonitorData();
+			if (monitorData != null) {
+				monitorData.setIsSuccess(isSuccess);
+				monitorData.complete();
+			}
+		}
+	}
 
-    @Override
-    public Object get(long timeout, TimeUnit unit) throws java.lang.InterruptedException,
-            java.util.concurrent.ExecutionException, java.util.concurrent.TimeoutException {
-        long timeoutMs = unit.toMillis(timeout);
-        try {
-            return get(timeoutMs);
-        } catch (RequestTimeoutException e) {
-            throw new TimeoutException(timeoutMs + "ms timeout:" + e.getMessage());
-        } catch (InterruptedException e) {
-            throw e;
-        }
-    }
+	@Override
+	public Object get(long timeout, TimeUnit unit) throws java.lang.InterruptedException,
+			java.util.concurrent.ExecutionException, java.util.concurrent.TimeoutException {
+		long timeoutMs = unit.toMillis(timeout);
+		try {
+			return get(timeoutMs);
+		} catch (RequestTimeoutException e) {
+			throw new TimeoutException(timeoutMs + "ms timeout:" + e.getMessage());
+		} catch (InterruptedException e) {
+			throw e;
+		}
+	}
 
-    protected void processContext() {
-        Thread currentThread = Thread.currentThread();
-        if (currentThread == callerThread) {
-            super.processContext();
-        }
-    }
+	protected void processContext() {
+		Thread currentThread = Thread.currentThread();
+		if (currentThread == callerThread) {
+			super.processContext();
+		}
+	}
 
-    @Override
-    public void dispose() {
-        super.dispose();
-        if (transaction != null) {
-            try {
-                transaction.complete();
-            } catch (RuntimeException e) {
-            }
-        }
-    }
+	@Override
+	public void dispose() {
+		super.dispose();
+		if (transaction != null) {
+			try {
+				transaction.complete();
+			} catch (RuntimeException e) {
+			}
+		}
+	}
 
-    @Override
-    public boolean cancel(boolean mayInterruptIfRunning) {
-        return cancel();
-    }
+	@Override
+	public boolean cancel(boolean mayInterruptIfRunning) {
+		return cancel();
+	}
 }
