@@ -182,7 +182,7 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
 
     public Future<InvocationResponse> doProcessRequest(final InvocationRequest request,
                                                        final ProviderContext providerContext) {
-//        requestContextMap.put(request, providerContext);
+        requestContextMap.put(request, providerContext);
 
         doMonitorData(request, providerContext);
 
@@ -201,7 +201,7 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
                 } catch (Throwable t) {
                     logger.error("Process request failed with invocation handler, you should never be here.", t);
                 } finally {
-//                    requestContextMap.remove(request);
+                    requestContextMap.remove(request);
                 }
                 return null;
             }
@@ -213,7 +213,7 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
             providerContext.getTimeline().add(new TimePoint(TimePhase.T));
             return pool.submit(requestExecutor);
         } catch (RejectedExecutionException e) {
-//            requestContextMap.remove(request);
+            requestContextMap.remove(request);
             throw new RejectedException(getProcessorStatistics(pool), e);
         }
 
