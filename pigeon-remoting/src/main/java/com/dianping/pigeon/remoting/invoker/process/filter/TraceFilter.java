@@ -48,18 +48,20 @@ public class TraceFilter extends InvocationInvokeFilter {
 
         InvokerConfig config = invocationContext.getInvokerConfig();
 
-        MonitorTransaction transaction = monitor.getCurrentCallTransaction();
-        String rootMessage = StringUtils.EMPTY;
+//        MonitorTransaction transaction = monitor.getCurrentCallTransaction();
+//        String rootMessage = StringUtils.EMPTY;
+//
+//        if (transaction != null) {
+//            rootMessage = transaction.getParentRootMessage();
+//        }
+//        SourceKey srcKey = null;
+//        if (StringUtils.isNotBlank(rootMessage)) {
+//            srcKey = new OtherKey(rootMessage);
+//        } else {
+//            srcKey = new ApplicationKey(appName);
+//        }
 
-        if (transaction != null) {
-            rootMessage = transaction.getParentRootMessage();
-        }
-        SourceKey srcKey = null;
-        if (StringUtils.isNotBlank(rootMessage)) {
-            srcKey = new OtherKey(rootMessage);
-        } else {
-            srcKey = new ApplicationKey(appName);
-        }
+        SourceKey srcKey = new ApplicationKey(appName);
 
         InvokerMonitorData monitorData = MonitorDataFactory.newInvokerMonitorData(srcKey,
                 new MethodKey(config.getUrl(), invocationContext.getMethodName()));
