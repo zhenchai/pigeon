@@ -99,14 +99,11 @@
 </head>
 <body style="font-size:62.5%;padding-top:10px;padding-left:10px;">
 	<div class="row">
-		<div class="span12">
-            admin portal: <a href="${governorUrl}" target="_blank">${governorUrl}</a>
-		</div>
-	</div>
-
-	<div class="row">
 	  <div class="span8"  style="overflow:hidden">
 		<div>
+		<#if governorUrl != "">
+           <p>admin portal: <a href="${governorUrl}" target="_blank">${governorUrl}</a></p>
+		</#if>
 		<p>pigeon services registered at port ${port}</p>
 		<p>version: ${version}</p>
 		<p>env: ${environment}</p>

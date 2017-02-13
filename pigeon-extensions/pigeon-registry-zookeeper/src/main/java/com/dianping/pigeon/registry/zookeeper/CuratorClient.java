@@ -6,13 +6,13 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.math.RandomUtils;
 import org.apache.curator.CuratorZookeeperClient;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.state.ConnectionState;
 import org.apache.curator.framework.state.ConnectionStateListener;
 import org.apache.curator.retry.RetryNTimes;
-import com.dianping.pigeon.log.Logger;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.data.Stat;
@@ -20,6 +20,7 @@ import org.apache.zookeeper.data.Stat;
 import com.dianping.pigeon.config.ConfigChangeListener;
 import com.dianping.pigeon.config.ConfigManager;
 import com.dianping.pigeon.config.ConfigManagerLoader;
+import com.dianping.pigeon.log.Logger;
 import com.dianping.pigeon.log.LoggerLoader;
 import com.dianping.pigeon.monitor.Monitor;
 import com.dianping.pigeon.monitor.MonitorLoader;
@@ -36,11 +37,11 @@ public class CuratorClient {
 
 	private CuratorFramework client;
 
-	private int retries = configManager.getIntValue("pigeon.registry.curator.retries", Integer.MAX_VALUE);
+	private volatile int retries = configManager.getIntValue("pigeon.registry.curator.retries", Integer.MAX_VALUE);
 
-	private int retryInterval = configManager.getIntValue("pigeon.registry.curator.retryinterval", 3000);
+	private volatile int retryInterval = configManager.getIntValue("pigeon.registry.curator.retryinterval", 3000);
 
-	private int retryLimit = configManager.getIntValue("pigeon.registry.curator.retrylimit", 500);
+	private volatile int retryLimit = configManager.getIntValue("pigeon.registry.curator.retrylimit", 50);
 
 	private int sessionTimeout = configManager.getIntValue("pigeon.registry.curator.sessiontimeout", 30 * 1000);
 
@@ -54,19 +55,35 @@ public class CuratorClient {
 
 	private static Monitor monitor = MonitorLoader.getMonitor();
 
-	private String address;
+	private static final String KEY_REGISTRY_ADDRESS = "pigeon.registry.address";
+
+	private volatile String address;
 
 	private final String EVENT_NAME = "Pigeon.registry";
 
 	public CuratorClient(String zkAddress) throws Exception {
+		newCuratorClient(zkAddress);
+	}
+
+	public CuratorClient() throws Exception {
+		String zkAddress = configManager.getStringValue(KEY_REGISTRY_ADDRESS);
+		newCuratorClient(zkAddress);
+	}
+
+	private void newCuratorClient(String zkAddress) throws Exception {
+		if (StringUtils.isBlank(zkAddress)) {
+			throw new IllegalArgumentException("zookeeper address is required");
+		}
+		logger.info("start to initialize zookeeper client:" + zkAddress);
 		this.address = zkAddress;
 		newCuratorClient();
 		curatorStateListenerThreadPool.execute(new CuratorStateListener());
 		configManager.registerConfigChangeListener(new InnerConfigChangeListener());
+		logger.info("succeed to initialize zookeeper client:" + zkAddress);
 	}
 
 	private boolean newCuratorClient() throws InterruptedException {
-		logger.info("begin to create zookeeper client");
+		logger.info("begin to create zookeeper client:" + address);
 		// CuratorFramework client = CuratorFrameworkFactory.newClient(address,
 		// sessionTimeout, connectionTimeout,
 		// new MyRetryPolicy(retries, retryInterval));
@@ -89,11 +106,12 @@ public class CuratorClient {
 		CuratorFramework oldClient = this.client;
 		this.client = client;
 		close(oldClient);
-		logger.info("succeed to create zookeeper client, connected:" + isConnected);
 
 		if (isConnected) {
+			logger.info("succeed to connect to zookeeper:" + address);
 			monitor.logEvent(EVENT_NAME, "zookeeper:rebuild_success", "");
 		} else {
+			logger.warn("unable to connect to zookeeper:" + address);
 			monitor.logEvent(EVENT_NAME, "zookeeper:rebuild_failure", "");
 		}
 
@@ -102,6 +120,19 @@ public class CuratorClient {
 
 	public CuratorFramework getClient() {
 		return client;
+	}
+
+	public boolean isConnected() {
+		final CuratorFramework cf = getClient();
+		if (cf != null) {
+			try {
+				return cf.getZookeeperClient().getZooKeeper().getState().isConnected()
+						&& cf.getZookeeperClient().isConnected();
+			} catch (Exception e) {
+				return false;
+			}
+		}
+		return false;
 	}
 
 	private class CuratorStateListener implements Runnable {
@@ -114,14 +145,13 @@ public class CuratorClient {
 			boolean isSuccess = true;
 			while (!Thread.currentThread().isInterrupted()) {
 				try {
-					Thread.sleep(sleepTime);
+					Thread.sleep(sleepTime * (1 + RandomUtils.nextInt(20)));
 					final CuratorFramework cf = getClient();
 					if (cf != null) {
 						int retryCount = ((MyRetryPolicy) cf.getZookeeperClient().getRetryPolicy()).getRetryCount();
 						boolean isConnected = false;
 						try {
-							isConnected = cf.getZookeeperClient().getZooKeeper().getState().isConnected()
-									&& cf.getZookeeperClient().isConnected();
+							isConnected = isConnected();
 						} catch (Exception e) {
 							logger.info("error with zookeeper client's connection:" + e.toString());
 						}
@@ -135,7 +165,8 @@ public class CuratorClient {
 						} else {
 							failCount++;
 							if (retryCount > 0) {
-								logger.info("zookeeper client's retries:" + retryCount);
+								logger.info("zookeeper client's retries:" + retryCount + ", fails:" + failCount
+										+ ", limit:" + retryLimit);
 							}
 						}
 						if (failCount > retryLimit) {
@@ -152,13 +183,14 @@ public class CuratorClient {
 			}
 		}
 
-		private boolean rebuildCuratorClient() throws InterruptedException {
-			boolean isSuccess = newCuratorClient();
-			if (isSuccess) {
-				RegistryEventListener.connectionReconnected();
-			}
-			return isSuccess;
+	}
+
+	private boolean rebuildCuratorClient() throws InterruptedException {
+		boolean isSuccess = newCuratorClient();
+		if (isSuccess) {
+			RegistryEventListener.connectionReconnected();
 		}
+		return isSuccess;
 	}
 
 	private static class MyRetryPolicy extends RetryNTimes {
@@ -173,7 +205,7 @@ public class CuratorClient {
 		@Override
 		protected int getSleepTimeMs(int retryCount, long elapsedTimeMs) {
 			this.retryCount = retryCount;
-			return sleepMsBetweenRetries;
+			return sleepMsBetweenRetries * (1 + RandomUtils.nextInt(20));
 		}
 
 		public int getRetryCount() {
@@ -385,6 +417,15 @@ public class CuratorClient {
 					retryLimit = Integer.valueOf(value);
 				} catch (RuntimeException e) {
 				}
+			} else if (key.endsWith(KEY_REGISTRY_ADDRESS)) {
+				address = value;
+				logger.info("registry address changed:" + address);
+				try {
+					Thread.sleep(RandomUtils.nextInt(180) * 1000);
+					rebuildCuratorClient();
+				} catch (Exception e) {
+					logger.warn("rebuild curator client failed:", e);
+				}
 			}
 		}
 
@@ -400,7 +441,7 @@ public class CuratorClient {
 
 	public String getStatistics() {
 		CuratorZookeeperClient client = getClient().getZookeeperClient();
-		return new StringBuilder().append("connected:").append(client.isConnected()).append(", retries:")
+		return new StringBuilder().append("address:").append(client.getCurrentConnectionString()).append(", connected:").append(isConnected()).append(", retries:")
 				.append(((MyRetryPolicy) client.getRetryPolicy()).getRetryCount()).toString();
 	}
 

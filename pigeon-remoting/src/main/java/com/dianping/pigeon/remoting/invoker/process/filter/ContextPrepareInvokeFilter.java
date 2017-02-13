@@ -223,7 +223,7 @@ public class ContextPrepareInvokeFilter extends InvocationInvokeFilter {
 
     private void compactRequest(InvokerContext invokerContext) {
         boolean isCompactReq = false;
-        if (isCompact) {
+        if (isCompact && InvokerConfig.PROTOCOL_DEFAULT.equals(invokerContext.getInvokerConfig().getProtocol())) {
             Client client = invokerContext.getClient();
             String version = RegistryManager.getInstance().getReferencedVersionFromCache(client.getAddress());
             if (StringUtils.isBlank(version)) {
