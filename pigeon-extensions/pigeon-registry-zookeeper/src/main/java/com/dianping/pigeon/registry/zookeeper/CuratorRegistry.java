@@ -45,13 +45,10 @@ public class CuratorRegistry implements Registry {
             synchronized (this) {
                 if (!inited) {
                     try {
-                        String zkAddress = configManager.getStringValue(Constants.KEY_REGISTRY_ADDRESS);
-                        if (StringUtils.isBlank(zkAddress)) {
-                            throw new IllegalArgumentException("zookeeper address is required");
+                        client = new CuratorClient();
+                        if (!client.isConnected()) {
+                            throw new IllegalStateException("unable to connect to zookeeper");
                         }
-                        logger.info("start to initialize zookeeper client:" + zkAddress);
-                        client = new CuratorClient(zkAddress);
-                        logger.info("succeed to initialize zookeeper client:" + zkAddress);
                         inited = true;
                     } catch (Exception ex) {
                         logger.error("failed to initialize zookeeper client", ex);

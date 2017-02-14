@@ -19,7 +19,6 @@ import com.dianping.pigeon.extension.ExtensionLoader;
 import com.dianping.pigeon.registry.Registry;
 import com.dianping.pigeon.registry.exception.RegistryException;
 import com.dianping.pigeon.registry.listener.RegistryEventListener;
-import com.dianping.pigeon.registry.util.Constants;
 
 public class CuratorRegistryTest {
 
@@ -28,7 +27,7 @@ public class CuratorRegistryTest {
 	@BeforeClass
 	public static void startTestServer() throws Exception {
 		server = new TestingServer();
-		ConfigManagerLoader.getConfigManager().setLocalStringValue(Constants.KEY_REGISTRY_ADDRESS,
+		ConfigManagerLoader.getConfigManager().setLocalStringValue("pigeon.registry.address",
 				server.getConnectString());
 		/*ConfigManagerLoader.getConfigManager().setLocalStringValue(Constants.KEY_REGISTRY_ADDRESS,
 				"10.66.15.109:2181");*/

@@ -50,6 +50,8 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
 
     private static volatile boolean isTrace = true;
 
+    private volatile boolean poolConfigSwitchable = false;
+
     private static DynamicThreadPool sharedRequestProcessThreadPool = null;
 
     private static final int SLOW_POOL_CORESIZE = configManager.getIntValue(
@@ -113,6 +115,7 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
 
     public RequestThreadPoolProcessor() {
         isTrace = configManager.getBooleanValue(Constants.KEY_PROVIDER_TRACE_ENABLE, Constants.DEFAULT_PROVIDER_TRACE_ENABLE);
+        poolConfigSwitchable = configManager.getBooleanValue(KEY_PROVIDER_POOL_CONFIG_ENABLE, false);
         configManager.registerConfigChangeListener(new InnerConfigChangeListener());
     }
 
@@ -252,8 +255,7 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
         }
 
         // lion poolConfig
-        if (pool == null && configManager.getBooleanValue(KEY_PROVIDER_POOL_CONFIG_ENABLE, false)
-                && !CollectionUtils.isEmpty(apiPoolNameMapping)) {
+        if (pool == null && poolConfigSwitchable && !CollectionUtils.isEmpty(apiPoolNameMapping)) {
             PoolConfig poolConfig = null;
             String poolName = apiPoolNameMapping.get(methodKey);
             if (StringUtils.isNotBlank(poolName)) { // 方法级别
@@ -635,6 +637,8 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
                     isTrace = Boolean.valueOf(value);
                 } catch (RuntimeException e) {
                 }
+            } else if (key.endsWith(KEY_PROVIDER_POOL_CONFIG_ENABLE)) {
+                poolConfigSwitchable = Boolean.valueOf(value);
             } else {
                 for (String k : methodPoolConfigKeys.keySet()) {
                     String v = methodPoolConfigKeys.get(k);
