@@ -397,9 +397,11 @@ public class DegradationFilter extends InvocationInvokeFilter {
                         future.run();
                     }
                 }
+                break;
             case ONEWAY:
                 addCurrentTimeData(timeout);
                 response = NO_RETURN_RESPONSE;
+                break;
         }
 
         if (response != null) {
