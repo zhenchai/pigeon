@@ -483,6 +483,9 @@ public class CuratorRegistry implements Registry {
     @Override
     public void setSupportNewProtocol(String serviceAddress, String serviceName, boolean support)
             throws RegistryException {
+        // only write to zk when support new protocol to relieve the pressure of zk
+        if (!support) return;
+
         try {
             String protocolPath = Utils.getProtocolPath(serviceAddress);
             if (client.exists(protocolPath, false)) {
@@ -516,6 +519,9 @@ public class CuratorRegistry implements Registry {
     @Override
     public void unregisterSupportNewProtocol(String serviceAddress, String serviceName, boolean support)
             throws RegistryException {
+        // only write to zk when support new protocol to relieve the pressure of zk
+        if (!support) return;
+
         try {
             String protocolPath = Utils.getProtocolPath(serviceAddress);
             if (client.exists(protocolPath, false)) {
