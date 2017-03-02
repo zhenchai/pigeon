@@ -11,6 +11,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.dianping.pigeon.remoting.common.util.Constants;
+import com.dianping.pigeon.remoting.provider.domain.ProviderContext;
 import org.apache.commons.lang.SerializationException;
 
 import com.dianping.pigeon.log.LoggerLoader;
@@ -48,13 +49,13 @@ public class HttpChannel implements ProviderChannel {
 	}
 
 	@Override
-	public void write(InvocationResponse invocationResponse) {
+	public void write(ProviderContext context, InvocationResponse invocationResponse) {
 		response.setContentType(getContentType());
 		Serializer serializer = SerializerFactory.getSerializer(invocationResponse.getSerialize());
 		try {
 			serializer.serializeResponse(response.getOutputStream(), invocationResponse);
 			response.flushBuffer();
-			if (Constants.REPLY_MANUAL) {
+			if (Constants.REPLY_MANUAL || context.isAsync()) {
 				HttpCallbackFuture httpCallbackFuture = HttpServerHandler.callbacks.get(invocationResponse.getSequence());
 				if(httpCallbackFuture != null) {
 					httpCallbackFuture.run();

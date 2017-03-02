@@ -27,6 +27,8 @@ public final class ProviderHelper {
 
 	private static final Monitor monitor = MonitorLoader.getMonitor();
 
+	private static ThreadLocal<Boolean> isStartAsync = new ThreadLocal<Boolean>();
+
 	private static ThreadLocal<ProviderContext> tlContext = new ThreadLocal<ProviderContext>();
 
 	public static void setContext(ProviderContext context) {
@@ -43,13 +45,21 @@ public final class ProviderHelper {
 		tlContext.remove();
 	}
 
+	public static ProviderContext startAsync() {
+		ProviderContext providerContext = getContext();
+		if (providerContext != null) {
+			providerContext.setAsync(true);
+		}
+		return providerContext;
+	}
+
 	public static void writeSuccessResponse(ProviderContext context, Object returnObj) {
 		if (context == null) {
 			return;
 		}
 		InvocationRequest request = context.getRequest();
 		InvocationResponse response = null;
-		if (Constants.REPLY_MANUAL && request.getCallType() != Constants.CALLTYPE_NOREPLY) {
+		if ((Constants.REPLY_MANUAL || context.isAsync()) && request.getCallType() != Constants.CALLTYPE_NOREPLY) {
 			response = ProviderUtils.createSuccessResponse(request, returnObj);
 			context.getTimeline().add(new TimePoint(TimePhase.B, System.currentTimeMillis()));
 			ProviderChannel channel = context.getChannel();
@@ -74,7 +84,7 @@ public final class ProviderHelper {
 					monitor.logMonitorError(e);
 				}
 				try {
-					channel.write(response);
+					channel.write(context, response);
 				} finally {
 					if (Constants.MONITOR_ENABLE) {
 						if (response != null && response.getSize() > 0) {
@@ -107,11 +117,14 @@ public final class ProviderHelper {
 	}
 
 	public static void writeFailureResponse(ProviderContext context, Throwable exeption) {
-		if (Constants.REPLY_MANUAL) {
+		if (context == null) {
+			return;
+		}
+		if (Constants.REPLY_MANUAL || context.isAsync()) {
 			InvocationRequest request = context.getRequest();
 			InvocationResponse response = ProviderUtils.createServiceExceptionResponse(request, exeption);
 			ProviderChannel channel = context.getChannel();
-			channel.write(response);
+			channel.write(context, response);
 			ProviderStatisticsHolder.flowOut(request);
 			List<ProviderProcessInterceptor> interceptors = ProviderProcessInterceptorFactory.getInterceptors();
 			for (ProviderProcessInterceptor interceptor : interceptors) {

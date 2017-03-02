@@ -107,7 +107,7 @@ public class HttpServerHandler implements HttpHandler {
 
 			invocationResponse = server.processRequest(invocationRequest, invocationContext);
 			if (invocationResponse != null) {
-				if(Constants.REPLY_MANUAL) {
+				if(Constants.REPLY_MANUAL || invocationContext.isAsync()) {
 					callbacks.get(invocationRequest.getSequence()).getResponse(invocationRequest.getTimeout());
 				}
 				invocationResponse.get();
@@ -120,7 +120,7 @@ public class HttpServerHandler implements HttpHandler {
 			// 心跳消息只返回正常的, 异常不返回
 			if (invocationRequest.getCallType() == Constants.CALLTYPE_REPLY
 					&& invocationRequest.getMessageType() != Constants.MESSAGE_TYPE_HEART) {
-				invocationContext.getChannel().write(ProviderUtils.createFailResponse(invocationRequest, e));
+				invocationContext.getChannel().write(invocationContext, ProviderUtils.createFailResponse(invocationRequest, e));
 				logger.error(msg, e);
 			}
 		} finally {

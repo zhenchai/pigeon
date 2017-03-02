@@ -8,7 +8,7 @@ import com.dianping.pigeon.remoting.common.domain.InvocationResponse;
 
 public interface ProviderChannel {
 
-	void write(InvocationResponse response);
+	void write(ProviderContext context, InvocationResponse response);
 
 	String getRemoteAddress();
 

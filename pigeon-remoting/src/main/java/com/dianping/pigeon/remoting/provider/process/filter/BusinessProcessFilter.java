@@ -68,8 +68,8 @@ public class BusinessProcessFilter implements ServiceInvocationFilter<ProviderCo
                 if (request.getCallType() == Constants.CALLTYPE_REPLY) {
                     request.setCallType(Constants.CALLTYPE_MANUAL);
                 }
-                ProviderHelper.setContext(invocationContext);
             }
+            ProviderHelper.setContext(invocationContext);
             invocationContext.getTimeline().add(new TimePoint(TimePhase.M, System.currentTimeMillis()));
             Object returnObj = null;
             try {

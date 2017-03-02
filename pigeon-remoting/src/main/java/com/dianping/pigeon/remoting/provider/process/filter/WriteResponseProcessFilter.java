@@ -36,7 +36,7 @@ public class WriteResponseProcessFilter implements ServiceInvocationFilter<Provi
 			InvocationResponse response = handler.handle(invocationContext);
 			if (request.getCallType() == Constants.CALLTYPE_REPLY) {
 				invocationContext.getTimeline().add(new TimePoint(TimePhase.P));
-				channel.write(response);
+				channel.write(invocationContext, response);
 				invocationContext.getTimeline().add(new TimePoint(TimePhase.P));
 			}
 			if (request.getMessageType() == Constants.MESSAGE_TYPE_SERVICE) {

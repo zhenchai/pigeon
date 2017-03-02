@@ -18,6 +18,7 @@ public class DefaultProviderContext extends AbstractInvocationContext implements
     private Thread thread;
     private ServiceMethod serviceMethod;
     private String methodUri;
+    private boolean async = false;
 
     public DefaultProviderContext(InvocationRequest request, ProviderChannel channel) {
         super(request);
@@ -75,6 +76,16 @@ public class DefaultProviderContext extends AbstractInvocationContext implements
     @Override
     public ServiceMethod getServiceMethod() {
         return serviceMethod;
+    }
+
+    @Override
+    public boolean isAsync() {
+        return async;
+    }
+
+    @Override
+    public void setAsync(boolean async) {
+        this.async = async;
     }
 
     @Override

@@ -214,7 +214,7 @@ public final class Constants {
     public static final boolean LOG_PARAMETERS = ConfigManagerLoader.getConfigManager()
             .getBooleanValue(KEY_LOG_PARAMETER, false);
 
-    public static boolean REPLY_MANUAL = ConfigManagerLoader.getConfigManager().getBooleanValue(Key_REPLY_MANUAL,
+    public volatile static boolean REPLY_MANUAL = ConfigManagerLoader.getConfigManager().getBooleanValue(Key_REPLY_MANUAL,
             false);
 
     public static final boolean MONITOR_ENABLE = ConfigManagerLoader.getConfigManager()

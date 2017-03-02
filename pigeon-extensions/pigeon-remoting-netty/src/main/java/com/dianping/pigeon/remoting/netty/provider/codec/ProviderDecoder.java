@@ -29,7 +29,7 @@ public class ProviderDecoder extends AbstractDecoder {
     @Override
     public void doFailResponse(ChannelHandlerContext ctx, Channel channel, InvocationResponse response) {
         NettyServerChannel nettyChannel = new NettyServerChannel(channel);
-        nettyChannel.write(response);
+        nettyChannel.write(null, response);
     }
 
     @Override

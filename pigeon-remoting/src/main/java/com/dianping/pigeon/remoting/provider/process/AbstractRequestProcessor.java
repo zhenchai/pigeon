@@ -71,7 +71,7 @@ public abstract class AbstractRequestProcessor implements RequestProcessor {
 			String msg = "process request failed:" + request;
 			if (request.getCallType() == Constants.CALLTYPE_REPLY
 					&& request.getMessageType() != Constants.MESSAGE_TYPE_HEART) {
-				providerContext.getChannel().write(ProviderUtils.createFailResponse(request, e));
+				providerContext.getChannel().write(providerContext, ProviderUtils.createFailResponse(request, e));
 			}
 			// logger.error(msg, e);
 		}

@@ -6,6 +6,7 @@ package com.dianping.pigeon.remoting.netty.provider;
 
 import java.net.InetSocketAddress;
 
+import com.dianping.pigeon.remoting.provider.domain.ProviderContext;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.channel.ChannelFutureListener;
@@ -24,7 +25,7 @@ public class NettyServerChannel implements ProviderChannel {
 	}
 
 	@Override
-	public void write(final InvocationResponse response) {
+	public void write(ProviderContext context, final InvocationResponse response) {
 		ChannelFuture future = this.channel.write(response);
 		future.addListener(new ChannelFutureListener() {
 

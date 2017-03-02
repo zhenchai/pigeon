@@ -50,7 +50,7 @@ public class HttpCallbackFuture implements Callback, CallFuture {
                     sb.append("request timeout, current time:").append(System.currentTimeMillis())
                             .append("\r\nrequest:").append(request);
                     RequestTimeoutException e = InvocationUtils.newTimeoutException("invoke timeout");
-                    invocationContext.getChannel().write(ProviderUtils.createFailResponse(request, e));
+                    invocationContext.getChannel().write(invocationContext, ProviderUtils.createFailResponse(request, e));
                     logger.error(sb.toString(), e);
                 } else {
                     this.wait(timeoutMillis_);

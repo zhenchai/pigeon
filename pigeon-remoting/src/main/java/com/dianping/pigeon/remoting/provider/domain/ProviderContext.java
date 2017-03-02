@@ -34,4 +34,8 @@ public interface ProviderContext<M extends ProviderMonitorData> extends Invocati
 
     ServiceMethod getServiceMethod();
 
+    boolean isAsync();
+
+    void setAsync(boolean async);
+
 }
