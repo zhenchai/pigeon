@@ -65,12 +65,58 @@ public class SecurityFilter implements ServiceInvocationFilter<ProviderContext> 
 	private static volatile boolean isAccessDefault = configManager.getBooleanValue(KEY_ACCESS_DEFAULT, true);
 	private static volatile int tokenTimestampDiff = configManager.getIntValue(KEY_TOKEN_TIMESTAMP_DIFF, 120);
 
+	private static final String KEY_ACCESS_APP_ENABLE = "pigeon.provider.access.app.enable";
+	private static final String KEY_APP_ACCESS_DEFAULT = "pigeon.provider.access.app.default";
+	private static final String KEY_APP_BLACKLIST = "pigeon.provider.access.app.blacklist";
+	private static final String KEY_APP_WHITELIST = "pigeon.provider.access.app.whitelist";
+
+	private static volatile boolean isAccessAppEnable = configManager.getBooleanValue(KEY_ACCESS_APP_ENABLE, false);
+	private static volatile boolean isAppAccessDefault = configManager.getBooleanValue(KEY_APP_ACCESS_DEFAULT, true);
+	private static volatile Set<String> appBlackSet = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
+	private static volatile Set<String> appWhiteSet = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
+
 	public SecurityFilter() {
 		parseBlackList(configManager.getStringValue(KEY_BLACKLIST, ""));
 		parseWhiteList(configManager.getStringValue(KEY_WHITELIST, DEFAULT_VALUE_WHITELIST));
+
+		parseAppBlackList(configManager.getStringValue(KEY_APP_BLACKLIST, ""));
+		parseAppWhiteList(configManager.getStringValue(KEY_APP_WHITELIST, ""));
+
 		parseAppSecrets(configManager.getStringValue(KEY_APP_SECRETS, ""));
 		parseTokenSwitchesConfig(configManager.getStringValue(KEY_TOKEN_SWITCHES, ""));
 		ConfigManagerLoader.getConfigManager().registerConfigChangeListener(new InnerConfigChangeListener());
+	}
+
+	private static void parseAppBlackList(String config) {
+		try {
+			String[] blackArray = config.split(",");
+			Set<String> set = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
+			for (String app : blackArray) {
+                if (StringUtils.isBlank(app)) {
+                    continue;
+                }
+                set.add(app.trim());
+            }
+			appBlackSet = set;
+		} catch (Throwable t) {
+			logger.warn("parse app blacklist error, remain unchanged", t);
+		}
+	}
+
+	private static void parseAppWhiteList(String config) {
+		try {
+			String[] whiteArray = config.split(",");
+			Set<String> set = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
+			for (String app : whiteArray) {
+                if (StringUtils.isBlank(app)) {
+                    continue;
+                }
+                set.add(app.trim());
+            }
+			appWhiteSet = set;
+		} catch (Throwable t) {
+			logger.warn("parse app whitelist error, remain unchanged", t);
+		}
 	}
 
 	private static void parseBlackList(String config) {
@@ -146,7 +192,11 @@ public class SecurityFilter implements ServiceInvocationFilter<ProviderContext> 
 
 		@Override
 		public void onKeyUpdated(String key, String value) {
-			if (key.endsWith(KEY_APP_SECRETS)) {
+			if (key.endsWith(KEY_APP_BLACKLIST)) {
+				parseAppBlackList(value);
+			} else if (key.endsWith(KEY_APP_WHITELIST)) {
+				parseAppWhiteList(value);
+			} else if (key.endsWith(KEY_APP_SECRETS)) {
 				parseAppSecrets(value);
 			} else if (key.endsWith(KEY_BLACKLIST)) {
 				parseBlackList(value);
@@ -172,9 +222,21 @@ public class SecurityFilter implements ServiceInvocationFilter<ProviderContext> 
 				} catch (RuntimeException e) {
 					logger.warn("invalid value for key " + key, e);
 				}
+			} else if (key.endsWith(KEY_ACCESS_APP_ENABLE)) {
+				try {
+					isAccessAppEnable = Boolean.valueOf(value);
+				} catch (RuntimeException e) {
+					logger.warn("invalid value for key " + key, e);
+				}
 			} else if (key.endsWith(KEY_ACCESS_DEFAULT)) {
 				try {
 					isAccessDefault = Boolean.valueOf(value);
+				} catch (RuntimeException e) {
+					logger.warn("invalid value for key " + key, e);
+				}
+			} else if (key.endsWith(KEY_APP_ACCESS_DEFAULT)) {
+				try {
+					isAppAccessDefault = Boolean.valueOf(value);
 				} catch (RuntimeException e) {
 					logger.warn("invalid value for key " + key, e);
 				}
@@ -207,6 +269,29 @@ public class SecurityFilter implements ServiceInvocationFilter<ProviderContext> 
 		if (!canAccess(remoteAddress)) {
 			throw new SecurityException("Request ip:" + remoteAddress + " is not allowed");
 		}
+	}
+
+	private void authenticateRequestApp(String requestApp) {
+		if (!canAccessApp(requestApp)) {
+			throw new SecurityException("Request App: " + requestApp + " is not allowed");
+		}
+	}
+
+	private boolean canAccessApp(String requestApp) {
+		if (isAccessAppEnable) {
+			for (String app : appWhiteSet) {
+				if (app.equals(requestApp)) {
+					return true;
+				}
+			}
+			for (String app : appBlackSet) {
+				if (app.equals(requestApp)) {
+					return false;
+				}
+			}
+			return isAppAccessDefault;
+		}
+		return true;
 	}
 
 	public static void authenticateRequestToken(String app, String remoteAddress, String timestamp, String version,
@@ -295,6 +380,12 @@ public class SecurityFilter implements ServiceInvocationFilter<ProviderContext> 
 			throws Throwable {
 		String remoteAddress = invocationContext.getChannel().getRemoteAddress();
 		authenticateRequestIp(remoteAddress);
+
+		String requestApp = (String) ContextUtils.getLocalContext("RequestApp");
+		if (StringUtils.isBlank(requestApp)) {
+			requestApp = (String) ContextUtils.getLocalContext(Constants.CONTEXT_KEY_CLIENT_APP);
+		}
+		authenticateRequestApp(requestApp);
 
 		if (needValidateToken(invocationContext.getRequest().getServiceName(),
 				invocationContext.getRequest().getMethodName())) {
