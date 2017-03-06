@@ -1367,6 +1367,62 @@ public class XXXDefaultService implements XXXService {
 }
 ```
 
+3、改进后的基于服务级别的异步化方式
+不需要再去配置pigeon.provider.reply.manual，否则会影响整个应用，只需要在需要异步化的服务实现当中调用ProviderHelper.startAsync()获取ProviderContext后即可进行异步编程。参考代码如下：
+
+```
+@Service
+public class XXXDefaultService implements XXXService {
+
+    public XXXDefaultService() {
+    }
+
+    @Autowired
+    private CacheService cacheService;
+
+    @Override
+    public String get(CacheKey cacheKey) {
+        cacheService.asyncGet(cacheKey, new CacheCallback<String>() {
+
+            private ProviderContext providerContext = ProviderHelper.startAsync();
+
+            @Override
+            public void onSuccess(String result) {
+                ProviderHelper.writeSuccessResponse(providerContext, result);
+            }
+
+            @Override
+            public void onFailure(String msg, Throwable e) {
+                ProviderHelper.writeFailureResponse(providerContext, new RuntimeException(msg));
+            }
+
+        });
+        return null;
+    }
+
+    @Override
+    public Map<CacheKey, String> batchGet(List<CacheKey> cacheKeys) {
+        cacheService.asyncBatchGet(cacheKeys, new CacheCallback<Map<CacheKey, String>>() {
+
+            private ProviderContext providerContext = ProviderHelper.startAsync();
+
+            @Override
+            public void onSuccess(Map<CacheKey, String> result) {
+                ProviderHelper.writeSuccessResponse(providerContext, result);
+            }
+
+            @Override
+            public void onFailure(String msg, Throwable e) {
+                ProviderHelper.writeFailureResponse(providerContext, new RuntimeException(msg));
+            }
+
+        });
+        return null;
+    }
+
+}
+```
+
 ### ZooKeeper协议格式
 1、服务地址配置：
 
@@ -1513,6 +1569,20 @@ b、分为3个配置：
 如果不匹配，去黑名单（xxx-service.pigeon.provider.access.ip.blacklist配置，ip网段逗号分隔）找是否匹配来源ip前缀，黑名单里匹配到了，直接返回false不允许访问 
 
 如果都没找到，返回xxx-service.pigeon.provider.access.ip.default值，默认是true，代表默认是允许访问
+
+3、基于app的认证
+
+a、默认是关闭的，需要打开，对于xxx-service这个应用来说，可以在lion配置
+
+xxx-service.pigeon.provider.access.app.enable为true
+
+b、分为3个配置：
+
+判断逻辑是先判断白名单(xxx-service.pigeon.provider.access.app.whitelist配置，app之间用逗号分隔)是否匹配来源app，如果匹配，直接返回true允许访问
+
+如果不匹配，去黑名单（xxx-service.pigeon.provider.access.app.blacklist配置，app之间用逗号分隔）找是否匹配来源app，黑名单里匹配到了，直接返回false不允许访问
+
+如果都没找到，返回xxx-service.pigeon.provider.access.app.default值，默认是true，代表默认是允许访问
 
 ### 自定义服务发布策略
 
