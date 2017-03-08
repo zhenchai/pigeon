@@ -1,6 +1,6 @@
 # Pigeon开发指南
 
-Pigeon是一个分布式服务通信框架（RPC），在大众点评内部广泛使用，是大众点评最基础的底层框架之一。
+Pigeon是一个分布式服务通信框架（RPC），在美团点评内部广泛使用，是美团点评最基础的底层框架之一。
 
 ## 主要特色
 
@@ -48,7 +48,7 @@ pom里加入以下仓库依赖：
 
 pigeon在运行时可能会依赖以下jar包，如果有必要，需要应用自行加上以下jar(版本建议高于或等于以下基础版本)：
 ```xml
-<!-- 监控框架依赖，下面的cat依赖是可选的，如果不依赖cat则默认不会有监控功能，如果想接入大众点评的监控框架cat（已经开源），需增加以下依赖（pigeon-monitor-cat代码在https://github.com/wu-xiang/pigeon-monitor-cat） -->
+<!-- 监控框架依赖，下面的cat依赖是可选的，如果不依赖cat则默认不会有监控功能，如果想接入美团点评的监控框架cat（已经开源），需增加以下依赖（pigeon-monitor-cat代码在https://github.com/wu-xiang/pigeon-monitor-cat） -->
 <dependency>
     <groupId>com.dianping</groupId>
     <artifactId>pigeon-monitor-cat</artifactId>
@@ -60,7 +60,7 @@ pigeon在运行时可能会依赖以下jar包，如果有必要，需要应用�
     <version>1.3.6-SNAPSHOT</version>
 </dependency>
 
-<!-- 配置框架依赖，下面的lion依赖是可选的，如果不依赖lion则会默认通过本地文件加载配置，如果想接入大众点评的配置框架lion(尚未开源)，需增加以下依赖（pigeon-config-lion代码在https://github.com/wu-xiang/pigeon-config-lion） -->
+<!-- 配置框架依赖，下面的lion依赖是可选的，如果不依赖lion则会默认通过本地文件加载配置，如果想接入美团点评的配置框架lion(尚未开源)，需增加以下依赖（pigeon-config-lion代码在https://github.com/wu-xiang/pigeon-config-lion） -->
 <dependency>
     <groupId>com.dianping</groupId>
     <artifactId>pigeon-config-lion</artifactId>
@@ -121,7 +121,7 @@ mvn clean install -DskipTests
 pigeon内部使用zookeeper作为注册中心，需要安装好zookeeper集群。
 
 #### 配置ZooKeeper集群地址
-如未使用大众点评配置框架Lion，需在应用代码resources/config/pigeon.properties里（也可以在绝对路径/data/webapps/config/pigeon.properties里）设置注册中心zookeeper地址：
+如未使用美团点评配置框架Lion，需在应用代码resources/config/pigeon.properties里（也可以在绝对路径/data/webapps/config/pigeon.properties里）设置注册中心zookeeper地址：
 ```
 pigeon.registry.address=10.1.1.1:2181,10.1.1.2:2181,10.1.1.3:2181,10.1.1.4:2181,10.1.1.5:2181
 ```
