@@ -1,0 +1,33 @@
+syntax = "proto3";
+option java_package = "com.dianping.pigeon.remoting.common.codec.protobuf";
+import "google/protobuf/any.proto";
+
+message Pb3Request {
+  int32 serialize = 1; // 没有找到byte类型，用int代替
+  int64 seq = 2;
+  int32 messageType = 3;
+  int32 timeout = 4;
+  string serviceName = 5;
+  string methodName = 6;
+  repeated google.protobuf.Any parameters = 7;
+  int32 callType = 8;
+  string version = 9;
+  string app = 10;
+  map<string, string> globalValues = 11;
+  map<string, string> requestValues = 12;
+}
+
+message Pb3Response {
+  int32 serialize = 1; // 没有找到byte类型，用int代替
+  int64 seq = 2;
+  int32 messageType = 3;
+  string cause = 4;
+  google.protobuf.Any returnVal = 5;
+  map<string, string> responseValues = 6;
+  Pb3Exception exception = 7;
+}
+
+message Pb3Exception {
+  string cause = 1;
+  string detailMessage = 2;
+}

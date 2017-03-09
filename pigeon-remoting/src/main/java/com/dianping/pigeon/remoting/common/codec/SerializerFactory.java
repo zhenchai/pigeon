@@ -7,6 +7,7 @@ package com.dianping.pigeon.remoting.common.codec;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.dianping.pigeon.remoting.common.codec.protobuf.Protobuf3Serializer;
 import org.apache.commons.lang.ClassUtils;
 
 import com.dianping.pigeon.extension.ExtensionLoader;
@@ -49,6 +50,7 @@ public final class SerializerFactory {
                     registerSerializer(SerializerType.HESSIAN1, new Hessian1Serializer());
                     registerSerializer(SerializerType.PROTO, new ProtostuffSerializer());
                     registerSerializer(SerializerType.THRIFT, new ThriftSerializer());
+                    registerSerializer(SerializerType.PROTOBUF3, new Protobuf3Serializer());
 
                     try {
                         registerSerializer(SerializerType.FST, new FstSerializer());
