@@ -90,6 +90,7 @@ public class HeartbeatTask implements Runnable {
             if (clientConfig.isHeartbeatAutoPickOff()) {
                 if (client.isActive()) {
                     client.setActive(false);
+                    disConnectChannel(client);
                     logger.info("[notifyClientStateChanged]heartbeat" + client + ", inactive addresses:" + client.getAddress());
                     monitor.logEvent("PigeonCall.heartbeat", "Deactivate", client.getAddress());
                 }
@@ -104,6 +105,18 @@ public class HeartbeatTask implements Runnable {
             }
             heartbeatStats.resetStats();
         }
+    }
+
+    private void disConnectChannel(Client client) {
+        List<Channel> channels = client.getChannels();
+        if (channels != null) {
+            for (Channel channel : channels) {
+                if (channel != null && channel.isAvaliable()) {
+                    channel.disConnect();
+                }
+            }
+        }
+
     }
 
 

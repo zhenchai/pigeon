@@ -115,7 +115,7 @@ public abstract class AbstractClient implements Client {
 
             heatbeatTimer = scheduled.scheduleWithFixedDelay(
                     new HeartbeatTask(clientConfig, AbstractClient.this),
-                    clientConfig.getHeartbeatInterval(),
+                    clientConfig.getHeartbeatInterval() * 4,
                     clientConfig.getHeartbeatInterval(),
                     TimeUnit.MILLISECONDS);
         }
