@@ -113,6 +113,7 @@ public class HeartbeatTask implements Runnable {
             for (Channel channel : channels) {
                 if (channel != null && channel.isAvaliable()) {
                     channel.disConnect();
+                    logger.info("[disConnectChannel] close avaliable channel. address : " + channel.getRemoteAddressString());
                 }
             }
         }
