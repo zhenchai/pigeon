@@ -62,6 +62,14 @@ public class DefaultResponse implements InvocationResponse {
         this.returnVal = returnVal;
     }
 
+    public DefaultResponse(byte serialize, long seq, int messageType, Object returnVal, String cause) {
+        this.serialize = serialize;
+        this.seq = seq;
+        this.messageType = messageType;
+        this.returnVal = returnVal;
+        this.cause = cause;
+    }
+
     /*
      * (non-Javadoc)
      *

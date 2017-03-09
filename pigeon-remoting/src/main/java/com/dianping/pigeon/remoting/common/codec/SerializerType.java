@@ -22,7 +22,9 @@ public enum SerializerType {
 
     PROTOBUF((byte) 9, "protobuf"),
 
-    THRIFT((byte) 10, "thrift"),;
+    THRIFT((byte) 10, "thrift"),
+
+    PROTOBUF3((byte) 11, "protobuf3");
 
     private byte code;
     private String name;
@@ -54,6 +56,8 @@ public enum SerializerType {
                 return PROTOBUF;
             case 10:
                 return THRIFT;
+            case 11:
+                return PROTOBUF3;
             default:
                 throw new IllegalArgumentException("invalid serializerType code: " + code);
 
@@ -108,6 +112,10 @@ public enum SerializerType {
         return THRIFT.getCode() == code;
     }
 
+    public static boolean isProtobuf3(byte code) {
+        return PROTOBUF3.getCode() == code;
+    }
+
     public static boolean isInternalThrift(String desc) {
         return INTERNAL_THRIFT.getName().equals(desc);
     }
@@ -142,6 +150,10 @@ public enum SerializerType {
 
     public static boolean isThrift(String desc) {
         return THRIFT.getName().equals(desc);
+    }
+
+    public static boolean isProtobuf3(String desc) {
+        return PROTOBUF3.getName().equals(desc);
     }
     
 }

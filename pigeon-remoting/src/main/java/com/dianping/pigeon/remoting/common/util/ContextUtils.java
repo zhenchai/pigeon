@@ -157,4 +157,16 @@ public class ContextUtils {
 			}
 		}
 	}
+
+	public static Map<String, Serializable> convertContext(Map<String, String> srcCtx) {
+		Map<String, Serializable> dstCtx = new HashMap<String, Serializable>();
+
+		if (srcCtx != null) {
+			for (Map.Entry<String, String> entry : srcCtx.entrySet()) {
+				dstCtx.put(entry.getKey(), entry.getValue());
+			}
+		}
+
+		return dstCtx;
+	}
 }
