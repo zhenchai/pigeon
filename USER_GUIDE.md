@@ -679,6 +679,20 @@ SerializerFactory.registerSerializer(byte serializerType, Serializer serializer)
 ```
 接口将自定义的序列化类注册进来。
 
+### protobuf3序列化支持
+
+客户端配置将序列化方式指定为protobuf3，如下：
+
+```xml
+<bean id="testService" class="com.dianping.pigeon.remoting.invoker.config.spring.ReferenceBean" init-method="init">
+    <property name="url" value="com.dianping.midas.query.api.message.TestService" />
+    <property name="interfaceName" value="com.dianping.midas.query.api.message.TestService" />
+    <property name="serialize" value="protobuf3" />
+</bean>
+```
+需要注意的是：方法的参数和返回值的类型，必须都为protobuf生成的类。
+具体可参考官方文档：[protobuf-java](https://developers.google.com/protocol-buffers/docs/javatutorial)
+
 ## HTTP协议支持
 
 pigeon目前支持2种协议：default和http。
