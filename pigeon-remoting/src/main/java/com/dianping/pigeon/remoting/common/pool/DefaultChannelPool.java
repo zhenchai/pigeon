@@ -28,7 +28,7 @@ public class DefaultChannelPool<C extends Channel> implements ChannelPool<C> {
 
     private static final Logger logger = LoggerLoader.getLogger(DefaultChannelPool.class);
 
-    private List<C> pooledChannels = new ArrayList<C>();
+    private final List<C> pooledChannels = new ArrayList<C>();
 
     private AtomicInteger size = new AtomicInteger();
 
@@ -140,8 +140,6 @@ public class DefaultChannelPool<C extends Channel> implements ChannelPool<C> {
 
         long maxWait = (properties.getMaxWait() < 0) ? Long.MAX_VALUE : properties.getMaxWait();
 
-        C channel = null;
-
         do {
             // create
             if (size.get() < properties.getNormalSize()) {
@@ -172,9 +170,8 @@ public class DefaultChannelPool<C extends Channel> implements ChannelPool<C> {
                         "TimeOut:pool empty. Unable to fetch a channel, none avaliable in use." + getChannelPoolDesc());
             }
 
-        } while (channel != null);
+        } while (true);
 
-        return channel;
     }
 
     protected C createChannel() {
