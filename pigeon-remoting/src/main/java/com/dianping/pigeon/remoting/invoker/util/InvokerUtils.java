@@ -78,11 +78,7 @@ public class InvokerUtils {
                                                             InvokerConfig<?> invokerConfig) {
         InvocationRequest request = invokerContext.getRequest();
         if (request == null) {
-            if (SerializerType.isThrift(invokerConfig.getSerialize())) {
-                request = new GenericRequest(invokerContext);
-            } else {
-                request = InvocationUtils.newRequest(invokerContext);
-            }
+            request = SerializerFactory.getSerializer(invokerConfig.getSerialize()).newRequest(invokerContext);
             invokerContext.setRequest(request);
         }
         return request;
