@@ -212,6 +212,13 @@ public class DefaultChannelPool<C extends Channel> implements ChannelPool<C> {
     public void close() {
         if (isClosed.compareAndSet(false, true)) {
 
+            if (scheduledFuture != null && !scheduledFuture.isCancelled()) {
+                scheduledFuture.cancel(true);
+                checkScheduler.purge();
+            }
+
+            scheduledFuture = null;
+
             for (int index = 0; index < pooledChannels.size(); index++) {
 
                 C pooledChannel = pooledChannels.get(index);
@@ -221,12 +228,7 @@ public class DefaultChannelPool<C extends Channel> implements ChannelPool<C> {
                 }
             }
 
-            if (scheduledFuture != null && !scheduledFuture.isCancelled()) {
-                scheduledFuture.cancel(true);
-                checkScheduler.purge();
-            }
 
-            scheduledFuture = null;
         }
     }
 
