@@ -223,8 +223,14 @@ public class DefaultChannelPool<C extends Channel> implements ChannelPool<C> {
 
                 C pooledChannel = pooledChannels.get(index);
 
-                if (pooledChannel != null && pooledChannel.isAvaliable()) {
-                    pooledChannel.disConnect();
+                if (pooledChannel != null) {
+                    if (pooledChannel.isAvaliable()) {
+                        pooledChannel.disConnect();
+                    } else {
+                        if (reconnectChannels.containsKey(pooledChannel)) {
+                            reconnectChannels.remove(pooledChannel);
+                        }
+                    }
                 }
             }
 
