@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.Future;
 
+import com.dianping.pigeon.log.Log4j2Logger;
 import org.apache.commons.lang.StringUtils;
 import com.dianping.pigeon.log.Logger;
 
@@ -92,7 +93,7 @@ public abstract class AbstractServer implements Server {
 
 	public int getAvailablePort(int port) {
 		int lastPort = port;
-		String filePath = LoggerLoader.LOG_ROOT + "/pigeon-port.conf";
+		String filePath = Log4j2Logger.LOG_ROOT + "/pigeon-port.conf";
 		File file = new File(filePath);
 		Properties properties = null;
 		String key = null;

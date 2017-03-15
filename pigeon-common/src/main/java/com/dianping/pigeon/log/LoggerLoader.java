@@ -1,68 +1,81 @@
 package com.dianping.pigeon.log;
 
-import java.net.URL;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.spi.LoggerContext;
-
-import com.dianping.pigeon.util.AppUtils;
+import java.lang.reflect.Constructor;
 
 public class LoggerLoader {
 
-    private static LoggerContext context = null;
-    private static final String LOG_ROOT_KEY = "pigeon.log.dir";
-    private static final String LOG_ROOT_DEFAULT = "/data/applogs/pigeon";
-
-    public static String LOG_ROOT;
+    private static Constructor logConstructor;
 
     static {
-        init();
-    }
-
-    private LoggerLoader() {
-    }
-
-    public static synchronized void init() {
-        if (context == null) {
-            if (StringUtils.isBlank(System.getProperty(LOG_ROOT_KEY))) {
-                System.setProperty(LOG_ROOT_KEY, LOG_ROOT_DEFAULT);
+        String logType = System.getProperty("pigeon.logType");
+        if (logType != null) {
+            if (logType.equalsIgnoreCase("log4j2")) {
+                tryImplementation("org.apache.logging.log4j.Logger", "com.dianping.pigeon.log.Log4j2Logger");
+            } else if (logType.equalsIgnoreCase("slf4j")) {
+                tryImplementation("org.slf4j.Logger", "com.dianping.pigeon.log.Slf4jLogger");
+            } else if(logType.equalsIgnoreCase("simple")) {
+                tryImplementation(null, "com.dianping.pigeon.log.SimpleLogger");
+            } else if(logType.equalsIgnoreCase("null")) {
+                tryImplementation(null, "com.dianping.pigeon.log.NullLogger");
             }
-            LOG_ROOT = System.getProperty(LOG_ROOT_KEY);
-            String appName = AppUtils.getAppName();
-            System.setProperty("app.name", appName);
+        }
 
-            URL url = LoggerLoader.class.getResource("log4j2-pigeon.xml");
-            LoggerContext ctx;
-            if (url == null) {
-                ctx = LogManager.getContext(false);
-            } else {
-                try {
-                    ctx = new org.apache.logging.log4j.core.LoggerContext("Pigeon", null, url.toURI());
-                    ((org.apache.logging.log4j.core.LoggerContext) ctx).start();
-                } catch (Throwable t) {
-                    String errMsg = "[" + LoggerLoader.class.getName() + "] Failed to initialize log4j2..."
-                            + "Please check the write permission of pigeon log dir: (" + LOG_ROOT + ").";
-                    System.err.println(errMsg);
-                    ctx = LogManager.getContext(false);
+        // slf4j > log4j2 > simple > null
+        tryImplementation("org.slf4j.Logger", "com.dianping.pigeon.log.Slf4jLogger");
+        tryImplementation("org.apache.logging.log4j.Logger", "com.dianping.pigeon.log.Log4j2Logger");
+
+        if (logConstructor == null) {
+            try {
+                logConstructor = SimpleLogger.class.getConstructor(String.class);
+            } catch (Exception e) {
+                throw new IllegalStateException(e.getMessage(), e);
+            }
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static void tryImplementation(String testClassName, String implClassName) {
+        if (logConstructor != null) {
+            return;
+        }
+
+        try {
+            if(testClassName != null) {
+                Resources.classForName(testClassName);
+            }
+            Class implClass = Resources.classForName(implClassName);
+            logConstructor = implClass.getConstructor(new Class[] {
+                    String.class
+            });
+
+            Class<?> declareClass = logConstructor.getDeclaringClass();
+            if (!Logger.class.isAssignableFrom(declareClass)) {
+                logConstructor = null;
+            }
+
+            try {
+                if (null != logConstructor) {
+                    logConstructor.newInstance(LoggerLoader.class.getName());
                 }
+            } catch (Throwable t) {
+                t.printStackTrace();
+                logConstructor = null;
             }
-            context = ctx;
+
+        } catch (Throwable t) {
+            t.printStackTrace();
         }
     }
 
-    public static Logger getLogger(Class<?> className) {
-        return getLogger(className.getName());
+    public static Logger getLogger(Class clazz) {
+        return getLogger(clazz.getName());
     }
 
-    public static Logger getLogger(String name) {
-        if (context == null) {
-            init();
+    public static Logger getLogger(String loggerName) {
+        try {
+            return (Logger) logConstructor.newInstance(loggerName);
+        } catch (Throwable t) {
+            throw new RuntimeException("failed to create logger for " + loggerName + ", cause: " + t, t);
         }
-        return new SimpleLogger(context.getLogger(name));
-    }
-
-    public static LoggerContext getLoggerContext() {
-        return context;
     }
 }

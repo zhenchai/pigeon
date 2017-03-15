@@ -154,7 +154,7 @@ public class HeartBeatListener extends Thread {
                     try {
                         REFRESH_INTERVAL = Integer.parseInt(value);
                     } catch (NumberFormatException e) {
-                        logger.info("failed to change heartbeat refresh internal, please check value: ", value);
+                        logger.info("failed to change heartbeat refresh internal, please check value: " + value);
                     }
                 }
             }
