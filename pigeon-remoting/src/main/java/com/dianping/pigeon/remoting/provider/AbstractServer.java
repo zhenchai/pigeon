@@ -1,16 +1,6 @@
 package com.dianping.pigeon.remoting.provider;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.List;
-import java.util.Properties;
-import java.util.concurrent.Future;
-
-import com.dianping.pigeon.log.Log4j2Logger;
-import org.apache.commons.lang.StringUtils;
 import com.dianping.pigeon.log.Logger;
-
 import com.dianping.pigeon.log.LoggerLoader;
 import com.dianping.pigeon.remoting.common.domain.InvocationRequest;
 import com.dianping.pigeon.remoting.common.domain.InvocationResponse;
@@ -23,6 +13,14 @@ import com.dianping.pigeon.remoting.provider.publish.ServiceChangeListener;
 import com.dianping.pigeon.remoting.provider.publish.ServiceChangeListenerContainer;
 import com.dianping.pigeon.util.FileUtils;
 import com.dianping.pigeon.util.NetUtils;
+import org.apache.commons.lang.StringUtils;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.List;
+import java.util.Properties;
+import java.util.concurrent.Future;
 
 public abstract class AbstractServer implements Server {
 
@@ -93,7 +91,7 @@ public abstract class AbstractServer implements Server {
 
 	public int getAvailablePort(int port) {
 		int lastPort = port;
-		String filePath = Log4j2Logger.LOG_ROOT + "/pigeon-port.conf";
+		String filePath = LoggerLoader.LOG_ROOT + "/pigeon-port.conf";
 		File file = new File(filePath);
 		Properties properties = null;
 		String key = null;

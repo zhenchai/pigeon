@@ -1,12 +1,24 @@
 package com.dianping.pigeon.log;
 
+import org.apache.commons.lang.StringUtils;
+
 import java.lang.reflect.Constructor;
 
 public class LoggerLoader {
 
     private static Constructor logConstructor;
 
+    private static final String LOG_ROOT_KEY = "pigeon.log.dir";
+    private static final String LOG_ROOT_DEFAULT = "/data/applogs/pigeon";
+
+    public static String LOG_ROOT;
+
     static {
+        if (StringUtils.isBlank(System.getProperty(LOG_ROOT_KEY))) {
+            System.setProperty(LOG_ROOT_KEY, LOG_ROOT_DEFAULT);
+        }
+        LOG_ROOT = System.getProperty(LOG_ROOT_KEY);
+
         String logType = System.getProperty("pigeon.logType");
         if (logType != null) {
             if (logType.equalsIgnoreCase("log4j2")) {
