@@ -19,10 +19,6 @@ public class Log4j2Logger implements Logger {
 
     public static String LOG_ROOT;
 
-    static {
-        init();
-    }
-
     public static synchronized void init() {
         if (context == null) {
             if (StringUtils.isBlank(System.getProperty(LOG_ROOT_KEY))) {
@@ -52,6 +48,9 @@ public class Log4j2Logger implements Logger {
     }
 
     public Log4j2Logger(String loggerName) {
+        if (context == null) {
+            init();
+        }
         this.LOG = context.getLogger(loggerName);
     }
 
