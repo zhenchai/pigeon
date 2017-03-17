@@ -303,7 +303,7 @@ public class DegradationFilter extends InvocationInvokeFilter {
                             exception = (Exception) action.getReturnObj();
                         }
                         throw exception;
-                    } else if (action.getReturnObj() != null) {
+                    } else {
                         addCurrentTimeData(timeout);
                         defaultResult = action.getReturnObj();
                         response = InvokerUtils.createDefaultResponse(defaultResult);
@@ -340,7 +340,7 @@ public class DegradationFilter extends InvocationInvokeFilter {
 
                             throw exception;
 
-                        } else if (action.getReturnObj() != null) {
+                        } else {
                             addCurrentTimeData(timeout);
                             defaultResult = action.getReturnObj();
                             response = callBackOnSuccess(context, defaultResult);
@@ -391,7 +391,7 @@ public class DegradationFilter extends InvocationInvokeFilter {
                         response = InvokerUtils.createFutureResponse(future);
                         future.callback(InvokerUtils.createThrowableResponse(exception));
                         future.run();
-                    } else if (action.getReturnObj() != null) {
+                    } else {
                         addCurrentTimeData(timeout);
                         defaultResult = action.getReturnObj();
                         ServiceFutureImpl future = new ServiceFutureImpl(context, timeout);
