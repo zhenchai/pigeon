@@ -28,6 +28,7 @@ import com.dianping.pigeon.remoting.invoker.exception.RequestTimeoutException;
 import com.dianping.pigeon.remoting.invoker.process.DegradationManager;
 import com.dianping.pigeon.remoting.invoker.process.ExceptionManager;
 import com.dianping.pigeon.remoting.invoker.process.filter.DegradationFilter;
+import com.dianping.pigeon.remoting.invoker.util.InvokerUtils;
 
 public class ServiceFutureImpl extends CallbackFuture implements Future {
 
@@ -93,6 +94,8 @@ public class ServiceFutureImpl extends CallbackFuture implements Future {
 				InvocationResponse degradedResponse = null;
 				if (DegradationManager.INSTANCE.needFailureDegrade(invocationContext)) {
 					try {
+						invocationContext.getDegradeInfo().setFailureDegrade(true);
+						invocationContext.getDegradeInfo().setCause(e);
 						degradedResponse = DegradationFilter.degradeCall(invocationContext, true);
 					} catch (Throwable t) {
 						// won't happen
@@ -119,6 +122,8 @@ public class ServiceFutureImpl extends CallbackFuture implements Future {
 				InvocationResponse degradedResponse = null;
 				if (DegradationManager.INSTANCE.needFailureDegrade(invocationContext)) {
 					try {
+						invocationContext.getDegradeInfo().setFailureDegrade(true);
+						invocationContext.getDegradeInfo().setCause(InvokerUtils.toRpcException(response));
 						degradedResponse = DegradationFilter.degradeCall(invocationContext, true);
 					} catch (Throwable t) {
 						// won't happen
@@ -149,9 +154,8 @@ public class ServiceFutureImpl extends CallbackFuture implements Future {
 			throw e;
 		} finally {
 			if (transaction != null) {
-				if (invocationContext.isDegraded()) {
-					transaction.logEvent("PigeonCall.degrade", callInterface, "");
-				}
+				DegradationManager.INSTANCE.monitorDegrade(invocationContext, transaction);
+
 				invocationContext.getTimeline().add(new TimePoint(TimePhase.E, System.currentTimeMillis()));
 				try {
 					transaction.complete();

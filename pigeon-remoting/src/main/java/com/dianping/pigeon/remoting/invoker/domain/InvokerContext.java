@@ -23,7 +23,5 @@ public interface InvokerContext<M extends InvokerMonitorData> extends Invocation
 
     void setClient(Client client);
 
-    void setDegraded();
-
-    boolean isDegraded();
+    DegradeInfo getDegradeInfo();
 }
