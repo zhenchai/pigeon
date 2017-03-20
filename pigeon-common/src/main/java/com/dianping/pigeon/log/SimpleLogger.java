@@ -3,7 +3,11 @@ package com.dianping.pigeon.log;
 public class SimpleLogger implements Logger {
 
     private String loggerName;
-    
+
+    public SimpleLogger() {
+        this.loggerName = this.getClass().getName();
+    }
+
     public SimpleLogger(String loggerName) {
         this.loggerName = loggerName;
     };

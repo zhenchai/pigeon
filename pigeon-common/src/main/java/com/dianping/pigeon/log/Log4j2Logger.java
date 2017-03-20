@@ -15,6 +15,10 @@ public class Log4j2Logger implements Logger {
 
     private static LoggerContext context = null;
 
+    public Log4j2Logger() {
+        this(Log4j2Logger.class.getName());
+    }
+
     public static synchronized void init() {
         if (context == null) {
             String appName = AppUtils.getAppName();

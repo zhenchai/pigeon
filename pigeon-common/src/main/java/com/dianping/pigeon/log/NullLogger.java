@@ -2,6 +2,9 @@ package com.dianping.pigeon.log;
 
 public class NullLogger implements Logger {
 
+    public NullLogger() {
+    }
+
     public NullLogger(String loggerName) {}
 
     @Override

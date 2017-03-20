@@ -6,6 +6,10 @@ public class Slf4jLogger implements Logger {
 
     private org.slf4j.Logger logger;
 
+    public Slf4jLogger() {
+        this(Slf4jLogger.class.getName());
+    }
+
     private boolean isLocationAware = false;
 
     private static final String ADAPTER_FQCN = Slf4jLogger.class.getName();

@@ -1,5 +1,6 @@
 package com.dianping.pigeon.log;
 
+import com.dianping.pigeon.extension.ExtensionLoader;
 import org.apache.commons.lang.StringUtils;
 
 import java.lang.reflect.Constructor;
@@ -19,22 +20,24 @@ public class LoggerLoader {
         }
         LOG_ROOT = System.getProperty(LOG_ROOT_KEY);
 
-        String logType = System.getProperty("pigeon.logType");
-        if (logType != null) {
-            if (logType.equalsIgnoreCase("log4j2")) {
-                tryImplementation("org.apache.logging.log4j.Logger", "com.dianping.pigeon.log.Log4j2Logger");
-            } else if (logType.equalsIgnoreCase("slf4j")) {
+        Logger logger = ExtensionLoader.newExtension(Logger.class);
+
+        if (logger != null) {
+            String className = logger.getClass().getName();
+            if (className.equals("com.dianping.pigeon.log.Slf4jLogger")) {
                 tryImplementation("org.slf4j.Logger", "com.dianping.pigeon.log.Slf4jLogger");
-            } else if(logType.equalsIgnoreCase("simple")) {
+            } else if (className.equals("com.dianping.pigeon.log.Log4j2Logger")) {
+                tryImplementation("org.apache.logging.log4j.Logger", "com.dianping.pigeon.log.Log4j2Logger");
+            } else if (className.equals("com.dianping.pigeon.log.SimpleLogger")) {
                 tryImplementation(null, "com.dianping.pigeon.log.SimpleLogger");
-            } else if(logType.equalsIgnoreCase("null")) {
+            } else if (className.equals("com.dianping.pigeon.log.NullLogger")) {
                 tryImplementation(null, "com.dianping.pigeon.log.NullLogger");
             }
         }
 
-        // slf4j > log4j2 > simple > null
-        tryImplementation("org.slf4j.Logger", "com.dianping.pigeon.log.Slf4jLogger");
+        // log4j2 > slf4j > simple > null
         tryImplementation("org.apache.logging.log4j.Logger", "com.dianping.pigeon.log.Log4j2Logger");
+        tryImplementation("org.slf4j.Logger", "com.dianping.pigeon.log.Slf4jLogger");
 
         if (logConstructor == null) {
             try {
