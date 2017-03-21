@@ -65,7 +65,7 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
 
     private static final DynamicThreadPool slowRequestProcessThreadPool = new DynamicThreadPool(
             "Pigeon-Server-Slow-Request-Processor", SLOW_POOL_CORESIZE, SLOW_POOL_MAXSIZE,
-            SLOW_POOL_QUEUESIZE);
+            SLOW_POOL_QUEUESIZE, new ThreadPoolExecutor.AbortPolicy(), false, true);
 
     private static final ConcurrentMap<String, DynamicThreadPool> methodThreadPools = new ConcurrentHashMap<>();
 
@@ -109,8 +109,6 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
                 throw new RuntimeException("failed to init pool config! please check!", t);
             }
         }
-
-        slowRequestProcessThreadPool.allowCoreThreadTimeOut(true);
     }
 
     public RequestThreadPoolProcessor() {
@@ -518,7 +516,8 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
             try {
                 if (sharedRequestProcessThreadPool == null) {
                     sharedRequestProcessThreadPool = new DynamicThreadPool("Pigeon-Server-Request-Processor",
-                            serverConfig.getCorePoolSize(), serverConfig.getMaxPoolSize(), serverConfig.getWorkQueueSize());
+                            serverConfig.getCorePoolSize(), serverConfig.getMaxPoolSize(), serverConfig.getWorkQueueSize(),
+                            new ThreadPoolExecutor.AbortPolicy(), false, false);
                 } else {
                     sharedRequestProcessThreadPool.setCorePoolSize(serverConfig.getCorePoolSize());
                     sharedRequestProcessThreadPool.setMaximumPoolSize(serverConfig.getMaxPoolSize());

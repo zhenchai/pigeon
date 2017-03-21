@@ -18,4 +18,8 @@ public interface ThreadPool {
 
     ThreadPoolExecutor getExecutor();
 
+    void prestartAllCoreThreads();
+
+    void allowCoreThreadTimeOut(boolean value);
+
 }

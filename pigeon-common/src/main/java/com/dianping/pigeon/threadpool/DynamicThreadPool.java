@@ -18,11 +18,13 @@ public class DynamicThreadPool implements ThreadPool, ExecutorAware {
     private final ResizableBlockingQueue<Runnable> workQueue;
 
     public DynamicThreadPool(String poolName, int corePoolSize, int maximumPoolSize, int workQueueCapacity) {
-        this(poolName, corePoolSize, maximumPoolSize, workQueueCapacity, new ThreadPoolExecutor.AbortPolicy());
+        this(poolName, corePoolSize, maximumPoolSize, workQueueCapacity,
+                new ThreadPoolExecutor.AbortPolicy(), true, false);
     }
 
     public DynamicThreadPool(String poolName, int corePoolSize, int maximumPoolSize,
-                             int workQueueCapacity, RejectedExecutionHandler handler) {
+                             int workQueueCapacity, RejectedExecutionHandler handler,
+                             boolean prestartAllCoreThreads, boolean allowCoreThreadTimeOut) {
         if (maximumPoolSize > 1000) {
             logger.warn("the 'maximumPoolSize' property is too big");
             maximumPoolSize = 1000;
@@ -36,7 +38,10 @@ public class DynamicThreadPool implements ThreadPool, ExecutorAware {
         this.workQueue = new ResizableLinkedBlockingQueue<Runnable>(workQueueCapacity);
         this.executor = new ThreadPoolExecutor(corePoolSize, maximumPoolSize, 30, TimeUnit.SECONDS,
                 workQueue, this.factory, handler);
-        this.executor.prestartAllCoreThreads();
+        if (prestartAllCoreThreads) {
+            this.executor.prestartAllCoreThreads();
+        }
+        this.executor.allowCoreThreadTimeOut(allowCoreThreadTimeOut);
     }
 
     public void execute(Runnable run) {
@@ -85,10 +90,12 @@ public class DynamicThreadPool implements ThreadPool, ExecutorAware {
         return workQueue.getCapacity();
     }
 
+    @Override
     public void prestartAllCoreThreads() {
         this.executor.prestartAllCoreThreads();
     }
 
+    @Override
     public void allowCoreThreadTimeOut(boolean value) {
         this.executor.allowCoreThreadTimeOut(value);
     }

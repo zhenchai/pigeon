@@ -101,6 +101,7 @@ public final class ProviderBootStrap {
                 }
                 server = serversMap.get(serverConfig.getProtocol() + serverConfig.getPort());
                 if (server != null) {
+                    server.getRequestProcessor().getRequestProcessThreadPool().prestartAllCoreThreads();
                     return server.getServerConfig();
                 }
                 return null;

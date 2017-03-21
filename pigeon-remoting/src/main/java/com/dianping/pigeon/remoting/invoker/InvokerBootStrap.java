@@ -39,6 +39,7 @@ public final class InvokerBootStrap {
 					if (monitor != null) {
 						monitor.init();
 					}
+					ResponseProcessorFactory.selectProcessor().getResponseProcessThreadPool().prestartAllCoreThreads();
 					isStartup = true;
 					logger.warn("pigeon client[version:" + VersionUtils.VERSION + "] has been started");
 				}
