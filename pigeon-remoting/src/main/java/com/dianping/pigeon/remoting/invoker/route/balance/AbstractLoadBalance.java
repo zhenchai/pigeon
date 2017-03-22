@@ -75,12 +75,11 @@ public abstract class AbstractLoadBalance implements LoadBalance {
 
 	/**
 	 * [w1, w2, w3, maxWeightIndex]
-	 * 
+	 *
 	 * @param clients
 	 * @param serviceName
-	 * @param weightAccessor
-	 * @return
-	 */
+     * @return
+     */
 	private int[] getWeights(List<Client> clients, String serviceName) {
 		int clientSize = clients.size();
 		int[] weights = new int[clientSize + 1];

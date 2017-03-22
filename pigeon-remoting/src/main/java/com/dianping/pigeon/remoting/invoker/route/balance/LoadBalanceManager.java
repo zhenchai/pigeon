@@ -245,9 +245,7 @@ public class LoadBalanceManager {
 		}
 
 		private void adjustFactor() {
-			Iterator<Entry<String, WeightFactor>> it = weightFactors.entrySet().iterator();
-			while (it.hasNext()) {
-				Entry<String, WeightFactor> entry = it.next();
+			for (Entry<String, WeightFactor> entry : weightFactors.entrySet()) {
 				WeightFactor weightFactor = entry.getValue();
 				if (weightFactor.getFactor() < defaultFactor) {
 					Integer ticks = stepTicksMap.get(weightFactor.getFactor());
@@ -280,7 +278,7 @@ public class LoadBalanceManager {
 		public void hostWeightChanged(ServiceProviderChangeEvent event) {
 			Integer originalWeight = weights.get(event.getConnect());
 			weights.put(event.getConnect(), event.getWeight());
-			if ((originalWeight == null || originalWeight.intValue() == 0) && event.getWeight() > 0) {
+			if ((originalWeight == null || originalWeight == 0) && event.getWeight() > 0) {
 				weightFactors.put(event.getConnect(), new WeightFactor(initialFactor));
 			}
 		}
