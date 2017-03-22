@@ -23,13 +23,18 @@ public class GZipCompress implements Compress {
         }
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        GZIPOutputStream gzip;
+        GZIPOutputStream gzip = null;
         try {
             gzip = new GZIPOutputStream(out);
             gzip.write(array);
-            gzip.close();
+            gzip.finish();
+            gzip.flush();
         } catch (IOException e) {
             throw e;
+        } finally {
+            if (gzip != null) {
+                gzip.close();
+            }
         }
         return out.toByteArray();
     }
@@ -41,9 +46,9 @@ public class GZipCompress implements Compress {
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         ByteArrayInputStream in = new ByteArrayInputStream(array);
-
+        GZIPInputStream zip = null;
         try {
-            GZIPInputStream zip = new GZIPInputStream(in);
+            zip = new GZIPInputStream(in);
             byte[] buffer = new byte[BUFFER_SIZE];
             int n;
             while ((n = zip.read(buffer)) >= 0) {
@@ -51,6 +56,10 @@ public class GZipCompress implements Compress {
             }
         } catch (IOException e) {
             throw e;
+        } finally {
+            if (zip != null) {
+                zip.close();
+            }
         }
         return out.toByteArray();
     }

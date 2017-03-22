@@ -269,7 +269,7 @@ public class DefaultChannelPool<C extends Channel> implements ChannelPool<C> {
                         try {
                             channel.connect();
                         } catch (NetworkException e) {
-                            logger.info("[run] pooledChannel connnet failed. remoteAddress:", channel.getRemoteAddressString());
+                            logger.info("[run] pooledChannel connect failed. remoteAddress:", channel.getRemoteAddressString());
                         }
 
                     }
