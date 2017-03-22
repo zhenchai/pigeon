@@ -30,17 +30,6 @@ public interface Logger {
 	void debug(String message);
 
 	/**
-	 * Logs a message with parameters at the {@link Level#DEBUG DEBUG} level.
-	 *
-	 * @param message
-	 *            the message to log; the format depends on the message factory.
-	 * @param params
-	 *            parameters to the message.
-	 * @see #getMessageFactory()
-	 */
-	void debug(String message, Object... params);
-
-	/**
 	 * Logs a message at the {@link Level#DEBUG DEBUG} level including the stack
 	 * trace of the {@link Throwable} <code>t</code> passed as parameter.
 	 *
@@ -79,24 +68,6 @@ public interface Logger {
 	void error(String message);
 
 	/**
-	 * Logs a message with parameters at the {@link Level#ERROR ERROR} level.
-	 *
-	 * @param message
-	 *            the message to log; the format depends on the message factory.
-	 * @param params
-	 *            parameters to the message.
-	 * @see #getMessageFactory()
-	 *
-	 *      TODO Likely to misinterpret existing log4j client code that intended
-	 *      to call info(Object,Throwable). Incurs array creation expense on
-	 *      every call. (RG) I assume you meant error, not info. It isn't
-	 *      possible to be misinterpreted as the previous method is for that
-	 *      signature. Methods should be added to avoid varargs for 1, 2 or 3
-	 *      parameters.
-	 */
-	void error(String message, Object... params);
-
-	/**
 	 * Logs a message at the {@link Level#ERROR ERROR} level including the stack
 	 * trace of the {@link Throwable} <code>t</code> passed as parameter.
 	 *
@@ -133,24 +104,6 @@ public interface Logger {
 	 *            the message string to log.
 	 */
 	void fatal(String message);
-
-	/**
-	 * Logs a message with parameters at the {@link Level#FATAL FATAL} level.
-	 *
-	 * @param message
-	 *            the message to log; the format depends on the message factory.
-	 * @param params
-	 *            parameters to the message.
-	 * @see #getMessageFactory()
-	 *
-	 *      TODO Likely to misinterpret existing log4j client code that intended
-	 *      to call info(Object,Throwable). Incurs array creation expense on
-	 *      every call.(RG) I assume you meant fatal, not info. It isn't
-	 *      possible to be misinterpreted as the previous method is for that
-	 *      signature. Methods should be added to avoid varargs for 1, 2 or 3
-	 *      parameters.
-	 */
-	void fatal(String message, Object... params);
 
 	/**
 	 * Logs a message at the {@link Level#FATAL FATAL} level including the stack
@@ -196,23 +149,6 @@ public interface Logger {
 	 *            the message string to log.
 	 */
 	void info(String message);
-
-	/**
-	 * Logs a message with parameters at the {@link Level#INFO INFO} level.
-	 *
-	 * @param message
-	 *            the message to log; the format depends on the message factory.
-	 * @param params
-	 *            parameters to the message.
-	 * @see #getMessageFactory()
-	 *
-	 *      TODO Likely to misinterpret existing log4j client code that intended
-	 *      to call info(Object,Throwable). Incurs array creation expense on
-	 *      every call. (RG) It isn't possible to be misinterpreted as the
-	 *      previous method is for that signature. Methods should be added to
-	 *      avoid varargs for 1, 2 or 3 parameters.
-	 */
-	void info(String message, Object... params);
 
 	/**
 	 * Logs a message at the {@link Level#INFO INFO} level including the stack
@@ -308,17 +244,6 @@ public interface Logger {
 	void trace(String message);
 
 	/**
-	 * Logs a message with parameters at the {@link Level#TRACE TRACE} level.
-	 *
-	 * @param message
-	 *            the message to log; the format depends on the message factory.
-	 * @param params
-	 *            parameters to the message.
-	 * @see #getMessageFactory()
-	 */
-	void trace(String message, Object... params);
-
-	/**
 	 * Logs a message at the {@link Level#TRACE TRACE} level including the stack
 	 * trace of the {@link Throwable} <code>t</code> passed as parameter.
 	 *
@@ -356,24 +281,6 @@ public interface Logger {
 	 *            the message string to log.
 	 */
 	void warn(String message);
-
-	/**
-	 * Logs a message with parameters at the {@link Level#WARN WARN} level.
-	 *
-	 * @param message
-	 *            the message to log; the format depends on the message factory.
-	 * @param params
-	 *            parameters to the message.
-	 * @see #getMessageFactory()
-	 *
-	 *      TODO Likely to misinterpret existing log4j client code that intended
-	 *      to call info(Object,Throwable). Incurs array creation expense on
-	 *      every call. (RG) I assume you meant warn, not info. It isn't
-	 *      possible to be misinterpreted as the previous method is for that
-	 *      signature.Methods should be added to avoid varargs for 1, 2 or 3
-	 *      parameters.
-	 */
-	void warn(String message, Object... params);
 
 	/**
 	 * Logs a message at the {@link Level#WARN WARN} level including the stack

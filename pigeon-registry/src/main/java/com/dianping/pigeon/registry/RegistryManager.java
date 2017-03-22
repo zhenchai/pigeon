@@ -634,7 +634,7 @@ public class RegistryManager {
 		try {
 			support = registry.isSupportNewProtocol(serviceAddress);
 		} catch (Throwable t) {
-			logger.info("failed to get protocol for " + serviceAddress, t.getMessage());
+			logger.info("failed to get protocol for " + serviceAddress, t);
 		}
 
 		return support;
@@ -701,7 +701,7 @@ public class RegistryManager {
 			support = registry.isSupportNewProtocol(serverAddress, serviceName);
 			setReferencedProtocol(serverAddress, serviceName, support);
 		} catch (Throwable t) {
-			logger.info("failed to get protocol for " + serverAddress + "#" + serviceName, t.getMessage());
+			logger.info("failed to get protocol for " + serverAddress + "#" + serviceName, t);
 		}
 
 		return support;

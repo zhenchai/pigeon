@@ -93,6 +93,8 @@ public class ServiceCallbackWrapper implements Callback {
                 InvocationResponse degradedResponse = null;
                 if (DegradationManager.INSTANCE.needFailureDegrade(invocationContext)) {
                     try {
+                        invocationContext.getDegradeInfo().setFailureDegrade(true);
+                        invocationContext.getDegradeInfo().setCause(e);
                         degradedResponse = DegradationFilter.degradeCall(invocationContext, false);
                     } catch (Throwable t) {
                         logger.warn("failure degrade in callback call type error: " + t.toString());
@@ -106,11 +108,6 @@ public class ServiceCallbackWrapper implements Callback {
                 }
             }
         } finally {
-            if (invocationContext.isDegraded()) {
-                if (transaction != null) {
-                    transaction.logEvent("PigeonCall.degrade", callInterface, "");
-                }
-            }
             try {
                 if (response.getMessageType() == Constants.MESSAGE_TYPE_SERVICE) {
                     completeTransaction(transaction);
@@ -123,6 +120,8 @@ public class ServiceCallbackWrapper implements Callback {
                     InvocationResponse degradedResponse = null;
                     if (DegradationManager.INSTANCE.needFailureDegrade(invocationContext)) {
                         try {
+                            invocationContext.getDegradeInfo().setFailureDegrade(true);
+                            invocationContext.getDegradeInfo().setCause(e);
                             degradedResponse = DegradationFilter.degradeCall(invocationContext, false);
                         } catch (Throwable t) {
                             logger.warn("failure degrade in callback call type error: " + t.toString());
@@ -149,6 +148,10 @@ public class ServiceCallbackWrapper implements Callback {
                 }
             } catch (Throwable e) {
                 logger.error("error while executing service callback", e);
+            } finally {
+                if (transaction != null) {
+                    DegradationManager.INSTANCE.monitorDegrade(invocationContext, transaction);
+                }
             }
 
             InvokerMonitorData monitorData = (InvokerMonitorData) invocationContext.getMonitorData();

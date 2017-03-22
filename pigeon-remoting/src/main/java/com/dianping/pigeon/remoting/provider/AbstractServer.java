@@ -1,15 +1,6 @@
 package com.dianping.pigeon.remoting.provider;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.List;
-import java.util.Properties;
-import java.util.concurrent.Future;
-
-import org.apache.commons.lang.StringUtils;
 import com.dianping.pigeon.log.Logger;
-
 import com.dianping.pigeon.log.LoggerLoader;
 import com.dianping.pigeon.remoting.common.domain.InvocationRequest;
 import com.dianping.pigeon.remoting.common.domain.InvocationResponse;
@@ -22,6 +13,14 @@ import com.dianping.pigeon.remoting.provider.publish.ServiceChangeListener;
 import com.dianping.pigeon.remoting.provider.publish.ServiceChangeListenerContainer;
 import com.dianping.pigeon.util.FileUtils;
 import com.dianping.pigeon.util.NetUtils;
+import org.apache.commons.lang.StringUtils;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.List;
+import java.util.Properties;
+import java.util.concurrent.Future;
 
 public abstract class AbstractServer implements Server {
 

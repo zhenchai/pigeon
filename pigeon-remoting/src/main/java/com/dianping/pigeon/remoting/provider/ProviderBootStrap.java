@@ -46,15 +46,9 @@ public final class ProviderBootStrap {
         if (!isInitialized) {
             synchronized (ProviderBootStrap.class) {
                 if (!isInitialized) {
-                    LoggerLoader.init();
-                    ConfigManager configManager = ConfigManagerLoader.getConfigManager();
                     ProviderProcessHandlerFactory.init();
                     SerializerFactory.init();
                     ClassUtils.loadClasses("com.dianping.pigeon");
-                    Monitor monitor = MonitorLoader.getMonitor();
-                    if (monitor != null) {
-                        monitor.init();
-                    }
                     Thread shutdownHook = new Thread(new ShutdownHookListener());
                     shutdownHook.setDaemon(true);
                     shutdownHook.setPriority(Thread.MAX_PRIORITY);

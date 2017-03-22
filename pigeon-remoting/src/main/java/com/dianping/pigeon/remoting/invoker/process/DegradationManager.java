@@ -13,6 +13,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.dianping.pigeon.monitor.MonitorTransaction;
+import com.dianping.pigeon.remoting.common.util.InvocationUtils;
 import org.springframework.util.CollectionUtils;
 
 import com.dianping.pigeon.config.ConfigChangeListener;
@@ -214,8 +216,21 @@ public enum DegradationManager {
 			}
 			if (degraded) {
 				count.degraded.incrementAndGet();
-				context.setDegraded();
 			}
+		}
+	}
+
+	public void monitorDegrade(InvokerContext context, MonitorTransaction transaction) {
+		String callInterface = InvocationUtils.getRemoteCallFullName(context.getInvokerConfig().getUrl(),
+				context.getMethodName(), context.getParameterTypes());
+
+		if (context.getDegradeInfo().isDegrade()
+				&& !context.getDegradeInfo().isFailureDegrade()) {
+			transaction.logEvent("PigeonCall.degrade", callInterface, "");
+		} else if (context.getDegradeInfo().isFailureDegrade()) {
+			transaction.logEvent("PigeonCall.failureDegrade", callInterface,
+					context.getDegradeInfo().getCause() == null ?
+							"" : context.getDegradeInfo().getCause().toString());
 		}
 	}
 

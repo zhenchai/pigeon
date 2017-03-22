@@ -208,6 +208,8 @@ public class DegradationFilter extends InvocationInvokeFilter {
                 | RejectedException e) {
             failed = true;
             if (DegradationManager.INSTANCE.needFailureDegrade(context)) {
+                context.getDegradeInfo().setFailureDegrade(true);
+                context.getDegradeInfo().setCause(e);
                 response = degradeCall(context, false);
             }
             if (response != null) {// 返回同步调用模式的失败降级结果
@@ -237,6 +239,8 @@ public class DegradationFilter extends InvocationInvokeFilter {
         } catch (Exception e) {
             DegradationManager.INSTANCE.addDegradedRequest(context, e);
             throw e;
+        } finally {
+            context.getDegradeInfo().setDegrade(true);
         }
     }
 
@@ -299,7 +303,7 @@ public class DegradationFilter extends InvocationInvokeFilter {
                             exception = (Exception) action.getReturnObj();
                         }
                         throw exception;
-                    } else if (action.getReturnObj() != null) {
+                    } else {
                         addCurrentTimeData(timeout);
                         defaultResult = action.getReturnObj();
                         response = InvokerUtils.createDefaultResponse(defaultResult);
@@ -336,7 +340,7 @@ public class DegradationFilter extends InvocationInvokeFilter {
 
                             throw exception;
 
-                        } else if (action.getReturnObj() != null) {
+                        } else {
                             addCurrentTimeData(timeout);
                             defaultResult = action.getReturnObj();
                             response = callBackOnSuccess(context, defaultResult);
@@ -387,7 +391,7 @@ public class DegradationFilter extends InvocationInvokeFilter {
                         response = InvokerUtils.createFutureResponse(future);
                         future.callback(InvokerUtils.createThrowableResponse(exception));
                         future.run();
-                    } else if (action.getReturnObj() != null) {
+                    } else {
                         addCurrentTimeData(timeout);
                         defaultResult = action.getReturnObj();
                         ServiceFutureImpl future = new ServiceFutureImpl(context, timeout);

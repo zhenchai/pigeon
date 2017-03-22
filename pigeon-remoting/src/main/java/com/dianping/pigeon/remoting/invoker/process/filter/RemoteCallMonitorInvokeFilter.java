@@ -24,6 +24,7 @@ import com.dianping.pigeon.remoting.common.util.InvocationUtils;
 import com.dianping.pigeon.remoting.invoker.Client;
 import com.dianping.pigeon.remoting.invoker.config.InvokerConfig;
 import com.dianping.pigeon.remoting.invoker.domain.InvokerContext;
+import com.dianping.pigeon.remoting.invoker.process.DegradationManager;
 import com.dianping.pigeon.remoting.invoker.process.ExceptionManager;
 
 public class RemoteCallMonitorInvokeFilter extends InvocationInvokeFilter {
@@ -67,9 +68,7 @@ public class RemoteCallMonitorInvokeFilter extends InvocationInvokeFilter {
         try {
             InvocationResponse response = handler.handle(invocationContext);
             if (transaction != null) {
-                if (invocationContext.isDegraded()) {
-                    transaction.logEvent("PigeonCall.degrade", callInterface, "");
-                }
+                DegradationManager.INSTANCE.monitorDegrade(invocationContext, transaction);
                 Client client = invocationContext.getClient();
                 if (client != null) {
                     targetApp = RegistryManager.getInstance().getReferencedAppFromCache(client.getAddress());
@@ -101,9 +100,7 @@ public class RemoteCallMonitorInvokeFilter extends InvocationInvokeFilter {
             return response;
         } catch (Throwable e) {
             if (transaction != null) {
-                if (invocationContext.isDegraded()) {
-                    transaction.logEvent("PigeonCall.degrade", callInterface, "");
-                }
+                DegradationManager.INSTANCE.monitorDegrade(invocationContext, transaction);
                 Client client = invocationContext.getClient();
                 String remoteAddress = null;
                 if (client != null) {

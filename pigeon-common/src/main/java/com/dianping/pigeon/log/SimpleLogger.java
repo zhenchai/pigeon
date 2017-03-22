@@ -2,211 +2,181 @@ package com.dianping.pigeon.log;
 
 public class SimpleLogger implements Logger {
 
-	private org.apache.logging.log4j.Logger LOG;
+    private String loggerName;
 
-	private static volatile boolean isDebugEnabled = false;
+    public SimpleLogger() {
+        this.loggerName = this.getClass().getName();
+    }
 
-	public SimpleLogger(org.apache.logging.log4j.Logger logger) {
-		this.LOG = logger;
-	}
+    public SimpleLogger(String loggerName) {
+        this.loggerName = loggerName;
+    };
 
-	@Override
-	public void debug(Object message) {
-		if (this.isDebugEnabled()) {
-			this.LOG.debug(message);
-		}
-	}
+    @Override
+    public void debug(Object message) {
+        System.out.println(message);
+    }
 
-	@Override
-	public void debug(Object message, Throwable t) {
-		if (this.isDebugEnabled()) {
-			this.LOG.debug(message, t);
-		}
-	}
+    @Override
+    public void debug(Object message, Throwable t) {
+        System.out.println(message);
+        t.printStackTrace(System.out);
+    }
 
-	@Override
-	public void debug(String message) {
-		if (this.isDebugEnabled()) {
-			this.LOG.debug(message);
-		}
-	}
+    @Override
+    public void debug(String message) {
+        System.out.println(message);
+    }
 
-	@Override
-	public void debug(String message, Object... params) {
-		if (this.isDebugEnabled()) {
-			this.LOG.debug(message, params);
-		}
-	}
+    @Override
+    public void debug(String message, Throwable t) {
+        System.out.println(message);
+        t.printStackTrace(System.out);
+    }
 
-	@Override
-	public void debug(String message, Throwable t) {
-		if (this.isDebugEnabled()) {
-			this.LOG.debug(message, t);
-		}
-	}
+    @Override
+    public void error(Object message) {
+        System.err.println(message);
+    }
 
-	@Override
-	public void error(Object message) {
-		this.LOG.error(message);
-	}
+    @Override
+    public void error(Object message, Throwable t) {
+        System.err.println(message);
+        t.printStackTrace(System.err);
+    }
 
-	@Override
-	public void error(Object message, Throwable t) {
-		this.LOG.error(message, t);
-	}
+    @Override
+    public void info(String message) {
+        System.out.println(message);
+    }
 
-	@Override
-	public void error(String message) {
-		this.LOG.error(message);
-	}
+    @Override
+    public void info(String message, Throwable t) {
+        System.out.println(message);
+        t.printStackTrace(System.out);
+    }
 
-	@Override
-	public void error(String message, Object... params) {
-		this.LOG.error(message, params);
-	}
+    @Override
+    public boolean isDebugEnabled() {
+        return true;
+    }
 
-	@Override
-	public void error(String message, Throwable t) {
-		this.LOG.error(message, t);
-	}
+    @Override
+    public boolean isErrorEnabled() {
+        return true;
+    }
 
-	@Override
-	public void fatal(Object message) {
-		this.LOG.fatal(message);
-	}
+    @Override
+    public boolean isFatalEnabled() {
+        return true;
+    }
 
-	@Override
-	public void fatal(Object message, Throwable t) {
-		this.LOG.fatal(message, t);
-	}
+    @Override
+    public boolean isInfoEnabled() {
+        return true;
+    }
 
-	@Override
-	public void fatal(String message) {
-		this.LOG.fatal(message);
-	}
+    @Override
+    public boolean isTraceEnabled() {
+        return true;
+    }
 
-	@Override
-	public void fatal(String message, Object... params) {
-		this.LOG.fatal(message, params);
-	}
+    @Override
+    public boolean isWarnEnabled() {
+        return true;
+    }
 
-	@Override
-	public void fatal(String message, Throwable t) {
-		this.LOG.fatal(message, t);
-	}
+    @Override
+    public void trace(Object message) {
+        System.out.println(message);
+    }
 
-	@Override
-	public String getName() {
-		return this.LOG.getName();
-	}
+    @Override
+    public void trace(Object message, Throwable t) {
+        System.out.println(message);
+        t.printStackTrace(System.out);
+    }
 
-	@Override
-	public void info(Object message) {
-		this.LOG.info(message);
-	}
+    @Override
+    public void trace(String message) {
+        System.out.println(message);
+    }
 
-	@Override
-	public void info(Object message, Throwable t) {
-		this.LOG.info(message, t);
-	}
+    @Override
+    public void trace(String message, Throwable t) {
+        System.out.println(message);
+        t.printStackTrace(System.out);
+    }
 
-	@Override
-	public void info(String message) {
-		this.LOG.info(message);
-	}
+    @Override
+    public void warn(Object message) {
+        System.out.println(message);
+    }
 
-	@Override
-	public void info(String message, Object... params) {
-		this.LOG.info(message, params);
-	}
+    @Override
+    public void warn(Object message, Throwable t) {
+        System.out.println(message);
+        t.printStackTrace(System.out);
+    }
 
-	@Override
-	public void info(String message, Throwable t) {
-		this.LOG.info(message, t);
-	}
+    @Override
+    public void warn(String message) {
+        System.out.println(message);
+    }
 
-	@Override
-	public boolean isDebugEnabled() {
-		return isDebugEnabled;
-	}
+    @Override
+    public void warn(String message, Throwable t) {
+        System.out.println(message);
+        t.printStackTrace(System.out);
+    }
 
-	public static void setDebugEnabled(boolean enabled) {
-		isDebugEnabled = enabled;
-	}
+    @Override
+    public void error(String message) {
+        System.err.println(message);
+    }
 
-	@Override
-	public boolean isErrorEnabled() {
-		return this.LOG.isErrorEnabled();
-	}
+    @Override
+    public void error(String message, Throwable t) {
+        System.err.println(message);
+        t.printStackTrace(System.err);
+    }
 
-	@Override
-	public boolean isFatalEnabled() {
-		return this.LOG.isFatalEnabled();
-	}
+    @Override
+    public void fatal(Object message) {
+        System.err.println(message);
+    }
 
-	@Override
-	public boolean isInfoEnabled() {
-		return this.LOG.isInfoEnabled();
-	}
+    @Override
+    public void fatal(Object message, Throwable t) {
+        System.err.println(message);
+        t.printStackTrace(System.err);
+    }
 
-	@Override
-	public boolean isTraceEnabled() {
-		return this.LOG.isTraceEnabled();
-	}
+    @Override
+    public void fatal(String message) {
+        System.err.println(message);
+    }
 
-	@Override
-	public boolean isWarnEnabled() {
-		return this.LOG.isWarnEnabled();
-	}
+    @Override
+    public void fatal(String message, Throwable t) {
+        System.err.println(message);
+        t.printStackTrace(System.err);
+    }
 
-	@Override
-	public void trace(Object message) {
-		this.LOG.trace(message);
-	}
+    @Override
+    public String getName() {
+        return this.getClass().getName();
+    }
 
-	@Override
-	public void trace(Object message, Throwable t) {
-		this.LOG.trace(message, t);
-	}
+    @Override
+    public void info(Object message) {
+        System.out.println(message);
+    }
 
-	@Override
-	public void trace(String message) {
-		this.LOG.trace(message);
-	}
-
-	@Override
-	public void trace(String message, Object... params) {
-		this.LOG.trace(message, params);
-	}
-
-	@Override
-	public void trace(String message, Throwable t) {
-		this.LOG.trace(message, t);
-	}
-
-	@Override
-	public void warn(Object message) {
-		this.LOG.warn(message);
-	}
-
-	@Override
-	public void warn(Object message, Throwable t) {
-		this.LOG.warn(message, t);
-	}
-
-	@Override
-	public void warn(String message) {
-		this.LOG.warn(message);
-	}
-
-	@Override
-	public void warn(String message, Object... params) {
-		this.LOG.warn(message, params);
-	}
-
-	@Override
-	public void warn(String message, Throwable t) {
-		this.LOG.warn(message, t);
-	}
+    @Override
+    public void info(Object message, Throwable t) {
+        System.out.println(message);
+        t.printStackTrace(System.out);
+    }
 
 }
