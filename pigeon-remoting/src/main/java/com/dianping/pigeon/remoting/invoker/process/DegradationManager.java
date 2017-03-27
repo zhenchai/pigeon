@@ -9,6 +9,7 @@ import java.util.Calendar;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -458,17 +459,17 @@ public enum DegradationManager {
 			}
 
 			// 复用降级统计和清空的线程，用于服务质量统计和清空（窗口默认为10秒）
-			ConcurrentHashMap<String, ConcurrentHashMap<String, ConcurrentHashMap<Integer, Quality>>> addrReqUrlSecondQualities = RequestQualityManager.INSTANCE
+			ConcurrentMap<String, ConcurrentMap<String, ConcurrentMap<Integer, Quality>>> addrReqUrlSecondQualities = RequestQualityManager.INSTANCE
 					.getAddrReqUrlSecondQualities();
-			ConcurrentHashMap<String, ConcurrentHashMap<String, Quality>> addrReqUrlQualities = new ConcurrentHashMap<String, ConcurrentHashMap<String, Quality>>();
+			ConcurrentMap<String, ConcurrentMap<String, Quality>> addrReqUrlQualities = new ConcurrentHashMap<String, ConcurrentMap<String, Quality>>();
 
 			for (String address : addrReqUrlSecondQualities.keySet()) {
-				ConcurrentHashMap<String, ConcurrentHashMap<Integer, Quality>> reqUrlSecondQualities = addrReqUrlSecondQualities
+				ConcurrentMap<String, ConcurrentMap<Integer, Quality>> reqUrlSecondQualities = addrReqUrlSecondQualities
 						.get(address);
 
 				ConcurrentHashMap<String, Quality> reqUrlQualities = new ConcurrentHashMap<String, Quality>();
 				for (String requestUrl : reqUrlSecondQualities.keySet()) {
-					ConcurrentHashMap<Integer, Quality> secondQualities = reqUrlSecondQualities.get(requestUrl);
+					ConcurrentMap<Integer, Quality> secondQualities = reqUrlSecondQualities.get(requestUrl);
 					int total = 0, failed = 0;
 					for (int i = 1; i <= recentSeconds; i++) {
 						int prevSec = currentSecond - i;

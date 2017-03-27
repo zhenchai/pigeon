@@ -3,6 +3,7 @@ package com.dianping.pigeon.console.domain;
 import com.dianping.pigeon.remoting.invoker.route.quality.RequestQualityManager;
 
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * Created by chenchongze on 16/6/29.
@@ -11,8 +12,8 @@ public class RequestQualityStatus {
 
     private Boolean support = Boolean.FALSE;
 
-    private ConcurrentHashMap<String, ConcurrentHashMap<String, RequestQualityManager.Quality>> addrReqUrlQualities
-            = new ConcurrentHashMap<String, ConcurrentHashMap<String, RequestQualityManager.Quality>>();
+    private ConcurrentMap<String, ConcurrentMap<String, RequestQualityManager.Quality>> addrReqUrlQualities
+            = new ConcurrentHashMap<String, ConcurrentMap<String, RequestQualityManager.Quality>>();
 
     public Boolean getSupport() {
         return support;
@@ -22,11 +23,11 @@ public class RequestQualityStatus {
         this.support = support;
     }
 
-    public ConcurrentHashMap<String, ConcurrentHashMap<String, RequestQualityManager.Quality>> getAddrReqUrlQualities() {
+    public ConcurrentMap<String, ConcurrentMap<String, RequestQualityManager.Quality>> getAddrReqUrlQualities() {
         return addrReqUrlQualities;
     }
 
-    public void setAddrReqUrlQualities(ConcurrentHashMap<String, ConcurrentHashMap<String, RequestQualityManager.Quality>> addrReqUrlQualities) {
+    public void setAddrReqUrlQualities(ConcurrentMap<String, ConcurrentMap<String, RequestQualityManager.Quality>> addrReqUrlQualities) {
         this.addrReqUrlQualities = addrReqUrlQualities;
     }
 }

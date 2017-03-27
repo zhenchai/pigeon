@@ -11,6 +11,7 @@ import org.springframework.util.CollectionUtils;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -40,21 +41,21 @@ public enum RequestQualityManager {
     }
 
     // hosts --> ( requestUrl:serviceName#method --> second --> { total, failed } )
-    private ConcurrentHashMap<String, ConcurrentHashMap<String, ConcurrentHashMap<Integer, Quality>>>
-            addrReqUrlSecondQualities = new ConcurrentHashMap<String, ConcurrentHashMap<String, ConcurrentHashMap<Integer, Quality>>>();
+    private ConcurrentMap<String, ConcurrentMap<String, ConcurrentMap<Integer, Quality>>>
+            addrReqUrlSecondQualities = new ConcurrentHashMap<String, ConcurrentMap<String, ConcurrentMap<Integer, Quality>>>();
 
     // hosts --> ( requestUrl:serviceName#method --> { total, failed } )
-    private volatile ConcurrentHashMap<String, ConcurrentHashMap<String, Quality>> addrReqUrlQualities = null;
+    private volatile ConcurrentMap<String, ConcurrentMap<String, Quality>> addrReqUrlQualities = null;
 
-    public ConcurrentHashMap<String, ConcurrentHashMap<String, ConcurrentHashMap<Integer, Quality>>> getAddrReqUrlSecondQualities() {
+    public ConcurrentMap<String, ConcurrentMap<String, ConcurrentMap<Integer, Quality>>> getAddrReqUrlSecondQualities() {
         return addrReqUrlSecondQualities;
     }
 
-    public ConcurrentHashMap<String, ConcurrentHashMap<String, Quality>> getAddrReqUrlQualities() {
+    public ConcurrentMap<String, ConcurrentMap<String, Quality>> getAddrReqUrlQualities() {
         return addrReqUrlQualities;
     }
 
-    public void setAddrReqUrlQualities(ConcurrentHashMap<String, ConcurrentHashMap<String, Quality>> addrReqUrlQualities) {
+    public void setAddrReqUrlQualities(ConcurrentMap<String, ConcurrentMap<String, Quality>> addrReqUrlQualities) {
         this.addrReqUrlQualities = addrReqUrlQualities;
     }
 
@@ -62,11 +63,11 @@ public enum RequestQualityManager {
         if (configManager.getBooleanValue(KEY_REQUEST_QUALITY_AUTO, false) && context.getClient() != null) {
 
             String address = context.getClient().getAddress();
-            ConcurrentHashMap<String, ConcurrentHashMap<Integer, Quality>>
+            ConcurrentMap<String, ConcurrentMap<Integer, Quality>>
                     requestSecondQuality = addrReqUrlSecondQualities.get(address);
             if (requestSecondQuality == null) {
-                requestSecondQuality = new ConcurrentHashMap<String, ConcurrentHashMap<Integer, Quality>>();
-                ConcurrentHashMap<String, ConcurrentHashMap<Integer, Quality>>
+                requestSecondQuality = new ConcurrentHashMap<String, ConcurrentMap<Integer, Quality>>();
+                ConcurrentMap<String, ConcurrentMap<Integer, Quality>>
                         last = addrReqUrlSecondQualities.putIfAbsent(address, requestSecondQuality);
                 if (last != null) {
                     requestSecondQuality = last;
@@ -74,10 +75,10 @@ public enum RequestQualityManager {
             }
 
             String requestUrl = getRequestUrl(context);
-            ConcurrentHashMap<Integer, Quality> secondQuality = requestSecondQuality.get(requestUrl);
+            ConcurrentMap<Integer, Quality> secondQuality = requestSecondQuality.get(requestUrl);
             if (secondQuality == null) {
                 secondQuality = new ConcurrentHashMap<Integer, Quality>();
-                ConcurrentHashMap<Integer, Quality> last = requestSecondQuality.putIfAbsent(requestUrl, secondQuality);
+                ConcurrentMap<Integer, Quality> last = requestSecondQuality.putIfAbsent(requestUrl, secondQuality);
                 if (last != null) {
                     secondQuality = last;
                 }
@@ -133,7 +134,7 @@ public enum RequestQualityManager {
 
             for (Client client : clientList) {
                 if (addrReqUrlQualities.containsKey(client.getAddress())) {
-                    ConcurrentHashMap<String, Quality> reqUrlQualities = addrReqUrlQualities.get(client.getAddress());
+                    ConcurrentMap<String, Quality> reqUrlQualities = addrReqUrlQualities.get(client.getAddress());
                     if (reqUrlQualities.containsKey(requestUrl)) {
                         Quality quality = reqUrlQualities.get(requestUrl);
 
@@ -170,6 +171,22 @@ public enum RequestQualityManager {
 
     public boolean isEnableRequestQualityRoute() {
         return configManager.getBooleanValue(KEY_REQUEST_QUALITY_AUTO, false);
+    }
+
+    public int adjustWeightWithQuality(int weight, String clientAddress, InvocationRequest request) {
+        if (isEnableRequestQualityRoute()) {
+            if (!CollectionUtils.isEmpty(addrReqUrlQualities)) {
+                ConcurrentMap<String, Quality> reqUrlQualities = addrReqUrlQualities.get(clientAddress);
+                if (reqUrlQualities != null) {
+                    Quality quality = reqUrlQualities.get(getRequestUrl(request));
+                    if (quality != null) {
+                        weight /= quality.getQualityValue(); // int 多数会归零
+                    }
+                }
+            }
+        }
+
+        return weight;
     }
 
     public static class Quality {
@@ -248,13 +265,13 @@ public enum RequestQualityManager {
     }
 
     private enum RequrlQuality {
-        REQURL_QUALITY_GOOD(0),
-        REQURL_QUALITY_NORNAL(1),
-        REQURL_QUALITY_BAD(2);
+        REQURL_QUALITY_GOOD(1),
+        REQURL_QUALITY_NORNAL(10),
+        REQURL_QUALITY_BAD(100);
 
         private int value;
 
-        private RequrlQuality(int value) {
+        RequrlQuality(int value) {
             this.value = value;
         }
 
@@ -263,22 +280,4 @@ public enum RequestQualityManager {
         }
     }
 
-    public static void main(String[] args) {
-        Quality quality = new Quality(105, 1);
-        System.out.println(quality.getQualityValue());
-        final ConcurrentHashMap<String, ConcurrentHashMap<String, Quality>> addrReqUrlQualities = new ConcurrentHashMap<String, ConcurrentHashMap<String, Quality>>();
-        new Thread() {
-            @Override
-            public void run() {
-                RequestQualityManager.INSTANCE.setAddrReqUrlQualities(addrReqUrlQualities);
-            }
-        }.start();
-
-        try {
-            Thread.sleep(3000);
-        } catch (InterruptedException e) {
-            logger.warn("[main] thread interupt", e);
-        }
-        System.out.println(RequestQualityManager.INSTANCE.getAddrReqUrlQualities());
-    }
 }
