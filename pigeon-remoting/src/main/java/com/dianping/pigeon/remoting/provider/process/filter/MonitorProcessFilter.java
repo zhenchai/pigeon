@@ -39,7 +39,7 @@ public class MonitorProcessFilter implements ServiceInvocationFilter<ProviderCon
 
     private static final Logger logger = LoggerLoader.getLogger(MonitorProcessFilter.class);
 
-    private static final Logger accessLogger = LoggerLoader.getLogger("pigeon-access");
+    private static final Logger accessLogger = LoggerLoader.getLogger(com.dianping.pigeon.util.Constants.ACCESS_LOG_NAME);
 
     private static final Monitor monitor = MonitorLoader.getMonitor();
 
