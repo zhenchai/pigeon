@@ -16,7 +16,7 @@ public class Slf4jLogger implements Logger {
 
     public Slf4jLogger(String loggerName) {
         this.logger = org.slf4j.LoggerFactory.getLogger(loggerName);
-        if (this.logger instanceof LocationAwareLogger) {
+        if (!"pigeon-access".equals(loggerName) && this.logger instanceof LocationAwareLogger) {
             isLocationAware = true;
         }
     }
