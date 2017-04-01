@@ -73,20 +73,7 @@ public class WeightBasedRegionPolicy implements RegionPolicy {
 
             if (m <= n && n < m + weight) {
 
-                if (requestQualityManager.isEnableRequestQualityRoute()) {
-
-                    float least = configManager.getFloatValue("pigeon.regions.switchratio", 0.5f)
-                            * regionClientList.size();
-                    List<Client> filterClients = requestQualityManager.getQualityPreferClients(
-                            regionClientList, request, least);
-
-                    if (filterClients.size() >= least) {
-                        return filterClients;
-                    }
-
-                } else {
-                    return regionClientList;
-                }
+                return regionClientList;
 
             }
 

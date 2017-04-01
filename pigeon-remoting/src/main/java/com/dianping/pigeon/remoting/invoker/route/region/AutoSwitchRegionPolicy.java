@@ -75,18 +75,10 @@ public class AutoSwitchRegionPolicy implements RegionPolicy {
                 float least = configManager.getFloatValue("pigeon.regions.switchratio", 0.5f) * total;
 
                 if (total > 0 && active > 0 && active >= least) {
-                    if (requestQualityManager.isEnableRequestQualityRoute()) {
-                        List<Client> filterClients = requestQualityManager.getQualityPreferClients(
-                                regionClientList, request, least);
-                        if (filterClients.size() >= least) {
-                            return filterClients;
-                        }
-                    } else {
-                        if (logger.isDebugEnabled()) {
-                            logger.debug("b: " + sizeBefore + ", a:" + regionClientList.size());
-                        }
-                        return regionClientList;
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("b: " + sizeBefore + ", a:" + regionClientList.size());
                     }
+                    return regionClientList;
                 } else {
                     if (logger.isDebugEnabled()) {
                         logger.debug(request.getServiceName() + " skipped region " + region.getName()

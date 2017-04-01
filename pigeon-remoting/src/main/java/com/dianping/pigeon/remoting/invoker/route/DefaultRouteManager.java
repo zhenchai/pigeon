@@ -93,7 +93,7 @@ public class DefaultRouteManager implements RouteManager, Disposable {
     }
 
     /**
-     * 按照权重、分组、region规则、服务质量过滤客户端选择 加入对oneway调用模式的优化判断
+     * 按照权重、分组、region规则过滤客户端选择 加入对oneway调用模式的优化判断
      *
      * @param clientList
      * @param invokerConfig
@@ -106,18 +106,6 @@ public class DefaultRouteManager implements RouteManager, Disposable {
         if (regionPolicyManager.isEnableRegionPolicy()) {
 
             clientList = regionPolicyManager.getPreferRegionClients(clientList, invokerConfig, request);
-
-        } else if (requestQualityManager.isEnableRequestQualityRoute()) {
-
-            float least = ConfigManagerLoader.getConfigManager().getFloatValue("pigeon.invoker.quality.leastratio",
-                    0.5f)
-                    * clientList.size();
-            List<Client> qualityFilterClients = requestQualityManager.getQualityPreferClients(clientList, request,
-                    least);
-
-            if (qualityFilterClients.size() >= least) {
-                clientList = qualityFilterClients;
-            }
 
         }
 

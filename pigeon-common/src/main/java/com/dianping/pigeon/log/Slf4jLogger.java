@@ -1,5 +1,6 @@
 package com.dianping.pigeon.log;
 
+import com.dianping.pigeon.util.Constants;
 import org.slf4j.spi.LocationAwareLogger;
 
 public class Slf4jLogger implements Logger {
@@ -16,7 +17,7 @@ public class Slf4jLogger implements Logger {
 
     public Slf4jLogger(String loggerName) {
         this.logger = org.slf4j.LoggerFactory.getLogger(loggerName);
-        if (this.logger instanceof LocationAwareLogger) {
+        if (!Constants.ACCESS_LOG_NAME.equals(loggerName) && this.logger instanceof LocationAwareLogger) {
             isLocationAware = true;
         }
     }

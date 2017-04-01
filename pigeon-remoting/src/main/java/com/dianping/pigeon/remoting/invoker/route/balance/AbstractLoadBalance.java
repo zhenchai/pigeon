@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
+import com.dianping.pigeon.remoting.invoker.route.quality.RequestQualityManager;
 import org.apache.commons.lang.StringUtils;
 import com.dianping.pigeon.log.Logger;
 
@@ -57,7 +58,7 @@ public abstract class AbstractLoadBalance implements LoadBalance {
 		} else {
 			try {
 				selectedClient = doSelect(clients, invokerConfig, request,
-						getWeights(clients, request.getServiceName()));
+						getWeights(clients, request));
 			} catch (Throwable e) {
 				logger.error("failed to do load balance[" + getClass().getName() + "], detail: " + e.getMessage()
 						+ ", use random instead.", e);
@@ -75,20 +76,20 @@ public abstract class AbstractLoadBalance implements LoadBalance {
 
 	/**
 	 * [w1, w2, w3, maxWeightIndex]
-	 * 
+	 *
 	 * @param clients
-	 * @param serviceName
-	 * @param weightAccessor
-	 * @return
-	 */
-	private int[] getWeights(List<Client> clients, String serviceName) {
+	 * @param request
+     * @return
+     */
+	private int[] getWeights(List<Client> clients, InvocationRequest request) {
 		int clientSize = clients.size();
 		int[] weights = new int[clientSize + 1];
 		int maxWeightIdx = 0;
 		int maxWeight = Integer.MIN_VALUE;
 		for (int i = 0; i < clientSize; i++) {
 			int effectiveWeight = LoadBalanceManager.getEffectiveWeight(clients.get(i).getAddress());
-			weights[i] = effectiveWeight;
+			weights[i] = RequestQualityManager.INSTANCE.adjustWeightWithQuality(effectiveWeight,
+					clients.get(i).getAddress(), request);
 			if (weights[i] > maxWeight) {
 				maxWeight = weights[i];
 				maxWeightIdx = i;

@@ -18,6 +18,7 @@ import com.dianping.pigeon.remoting.invoker.Client;
 import com.dianping.pigeon.remoting.invoker.process.AbstractResponseProcessor;
 import com.dianping.pigeon.remoting.invoker.service.ServiceInvocationRepository;
 import com.dianping.pigeon.threadpool.DefaultThreadPool;
+import com.dianping.pigeon.threadpool.DynamicThreadPool;
 import com.dianping.pigeon.threadpool.ThreadPool;
 import com.dianping.pigeon.util.ThreadPoolUtils;
 
@@ -33,8 +34,8 @@ public class ResponseThreadPoolProcessor extends AbstractResponseProcessor {
 				Constants.DEFAULT_RESPONSE_MAXPOOLSIZE);
 		int queueSize = configManager.getIntValue(Constants.KEY_RESPONSE_WORKQUEUESIZE,
 				Constants.DEFAULT_RESPONSE_WORKQUEUESIZE);
-		responseProcessThreadPool = new DefaultThreadPool("Pigeon-Client-Response-Processor", corePoolSize,
-				maxPoolSize, new LinkedBlockingQueue<Runnable>(queueSize), new CallerRunsPolicy());
+		responseProcessThreadPool = new DynamicThreadPool("Pigeon-Client-Response-Processor", corePoolSize,
+				maxPoolSize, queueSize, new CallerRunsPolicy(), false, false);
 	}
 
 	public void stop() {
@@ -64,5 +65,10 @@ public class ResponseThreadPoolProcessor extends AbstractResponseProcessor {
 				e.getPoolSize(), e.getActiveCount(), e.getCorePoolSize(), e.getMaximumPoolSize(),
 				e.getLargestPoolSize(), e.getTaskCount(), e.getCompletedTaskCount(), e.getQueue().size());
 		return stats;
+	}
+
+	@Override
+	public ThreadPool getResponseProcessThreadPool() {
+		return responseProcessThreadPool;
 	}
 }

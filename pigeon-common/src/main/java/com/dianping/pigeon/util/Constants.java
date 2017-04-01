@@ -7,4 +7,5 @@ public class Constants {
 
     public static final String PATH_SEPARATOR = "/";
     public static final String PLACEHOLDER = "^";
+    public static final String ACCESS_LOG_NAME = "pigeon-access";
 }

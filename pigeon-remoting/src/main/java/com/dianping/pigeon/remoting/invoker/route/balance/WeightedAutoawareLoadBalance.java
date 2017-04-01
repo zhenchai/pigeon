@@ -44,11 +44,14 @@ public class WeightedAutoawareLoadBalance extends AbstractLoadBalance {
                 logger.debug("capacity:" + LangUtils.toString(capacity, 4) + ", weight:" + weights[i] + " for address:"
                         + client.getAddress());
             }
-            if (weights[i] < defaultFactor) {
-                if (!isHit(weights[i])) {
-                    capacity = Float.MAX_VALUE;
-                }
+
+            // 根据权重重新调整请求容量
+            if (weights[i] > 0) {
+                capacity /= weights[i];
+            } else {
+                capacity = Float.MAX_VALUE;
             }
+
             if (capacity < minCapacity) {
                 minCapacity = capacity;
                 candidateIdx = 0;
@@ -64,7 +67,4 @@ public class WeightedAutoawareLoadBalance extends AbstractLoadBalance {
         return client;
     }
 
-    private boolean isHit(int weight) {
-        return random.nextInt(defaultFactor) < weight;
-    }
 }
