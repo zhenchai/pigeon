@@ -135,7 +135,7 @@ public class RemoteCallMonitorInvokeFilter extends InvocationInvokeFilter {
                         if (_request.getSerialize() != config.getSerialize()) {
                             transaction.addData("CurrentSerialize", _request.getSerialize());
                         }
-                        monitorProtocal(invocationContext, _request, targetApp);
+                        monitorProtocol(invocationContext, _request, targetApp);
                     }
                     invocationContext.getTimeline().add(new TimePoint(TimePhase.E, System.currentTimeMillis()));
                     transaction.complete();
@@ -150,14 +150,14 @@ public class RemoteCallMonitorInvokeFilter extends InvocationInvokeFilter {
     }
 
 
-    private void monitorProtocal(InvokerContext invokerContext, InvocationRequest request, String targetApp) {
+    private void monitorProtocol(InvokerContext invokerContext, InvocationRequest request, String targetApp) {
         if (SerializerType.isThrift(request.getSerialize())) {
             Client client = invokerContext.getClient();
             String address = "NULL";
             if (client != null) {
                 address = client.getAddress();
             }
-            monitor.logEvent("PigeonCall.protocal", targetApp, address);
+            monitor.logEvent("PigeonCall.protocol", targetApp, address);
         }
     }
 

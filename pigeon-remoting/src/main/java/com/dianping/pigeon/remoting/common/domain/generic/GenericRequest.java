@@ -21,7 +21,7 @@ public class GenericRequest implements UnifiedRequest {
 
     private transient byte serialize;
 
-    private byte protocalVersion = 1;
+    private byte protocolVersion = 1;
 
     private long seq;
 
@@ -113,12 +113,12 @@ public class GenericRequest implements UnifiedRequest {
         return this.seq;
     }
 
-    public byte getProtocalVersion() {
-        return protocalVersion;
+    public byte getProtocolVersion() {
+        return protocolVersion;
     }
 
-    public void setProtocalVersion(byte protocalVersion) {
-        this.protocalVersion = protocalVersion;
+    public void setProtocolVersion(byte protocolVersion) {
+        this.protocolVersion = protocolVersion;
     }
 
     @Override

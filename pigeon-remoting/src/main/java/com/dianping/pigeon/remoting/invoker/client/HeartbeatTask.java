@@ -174,7 +174,7 @@ public class HeartbeatTask implements Runnable {
         try {
             supported = RegistryManager.getInstance().isSupportNewProtocol(address);
         } catch (Throwable t) {
-            supported = Constants.isSupportedNewProtocal();
+            supported = Constants.isSupportedNewProtocol();
             logger.warn("get protocol support failed, set support to: " + supported);
         }
 

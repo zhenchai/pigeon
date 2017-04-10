@@ -101,7 +101,7 @@ public abstract class AbstractEncoder extends OneToOneEncoder {
 
         //magic
         os.write(CodecConstants._MAGIC);
-        os.writeByte(msg.getProtocalVersion());
+        os.writeByte(msg.getProtocolVersion());
         //serialize
         byte serialize = SerializerFactory.convertToUnifiedSerialize(msg.getSerialize());
         //serialize

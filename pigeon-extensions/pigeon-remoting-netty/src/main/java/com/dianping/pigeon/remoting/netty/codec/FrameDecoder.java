@@ -26,11 +26,11 @@ public class FrameDecoder extends org.jboss.netty.handler.codec.frame.FrameDecod
         buffer.getBytes(buffer.readerIndex(), headMsgs);
 
         if ((0x39 == headMsgs[0] && 0x3A == headMsgs[1])) {
-            //old protocal
+            //old protocol
             message = doDecode(buffer);
 
         } else if ((byte) 0xAB == headMsgs[0] && (byte) 0xBA == headMsgs[1]) {
-            //new protocal
+            //new protocol
             message = _doDecode(buffer);
 
         } else {
