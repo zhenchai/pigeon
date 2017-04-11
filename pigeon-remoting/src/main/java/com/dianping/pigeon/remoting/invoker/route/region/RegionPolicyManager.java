@@ -183,15 +183,13 @@ public enum RegionPolicyManager {
 
             if (key.endsWith(KEY_ENABLEREGIONPOLICY)) {
 
-                try {
-                    isEnabled = Boolean.valueOf(value);
-                    if (isEnabled) {
-                        initRegionsConfig();
-                    } else {
-                        logger.info("Region policy is disabled!");
-                    }
-                } catch (RuntimeException e) {
-                    logger.error("failed to set regions route switch!", e);
+                if(Boolean.valueOf(value)) { // region路由开,重新读取配置
+                    // 清空allClient region信息
+                    initRegionsConfig();
+
+                } else { // region路由关
+                    isEnabled = false;
+                    logger.info("Region policy is disabled!");
                 }
 
             } else if(isEnabled && key.endsWith(KEY_REGIONINFO)) {
