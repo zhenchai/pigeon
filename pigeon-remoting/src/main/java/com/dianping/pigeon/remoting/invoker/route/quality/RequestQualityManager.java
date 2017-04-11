@@ -1,5 +1,6 @@
 package com.dianping.pigeon.remoting.invoker.route.quality;
 
+import com.dianping.pigeon.config.ConfigChangeListener;
 import com.dianping.pigeon.config.ConfigManager;
 import com.dianping.pigeon.config.ConfigManagerLoader;
 import com.dianping.pigeon.log.Logger;
@@ -22,7 +23,7 @@ public enum RequestQualityManager {
     INSTANCE;
 
     private RequestQualityManager() {
-
+        ConfigManagerLoader.getConfigManager().registerConfigChangeListener(new InnerConfigChangeListener());
     }
 
     private static final Logger logger = LoggerLoader.getLogger(RequestQualityManager.class);
@@ -32,13 +33,10 @@ public enum RequestQualityManager {
     private static final String KEY_REQUEST_QUALITY_FAILED_PERCENT_GOOD = "pigeon.invoker.request.quality.failed.percent.good";
     private static final String KEY_REQUEST_QUALITY_FAILED_PERCENT_NORMAL = "pigeon.invoker.request.quality.failed.percent.normal";
     private static final String KEY_REQUEST_QUALITY_THRESHOLD_TOTAL = "pigeon.invoker.request.quality.threshold.total";
-
-    static {
-        configManager.getBooleanValue(KEY_REQUEST_QUALITY_AUTO, false);
-        configManager.getIntValue(KEY_REQUEST_QUALITY_THRESHOLD_TOTAL, 20);
-        configManager.getFloatValue(KEY_REQUEST_QUALITY_FAILED_PERCENT_GOOD, 1f);
-        configManager.getFloatValue(KEY_REQUEST_QUALITY_FAILED_PERCENT_NORMAL, 5f);
-    }
+    private volatile static boolean isReqQualityEnable = configManager.getBooleanValue(KEY_REQUEST_QUALITY_AUTO, false);
+    private volatile static Float reqQualityFailedPercentGood = configManager.getFloatValue(KEY_REQUEST_QUALITY_FAILED_PERCENT_GOOD, 1f);
+    private volatile static Float reqQualityFailedPercentNormal = configManager.getFloatValue(KEY_REQUEST_QUALITY_FAILED_PERCENT_NORMAL, 5f);
+    private volatile static int reqQualityThresholdTotal = configManager.getIntValue(KEY_REQUEST_QUALITY_THRESHOLD_TOTAL, 20);
 
     // hosts --> ( requestUrl:serviceName#method --> second --> { total, failed } )
     private ConcurrentMap<String, ConcurrentMap<String, ConcurrentMap<Integer, Quality>>>
@@ -60,7 +58,7 @@ public enum RequestQualityManager {
     }
 
     public void addClientRequest(InvokerContext context, boolean failed) {
-        if (configManager.getBooleanValue(KEY_REQUEST_QUALITY_AUTO, false) && context.getClient() != null) {
+        if (isReqQualityEnable && context.getClient() != null) {
 
             String address = context.getClient().getAddress();
             ConcurrentMap<String, ConcurrentMap<Integer, Quality>>
@@ -170,7 +168,7 @@ public enum RequestQualityManager {
     }
 
     public boolean isEnableRequestQualityRoute() {
-        return configManager.getBooleanValue(KEY_REQUEST_QUALITY_AUTO, false);
+        return isReqQualityEnable;
     }
 
     public int adjustWeightWithQuality(int weight, String clientAddress, InvocationRequest request) {
@@ -242,16 +240,14 @@ public enum RequestQualityManager {
         }
 
         public RequrlQuality getQuality() {
-
-            if (getTotalValue() > configManager.getIntValue(KEY_REQUEST_QUALITY_THRESHOLD_TOTAL, 20)) {
+            if (getTotalValue() > reqQualityThresholdTotal) {
                 float failedRate = getFailedPercent();
 
-                if (failedRate < configManager.getFloatValue(KEY_REQUEST_QUALITY_FAILED_PERCENT_GOOD, 1f)) {
+                if (failedRate < reqQualityFailedPercentGood) {
                     quality = RequrlQuality.REQURL_QUALITY_GOOD;
-                } else if (failedRate >= configManager.getFloatValue(KEY_REQUEST_QUALITY_FAILED_PERCENT_GOOD, 1f)
-                        && failedRate < configManager.getFloatValue(KEY_REQUEST_QUALITY_FAILED_PERCENT_NORMAL, 5f)) {
+                } else if (failedRate >= reqQualityFailedPercentGood && failedRate < reqQualityFailedPercentNormal) {
                     quality = RequrlQuality.REQURL_QUALITY_NORNAL;
-                } else if (failedRate >= configManager.getFloatValue(KEY_REQUEST_QUALITY_FAILED_PERCENT_NORMAL, 5f)) {
+                } else if (failedRate >= reqQualityFailedPercentNormal) {
                     quality = RequrlQuality.REQURL_QUALITY_BAD;
                 }
             }
@@ -280,4 +276,48 @@ public enum RequestQualityManager {
         }
     }
 
+    private class InnerConfigChangeListener implements ConfigChangeListener {
+        @Override
+        public void onKeyUpdated(String key, String value) {
+            if (key.endsWith(KEY_REQUEST_QUALITY_AUTO)) {
+                try {
+                    isReqQualityEnable = Boolean.valueOf(value);
+                    logger.warn("set request quality switch to " + value);
+                } catch (RuntimeException e) {
+                    logger.error("set request quality switch failed!", e);
+                }
+            } else if (key.endsWith(KEY_REQUEST_QUALITY_FAILED_PERCENT_GOOD)) {
+                try {
+                    reqQualityFailedPercentGood = Float.valueOf(value);
+                    logger.warn("set req quality failed percent good to " + value);
+                } catch (RuntimeException e) {
+                    logger.error("set req quality failed percent good failed!", e);
+                }
+            } else if (key.endsWith(KEY_REQUEST_QUALITY_FAILED_PERCENT_NORMAL)) {
+                try {
+                    reqQualityFailedPercentNormal = Float.valueOf(value);
+                    logger.warn("set req quality failed percent normal to " + value);
+                } catch (RuntimeException e) {
+                    logger.error("set req quality failed percent normal failed!", e);
+                }
+            } else if (key.endsWith(KEY_REQUEST_QUALITY_THRESHOLD_TOTAL)) {
+                try {
+                    reqQualityThresholdTotal = Integer.valueOf(value);
+                    logger.warn("set req quality threshold total to " + value);
+                } catch (RuntimeException e) {
+                    logger.error("set req quality threshold total failed!", e);
+                }
+            }
+        }
+
+        @Override
+        public void onKeyAdded(String key, String value) {
+
+        }
+
+        @Override
+        public void onKeyRemoved(String key) {
+
+        }
+    }
 }
