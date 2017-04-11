@@ -91,7 +91,7 @@ public abstract class AbstractClient implements Client {
     }
 
     @Override
-    public void setActive(boolean active) {
+        public void setActive(boolean active) {
         this.isActive = active;
     }
 
@@ -106,6 +106,11 @@ public abstract class AbstractClient implements Client {
     @Override
     public void clearRegion() {
         region = null;
+    }
+
+    @Override
+    public void setRegion(Region region) {
+        this.region = region;
     }
 
     private void startHeatbeat() {

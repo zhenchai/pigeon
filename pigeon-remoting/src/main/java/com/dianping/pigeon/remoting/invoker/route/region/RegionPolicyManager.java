@@ -8,7 +8,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
+import com.dianping.pigeon.threadpool.DefaultThreadFactory;
 import org.apache.commons.lang.StringUtils;
 
 import com.dianping.pigeon.config.ConfigChangeListener;
@@ -34,7 +38,9 @@ public enum RegionPolicyManager {
 
     INSTANCE;
 
-    private RegionPolicyManager () {}
+    RegionPolicyManager() {
+        startRegionSyncTask();
+    }
 
     private static volatile boolean isInitialized = false;
 
@@ -352,5 +358,22 @@ public enum RegionPolicyManager {
 
     public Region getLocalRegion() {
         return localRegion;
+    }
+
+    private void startRegionSyncTask() {
+        ScheduledExecutorService scheduler = Executors
+                .newSingleThreadScheduledExecutor(new DefaultThreadFactory("pigeon-region-sync", true));
+        scheduler.scheduleWithFixedDelay(new Runnable() {
+
+            @Override
+            public void run() {
+                for (Map.Entry<String, Client> hostClientEntry
+                        : ClientManager.getInstance().getClusterListener().getAllClients().entrySet()) {
+                    Client client = hostClientEntry.getValue();
+
+                }
+            }
+
+        }, 10, 10, TimeUnit.MINUTES);
     }
 }
