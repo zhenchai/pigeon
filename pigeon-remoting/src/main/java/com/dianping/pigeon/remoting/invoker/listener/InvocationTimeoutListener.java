@@ -46,7 +46,9 @@ public class InvocationTimeoutListener implements Runnable {
 							if (callback != null && callback.getClient() != null) {
 								ServiceStatisticsHolder.flowOut(request, callback.getClient().getAddress());
 							}
-							callback.dispose();
+							if (callback != null) {
+								callback.dispose();
+							}
 							invocations.remove(sequence);
 							boolean isLog = true;
 							if (timeoutCountInLastSecond > ConfigManagerLoader.getConfigManager().getIntValue(
