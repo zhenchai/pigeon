@@ -46,6 +46,4 @@ public interface Client<C extends Channel> {
 
     void clearRegion();
 
-    void setRegion(Region region);
-
 }

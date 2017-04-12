@@ -282,30 +282,30 @@ public enum RequestQualityManager {
             if (key.endsWith(KEY_REQUEST_QUALITY_AUTO)) {
                 try {
                     isReqQualityEnable = Boolean.valueOf(value);
-                    logger.warn("set request quality switch to " + value);
+                    logger.info("set request quality switch to " + value);
                 } catch (RuntimeException e) {
-                    logger.error("set request quality switch failed!", e);
+                    logger.warn("set request quality switch failed!", e);
                 }
             } else if (key.endsWith(KEY_REQUEST_QUALITY_FAILED_PERCENT_GOOD)) {
                 try {
                     reqQualityFailedPercentGood = Float.valueOf(value);
-                    logger.warn("set req quality failed percent good to " + value);
+                    logger.info("set req quality failed percent good to " + value);
                 } catch (RuntimeException e) {
-                    logger.error("set req quality failed percent good failed!", e);
+                    logger.warn("set req quality failed percent good failed!", e);
                 }
             } else if (key.endsWith(KEY_REQUEST_QUALITY_FAILED_PERCENT_NORMAL)) {
                 try {
                     reqQualityFailedPercentNormal = Float.valueOf(value);
-                    logger.warn("set req quality failed percent normal to " + value);
+                    logger.info("set req quality failed percent normal to " + value);
                 } catch (RuntimeException e) {
-                    logger.error("set req quality failed percent normal failed!", e);
+                    logger.warn("set req quality failed percent normal failed!", e);
                 }
             } else if (key.endsWith(KEY_REQUEST_QUALITY_THRESHOLD_TOTAL)) {
                 try {
                     reqQualityThresholdTotal = Integer.valueOf(value);
-                    logger.warn("set req quality threshold total to " + value);
+                    logger.info("set req quality threshold total to " + value);
                 } catch (RuntimeException e) {
-                    logger.error("set req quality threshold total failed!", e);
+                    logger.warn("set req quality threshold total failed!", e);
                 }
             }
         }

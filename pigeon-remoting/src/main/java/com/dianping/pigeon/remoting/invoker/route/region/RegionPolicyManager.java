@@ -1,20 +1,5 @@
 package com.dianping.pigeon.remoting.invoker.route.region;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-
-import com.dianping.pigeon.threadpool.DefaultThreadFactory;
-import org.apache.commons.lang.StringUtils;
-
 import com.dianping.pigeon.config.ConfigChangeListener;
 import com.dianping.pigeon.config.ConfigManager;
 import com.dianping.pigeon.config.ConfigManagerLoader;
@@ -30,6 +15,10 @@ import com.dianping.pigeon.remoting.invoker.config.InvokerConfig;
 import com.dianping.pigeon.remoting.invoker.exception.RouteException;
 import com.dianping.pigeon.util.ClassUtils;
 import com.dianping.pigeon.util.ServiceUtils;
+import org.apache.commons.lang.StringUtils;
+
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by chenchongze on 16/4/14.
@@ -38,9 +27,7 @@ public enum RegionPolicyManager {
 
     INSTANCE;
 
-    RegionPolicyManager() {
-        startRegionSyncTask();
-    }
+    RegionPolicyManager() {}
 
     private static volatile boolean isInitialized = false;
 
@@ -356,22 +343,5 @@ public enum RegionPolicyManager {
 
     public Region getLocalRegion() {
         return localRegion;
-    }
-
-    private void startRegionSyncTask() {
-        ScheduledExecutorService scheduler = Executors
-                .newSingleThreadScheduledExecutor(new DefaultThreadFactory("pigeon-region-sync", true));
-        scheduler.scheduleWithFixedDelay(new Runnable() {
-
-            @Override
-            public void run() {
-                for (Map.Entry<String, Client> hostClientEntry
-                        : ClientManager.getInstance().getClusterListener().getAllClients().entrySet()) {
-                    Client client = hostClientEntry.getValue();
-
-                }
-            }
-
-        }, 10, 10, TimeUnit.MINUTES);
     }
 }
