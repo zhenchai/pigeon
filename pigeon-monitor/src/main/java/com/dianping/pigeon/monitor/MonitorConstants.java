@@ -12,4 +12,7 @@ public class MonitorConstants {
 
     public static final String SERVER_MSG_ID = "ServerMessageId";
 
+    public static final String SPAN_ID = "spanId";
+
+    public static final String TRACE_ID = "traceId";
 }

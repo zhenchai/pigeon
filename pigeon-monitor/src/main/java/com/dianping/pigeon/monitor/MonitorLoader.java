@@ -1,21 +1,22 @@
 package com.dianping.pigeon.monitor;
 
+import com.dianping.pigeon.extension.ExtensionLoader;
 import com.dianping.pigeon.log.Logger;
 
-import com.dianping.pigeon.extension.ExtensionLoader;
 import com.dianping.pigeon.log.LoggerLoader;
-import com.dianping.pigeon.monitor.simple.SimpleMonitor;
+
+import java.util.List;
 
 public class MonitorLoader {
 
-	private static Monitor monitor = ExtensionLoader.getExtension(Monitor.class);
-	private static final Logger logger = LoggerLoader.getLogger(MonitorLoader.class);
+    private static final Logger logger = LoggerLoader.getLogger(MonitorLoader.class);
+
+    private static List<Monitor> monitorList = ExtensionLoader.getExtensionList(Monitor.class);
+
+    //管理监控组件，如cat和mtrace
+	private static Monitor monitor = new CompositeMonitor(monitorList);
 
 	static {
-		if (monitor == null) {
-			monitor = new SimpleMonitor();
-		}
-		logger.info("monitor:" + monitor);
 		monitor.init();
 	}
 

@@ -65,6 +65,8 @@ public class ThriftMapper {
             traceInfo.setRootMessageId(localContext.get(MonitorConstants.ROOT_MSG_ID));
             traceInfo.setServerMessageId(localContext.get(MonitorConstants.SERVER_MSG_ID));
             traceInfo.setCurrentMessageId(localContext.get(MonitorConstants.CURRENT_MSG_ID));
+            traceInfo.setSpanId(localContext.get(MonitorConstants.SPAN_ID));
+            traceInfo.setTraceId(localContext.get(MonitorConstants.TRACE_ID));
         }
 
         traceInfo.setClientIp(request.getClientIp());
@@ -216,6 +218,8 @@ public class ThriftMapper {
             localContext.put(MonitorConstants.ROOT_MSG_ID, traceInfo.getRootMessageId());
             localContext.put(MonitorConstants.CURRENT_MSG_ID, traceInfo.getCurrentMessageId());
             localContext.put(MonitorConstants.SERVER_MSG_ID, traceInfo.getServerMessageId());
+            localContext.put(MonitorConstants.SPAN_ID, traceInfo.getSpanId());
+            localContext.put(MonitorConstants.TRACE_ID, traceInfo.getTraceId());
         }
         return request;
     }
