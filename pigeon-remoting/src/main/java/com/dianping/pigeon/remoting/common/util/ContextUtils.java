@@ -151,11 +151,12 @@ public class ContextUtils {
             for (Map.Entry<String, Serializable> entry : srcCtx.entrySet()) {
                 if (entry.getValue() == null) {
                     dstCtx.put(entry.getKey(), null);
-                }
-                if (entry.getValue() instanceof String) {
-                    dstCtx.put(entry.getKey(), (String) entry.getValue());
-                } else {
-                    throw new IllegalArgumentException("only support string type.");
+                }else {
+                    if (entry.getValue() instanceof String) {
+                        dstCtx.put(entry.getKey(), (String) entry.getValue());
+                    } else {
+                        throw new IllegalArgumentException("only support string type.");
+                    }
                 }
 
             }
