@@ -102,7 +102,7 @@ public class MonitorProcessFilter implements ServiceInvocationFilter<ProviderCon
                     }
 
                     if (SerializerType.isThrift(request.getSerialize())) {
-                        monitor.logEvent("PigeonService.protocal", request.getApp(), fromIp);
+                        monitor.logEvent("PigeonService.protocol", request.getApp(), fromIp);
                     }
                 }
                 ContextUtils.putLocalContext("CurrentServiceUrl",

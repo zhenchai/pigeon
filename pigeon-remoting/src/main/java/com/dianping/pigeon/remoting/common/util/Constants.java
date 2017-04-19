@@ -237,7 +237,7 @@ public final class Constants {
     public static final String CONTEXT_KEY_SOURCE_IP = "SOURCE_IP";
     public static final String CONTEXT_KEY_SOURCE_APP = "SOURCE_APP";
 
-    public static final boolean isSupportedNewProtocal() {
+    public static final boolean isSupportedNewProtocol() {
         return ConfigManagerLoader.getConfigManager().getBooleanValue("pigeon.mns.host.support.new.protocol", true);
     }
 

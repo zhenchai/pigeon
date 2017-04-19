@@ -10,9 +10,9 @@ import java.util.Map;
  */
 public interface UnifiedInvocation extends InvocationSerializable {
 
-    byte getProtocalVersion();
+    byte getProtocolVersion();
 
-    void setProtocalVersion(byte protocalVersion);
+    void setProtocolVersion(byte protocolVersion);
 
     int getCompressType();
 
