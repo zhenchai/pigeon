@@ -54,7 +54,7 @@ public abstract class AbstractEncoder extends OneToOneEncoder {
                 SerializationException se = new SerializationException(e);
 
                 try {
-                    doFailResponse(ctx, channel, ProviderUtils.createThrowableResponse(_msg.getSequence(),
+                    doFailResponse(ctx, channel, ProviderUtils.createThrowableResponse(_msg,
                             _msg.getSerialize(), se));
                 } catch (Throwable t) {
                 }

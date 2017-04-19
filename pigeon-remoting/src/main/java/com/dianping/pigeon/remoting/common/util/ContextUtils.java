@@ -149,9 +149,7 @@ public class ContextUtils {
     public static void convertContext(Map<String, Serializable> srcCtx, Map<String, String> dstCtx) {
         if (srcCtx != null) {
             for (Map.Entry<String, Serializable> entry : srcCtx.entrySet()) {
-                if (entry.getValue() == null) {
-                    dstCtx.put(entry.getKey(), null);
-                }else {
+                if (entry.getValue() != null) {
                     if (entry.getValue() instanceof String) {
                         dstCtx.put(entry.getKey(), (String) entry.getValue());
                     } else {

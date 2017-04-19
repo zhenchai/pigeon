@@ -7,6 +7,8 @@ package com.dianping.pigeon.remoting.provider.util;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.dianping.pigeon.remoting.common.domain.InvocationSerializable;
+import com.dianping.pigeon.remoting.common.domain.generic.UnifiedInvocation;
 import org.apache.commons.lang.StringUtils;
 
 import com.dianping.pigeon.config.ConfigManager;
@@ -50,6 +52,19 @@ public final class ProviderUtils {
         return response;
     }
 
+    public static InvocationResponse createThrowableResponse(InvocationSerializable invocation, byte serialization, Throwable e) {
+        if (invocation instanceof UnifiedInvocation) {
+            if (invocation instanceof UnifiedRequest) {
+                return createThrowableResponse0((UnifiedRequest) invocation, e);
+            } else if (invocation instanceof UnifiedResponse) {
+                return createThrowableResponse0((UnifiedResponse) invocation, e);
+            } else {
+                throw new IllegalArgumentException("unsupported this class " + invocation.getClass());
+            }
+        } else {
+            return createThrowableResponse(invocation.getSequence(), serialization, e);
+        }
+    }
 
     public static InvocationResponse createThrowableResponse(InvocationRequest request, byte serialization, Throwable e) {
         if (request instanceof UnifiedRequest) {
@@ -90,6 +105,24 @@ public final class ProviderUtils {
             response.setReturn(exceptionTranslator.translate(e));
         }
         response.setSeqId(request.getSeqId());
+        return response;
+    }
+
+    public static InvocationResponse createThrowableResponse0(UnifiedResponse response, Throwable e) {
+        UnifiedResponse response0 = null;
+        byte serialize = response.getSerialize();
+        response0 = (UnifiedResponse) SerializerFactory.getSerializer(serialize).newResponse();
+        response0.setSequence(response.getSequence());
+        response0.setSerialize(serialize);
+        response0.setServiceName(response.getServiceName());
+        response0.setMethodName(response.getMethodName());
+        response0.setMessageType(Constants.MESSAGE_TYPE_EXCEPTION);
+        if (SerializerType.isJson(serialize)) {
+            response0.setReturn(LangUtils.getFullStackTrace(e));
+        } else {
+            response0.setReturn(exceptionTranslator.translate(e));
+        }
+        response0.setSeqId(response.getSeqId());
         return response;
     }
 
