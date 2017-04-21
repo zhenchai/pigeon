@@ -30,6 +30,7 @@ public final class InvokerProcessHandlerFactory {
 				registerBizProcessFilter(new RemoteCallMonitorInvokeFilter());
 			}
 			registerBizProcessFilter(new TraceFilter());
+			registerBizProcessFilter(new FaultInjectionFilter());
 			registerBizProcessFilter(new DegradationFilter());
 			registerBizProcessFilter(new ClusterInvokeFilter());
 			registerBizProcessFilter(new GatewayInvokeFilter());

@@ -98,7 +98,9 @@ public class CallbackFuture implements Callback, CallFuture {
         }
 
         if (!isDone()) {
-            ServiceStatisticsHolder.flowOut(request, client.getAddress());
+            if (client != null) {
+                ServiceStatisticsHolder.flowOut(request, client.getAddress());
+            }
             throw InvocationUtils.newTimeoutException(
                     "request timeout, current time:" + System.currentTimeMillis() + "\r\nrequest:" + request);
         }
@@ -122,7 +124,8 @@ public class CallbackFuture implements Callback, CallFuture {
         processContext();
 
         if (response.getMessageType() == Constants.MESSAGE_TYPE_EXCEPTION) {
-            ExceptionManager.INSTANCE.logRemoteCallException(client.getAddress(), request.getServiceName(),
+            String addr = client != null ? client.getAddress() : "";
+            ExceptionManager.INSTANCE.logRemoteCallException(addr, request.getServiceName(),
                     request.getMethodName(), "remote call error", request, response, transaction);
         } else if (response.getMessageType() == Constants.MESSAGE_TYPE_SERVICE_EXCEPTION) {
             ExceptionManager.INSTANCE.logRemoteServiceException("remote service biz error", request, response);
