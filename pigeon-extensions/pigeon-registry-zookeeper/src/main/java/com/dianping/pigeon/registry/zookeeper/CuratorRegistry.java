@@ -531,7 +531,7 @@ public class CuratorRegistry implements Registry {
                 infoMap.remove(serviceName);
 
                 if (infoMap.size() == 0 && delEmptyNode) {
-                    client.delete(protocolPath);
+                    client.set(protocolPath, "{}", stat.getVersion());
                 } else {
                     client.set(protocolPath, Utils.getProtocolInfo(infoMap), stat.getVersion());
                 }
