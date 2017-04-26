@@ -88,6 +88,8 @@ public enum DegradationManager {
 					isForceDegrade = Boolean.valueOf(value);
 				} else if (key.endsWith(KEY_DEGRADE_AUTO)) {
 					isAutoDegrade = Boolean.valueOf(value);
+				} else if (key.endsWith(KEY_DEGRADE_FAILURE)) {
+					isFailureDegrade = Boolean.valueOf(value);
 				} else if (key.endsWith(KEY_DEGRADE_THRESHOLD_TOTAL)) {
 					degradeTotalThreshold = Integer.valueOf(value);
 				} else if (key.endsWith(KEY_DEGRADE_THRESHOLD_INVOKE)) {
