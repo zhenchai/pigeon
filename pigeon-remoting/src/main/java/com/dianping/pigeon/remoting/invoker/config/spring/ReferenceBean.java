@@ -302,25 +302,10 @@ public class ReferenceBean implements FactoryBean {
     }
 
     private void checkRemoteAppkey() {
-        if (configManager.getBooleanValue("pigeon.remote.appkey.check", false)) {
+        if (configManager.getBooleanValue("pigeon.remote.appkey.check.exist", true)) {
             if (StringUtils.isNotBlank(remoteAppKey)) {
-                if (SerializerType.isThrift(serialize)) {
-                    remoteAppKey = "";
-                    logger.info("not thrift serialize, set remoteAppKey to null");
-                }
-
-                String[] mtPackageBases = configManager
-                        .getStringValue("pigeon.mt.package.base", "com.sankuai,com.meituan").split(",");
-                boolean isMatch = false;
-                for (String mtPackageBase : mtPackageBases) {
-                    if(interfaceName.startsWith(mtPackageBase)) {
-                        isMatch = true;
-                    }
-                }
-                if (!isMatch) {
-                    remoteAppKey = "";
-                    logger.info("not match mt package base, set remoteAppKey to null");
-                }
+                remoteAppKey = "";
+                logger.info("set remoteAppKey to blank");
             }
         }
     }

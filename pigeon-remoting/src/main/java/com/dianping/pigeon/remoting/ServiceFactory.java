@@ -61,11 +61,19 @@ public class ServiceFactory {
 
 	public static <T> String getServiceUrl(InvokerConfig<T> invokerConfig) {
 		String url = invokerConfig.getServiceInterface().getCanonicalName();
+		int index = url.indexOf("$Iface");
+		if (index != -1) {
+			url =  url.substring(0, index);
+		}
 		return url;
 	}
 
 	public static <T> String getServiceUrl(ProviderConfig<T> providerConfig) {
 		String url = providerConfig.getServiceInterface().getCanonicalName();
+		int index = url.indexOf("$Iface");
+		if (index != -1) {
+			url =  url.substring(0, index);
+		}
 		return url;
 	}
 
