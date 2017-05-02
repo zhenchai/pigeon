@@ -29,7 +29,7 @@ public enum RequestQualityManager {
     private static final Logger logger = LoggerLoader.getLogger(RequestQualityManager.class);
 
     private static final ConfigManager configManager = ConfigManagerLoader.getConfigManager();
-    private static final String KEY_REQUEST_QUALITY_AUTO = "pigeon.invoker.request.quality.auto";
+    private static final String KEY_REQUEST_QUALITY_AUTO = "pigeon.invoker.request.quality.auto.active";
     private static final String KEY_REQUEST_QUALITY_FAILED_PERCENT_GOOD = "pigeon.invoker.request.quality.failed.percent.good";
     private static final String KEY_REQUEST_QUALITY_FAILED_PERCENT_NORMAL = "pigeon.invoker.request.quality.failed.percent.normal";
     private static final String KEY_REQUEST_QUALITY_THRESHOLD_TOTAL = "pigeon.invoker.request.quality.threshold.total";
@@ -113,12 +113,14 @@ public enum RequestQualityManager {
 
     /**
      * 根据方法的服务质量过滤，优先保留服务质量good的clients，数量低于least时加入服务质量normal的clients
+     * 存在的问题,如果一个节点是个死节点,那么他永远是优秀的节点
      *
      * @param clientList
      * @param request
      * @param least      最少保留个数
      * @return
      */
+    @Deprecated
     public List<Client> getQualityPreferClients(List<Client> clientList, InvocationRequest request, float least) {
         // 筛选good，normal，bad clients
         // 直接进行服务质量路由,先只保留服务质量good的，如果不够（比如少于1个），加入服务质量normal的
