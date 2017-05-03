@@ -28,6 +28,8 @@ public class AbstractPublishPolicy implements PublishPolicy {
 
     private static final Logger logger = LoggerLoader.getLogger(AbstractPublishPolicy.class);
     private static final ConfigManager configManager = ConfigManagerLoader.getConfigManager();
+    private static final boolean IS_CHECK_SERVICE_EXCEPTION_DEFAULT
+            = configManager.getBooleanValue("pigeon.check.is.stock.service.failure.exception.default", true);
     private static final boolean IS_CHECK_SERVICE_DEFAULT
             = configManager.getBooleanValue("pigeon.check.is.stock.service.failure.default", true);
 
@@ -56,15 +58,25 @@ public class AbstractPublishPolicy implements PublishPolicy {
         if (StringUtils.isBlank(customUrl)) {
             providerConfig.setUrl(serviceUrl);
         } else if (!serviceUrl.equals(customUrl) && !isStockService(customUrl)) {
-            // 非存量服务,不允许注册,强制转换为类路径服务名
-            logger.warn("customized [serviceName] cannot provide service to OCTO invoker "
-                    + "unless set the [serviceName] to full class name "
-                    + "or just keep [serviceName] config to blank.\n"
-                    + "[serviceName] will be replaced by full class name: "
-                    + serviceUrl + ", more help refer to: "
-                    + configManager.getStringValue("pigeon.help.provider.octo.url"
-                    , "http://wiki.sankuai.com/pages/viewpage.action?pageId=606809899"));
-            providerConfig.setUrl(serviceUrl);
+            // 非存量服务,不允许注册,抛出异常或强制转换为类路径服务名
+            if (IS_CHECK_SERVICE_EXCEPTION_DEFAULT) {
+                throw new RuntimeException("customized [serviceName] cannot provide service to OCTO invoker "
+                        + "unless set the [serviceName] to full class name "
+                        + "or just keep [serviceName] config to blank.\n"
+                        + "[serviceName] should be replaced by full class name: "
+                        + serviceUrl + ", more help refer to: "
+                        + configManager.getStringValue("pigeon.help.provider.octo.url"
+                        , "http://wiki.sankuai.com/pages/viewpage.action?pageId=606809899"));
+            } else {
+                logger.warn("customized [serviceName] cannot provide service to OCTO invoker "
+                        + "unless set the [serviceName] to full class name "
+                        + "or just keep [serviceName] config to blank.\n"
+                        + "[serviceName] will be replaced by full class name: "
+                        + serviceUrl + ", more help refer to: "
+                        + configManager.getStringValue("pigeon.help.provider.octo.url"
+                        , "http://wiki.sankuai.com/pages/viewpage.action?pageId=606809899"));
+                providerConfig.setUrl(serviceUrl);
+            }
         }
     }
 
