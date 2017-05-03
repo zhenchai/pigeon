@@ -127,12 +127,12 @@ public enum RegionPolicyManager {
     /**
      * 注册RegionPolicy
      * @param serviceName
-     * @param group
+     * @param suffix
      * @param regionPolicy
      */
     @SuppressWarnings("unchecked")
-    public void register(String serviceName, String group, Object regionPolicy) {
-        String serviceId = ServiceUtils.getServiceId(serviceName, group);
+    public void register(String serviceName, String suffix, Object regionPolicy) {
+        String serviceId = ServiceUtils.getServiceId(serviceName, suffix);
         RegionPolicy regionPolicyObj = null;
         if(regionPolicy instanceof RegionPolicy) {
             regionPolicyObj = (RegionPolicy) regionPolicy;

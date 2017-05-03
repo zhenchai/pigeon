@@ -7,10 +7,10 @@ import org.apache.commons.lang.StringUtils;
  */
 public class ServiceUtils {
 
-    public static String getServiceId(String serviceName, String group) {
+    public static String getServiceId(String serviceName, String suffix) {
         String serviceId = serviceName;
-        if (StringUtils.isNotBlank(group)) {
-            serviceId = serviceId + ":" + group;
+        if (StringUtils.isNotBlank(suffix)) {
+            serviceId = serviceId + ":" + suffix;
         }
         return serviceId;
     }

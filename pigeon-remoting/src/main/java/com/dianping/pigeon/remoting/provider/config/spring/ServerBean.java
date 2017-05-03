@@ -24,7 +24,7 @@ public class ServerBean {
 	private int corePoolSize = Constants.PROVIDER_POOL_CORE_SIZE;
 	private int maxPoolSize = Constants.PROVIDER_POOL_MAX_SIZE;
 	private int workQueueSize = Constants.PROVIDER_POOL_QUEUE_SIZE;
-	private String group = ConfigManagerLoader.getConfigManager().getGroup();
+	private String suffix = ConfigManagerLoader.getConfigManager().getGroup();
 	private volatile ServerConfig serverConfig;
 
 	public boolean isAutoSelectPort() {
@@ -77,12 +77,12 @@ public class ServerBean {
 		this.workQueueSize = workQueueSize;
 	}
 
-	public String getGroup() {
-		return group;
+	public String getSuffix() {
+		return suffix;
 	}
 
-	public void setGroup(String group) {
-		this.group = group;
+	public void setSuffix(String suffix) {
+		this.suffix = suffix;
 	}
 
 	public ServerConfig init() throws Exception {
@@ -91,7 +91,7 @@ public class ServerBean {
 				if (serverConfig == null) {
 					serverConfig = new ServerConfig();
 					serverConfig.setPort(port);
-					serverConfig.setSuffix(group);
+					serverConfig.setSuffix(suffix);
 					serverConfig.setAutoSelectPort(autoSelectPort);
 					serverConfig.setCorePoolSize(corePoolSize);
 					serverConfig.setMaxPoolSize(maxPoolSize);

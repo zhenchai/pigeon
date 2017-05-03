@@ -228,14 +228,14 @@ public class InvokerConfig<T> {
     }
 
     public InvokerConfig(Class<T> serviceInterface, String url, int timeout, String callMethod, String serialize,
-                         InvocationCallback callback, String group, boolean writeBufferLimit, String loadbalance, String cluster,
+                         InvocationCallback callback, String suffix, boolean writeBufferLimit, String loadbalance, String cluster,
                          int retries, boolean timeoutRetry, String vip, String version, String protocol) {
         this.setServiceInterface(serviceInterface);
         this.setUrl(url);
         this.setTimeout(timeout);
         this.setCallType(callMethod);
         this.setCallback(callback);
-        this.setSuffix(group);
+        this.setSuffix(suffix);
         this.setCluster(cluster);
         this.setLoadbalance(loadbalance);
         this.setRetries(retries);

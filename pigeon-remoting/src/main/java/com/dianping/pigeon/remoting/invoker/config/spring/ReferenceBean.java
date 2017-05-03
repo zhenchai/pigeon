@@ -118,7 +118,7 @@ public class ReferenceBean implements FactoryBean {
         this.version = version;
     }
 
-    private String group = configManager.getGroup();
+    private String suffix = configManager.getGroup();
 
     private String loadBalance = LoadBalanceManager.DEFAULT_LOADBALANCE;
 
@@ -222,10 +222,10 @@ public class ReferenceBean implements FactoryBean {
     }
 
     /**
-     * @param group the group to set
+     * @param suffix the group to set
      */
-    public void setGroup(String group) {
-        this.group = group;
+    public void setSuffix(String suffix) {
+        this.suffix = suffix;
     }
 
     public void setLoadBalance(String loadBalance) {
@@ -267,7 +267,7 @@ public class ReferenceBean implements FactoryBean {
         }
         this.objType = ClassUtils.loadClass(this.classLoader, this.interfaceName.trim());
         InvokerConfig<?> invokerConfig = new InvokerConfig(this.objType, this.url, this.timeout, this.callType,
-                this.serialize, this.callback, this.group, this.writeBufferLimit, this.loadBalance, this.cluster,
+                this.serialize, this.callback, this.suffix, this.writeBufferLimit, this.loadBalance, this.cluster,
                 this.retries, this.timeoutRetry, this.vip, this.version, this.protocol);
         invokerConfig.setClassLoader(classLoader);
         invokerConfig.setSecret(secret);
@@ -314,7 +314,7 @@ public class ReferenceBean implements FactoryBean {
         Object loadBalanceToSet = loadBalanceObj != null ? loadBalanceObj
                 : (loadBalanceClass != null ? loadBalanceClass : (loadBalance != null ? loadBalance : null));
         if (loadBalanceToSet != null) {
-            LoadBalanceManager.register(invokerConfig.getUrl(), group, loadBalanceToSet);
+            LoadBalanceManager.register(invokerConfig.getUrl(), suffix, loadBalanceToSet);
         }
     }
 

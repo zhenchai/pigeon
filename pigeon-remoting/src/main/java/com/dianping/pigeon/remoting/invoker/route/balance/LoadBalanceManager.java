@@ -102,8 +102,8 @@ public class LoadBalanceManager {
 	}
 
 	@SuppressWarnings("unchecked")
-	public static void register(String serviceName, String group, Object loadBalance) {
-		String serviceId = ServiceUtils.getServiceId(serviceName, group);
+	public static void register(String serviceName, String suffix, Object loadBalance) {
+		String serviceId = ServiceUtils.getServiceId(serviceName, suffix);
 		LoadBalance loadBlanceObj = null;
 		if (loadBalance instanceof LoadBalance) {
 			loadBlanceObj = (LoadBalance) loadBalance;
