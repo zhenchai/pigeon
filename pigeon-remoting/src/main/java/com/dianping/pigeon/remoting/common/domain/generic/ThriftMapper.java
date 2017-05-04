@@ -210,7 +210,9 @@ public class ThriftMapper {
 
         if (traceInfo.getRootMessageId() == null &&
                 traceInfo.getCurrentMessageId() == null &&
-                traceInfo.getServerMessageId() == null) {
+                traceInfo.getServerMessageId() == null &&
+                traceInfo.getSpanId() == null &&
+                traceInfo.getTraceId() == null) {
             return request;
         }
 
