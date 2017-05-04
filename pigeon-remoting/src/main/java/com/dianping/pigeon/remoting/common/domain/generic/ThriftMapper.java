@@ -216,16 +216,18 @@ public class ThriftMapper {
             return request;
         }
 
-        if (request.getLocalContext() == null) {
-            Map<String, String> localContext = new HashMap<String, String>();
-            localContext.put(MonitorConstants.ROOT_MSG_ID, traceInfo.getRootMessageId());
-            localContext.put(MonitorConstants.CURRENT_MSG_ID, traceInfo.getCurrentMessageId());
-            localContext.put(MonitorConstants.SERVER_MSG_ID, traceInfo.getServerMessageId());
-            localContext.put(MonitorConstants.SPAN_ID, traceInfo.getSpanId());
-            localContext.put(MonitorConstants.TRACE_ID, traceInfo.getTraceId());
-            localContext.put(MonitorConstants.DEBUG, Boolean.toString(traceInfo.isDebug()));
+        Map<String, String> localContext = request.getLocalContext();
+        if (localContext == null) {
+            localContext = new HashMap<>();
             request.setLocalContext(localContext);
         }
+        localContext.put(MonitorConstants.ROOT_MSG_ID, traceInfo.getRootMessageId());
+        localContext.put(MonitorConstants.CURRENT_MSG_ID, traceInfo.getCurrentMessageId());
+        localContext.put(MonitorConstants.SERVER_MSG_ID, traceInfo.getServerMessageId());
+        localContext.put(MonitorConstants.SPAN_ID, traceInfo.getSpanId());
+        localContext.put(MonitorConstants.TRACE_ID, traceInfo.getTraceId());
+        localContext.put(MonitorConstants.DEBUG, Boolean.toString(traceInfo.isDebug()));
+
         return request;
     }
 
