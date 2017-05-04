@@ -215,13 +215,14 @@ public class ThriftMapper {
         }
 
         if (request.getLocalContext() == null) {
-            Map<String, String> localContext = new HashMap<>();
+            Map<String, String> localContext = new HashMap<String, String>();
             localContext.put(MonitorConstants.ROOT_MSG_ID, traceInfo.getRootMessageId());
             localContext.put(MonitorConstants.CURRENT_MSG_ID, traceInfo.getCurrentMessageId());
             localContext.put(MonitorConstants.SERVER_MSG_ID, traceInfo.getServerMessageId());
             localContext.put(MonitorConstants.SPAN_ID, traceInfo.getSpanId());
             localContext.put(MonitorConstants.TRACE_ID, traceInfo.getTraceId());
             localContext.put(MonitorConstants.DEBUG, Boolean.toString(traceInfo.isDebug()));
+            request.setLocalContext(localContext);
         }
         return request;
     }
