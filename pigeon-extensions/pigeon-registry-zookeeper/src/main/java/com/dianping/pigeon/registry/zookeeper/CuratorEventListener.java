@@ -5,9 +5,7 @@ import com.dianping.pigeon.log.LoggerLoader;
 import com.dianping.pigeon.registry.RegistryManager;
 import com.dianping.pigeon.registry.config.RegistryConfig;
 import com.dianping.pigeon.registry.exception.RegistryException;
-import com.dianping.pigeon.registry.listener.DefaultServiceChangeListener;
-import com.dianping.pigeon.registry.listener.RegistryEventListener;
-import com.dianping.pigeon.registry.listener.ServiceChangeListener;
+import com.dianping.pigeon.registry.listener.*;
 import com.dianping.pigeon.registry.util.Constants;
 import org.apache.commons.lang.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
@@ -32,7 +30,7 @@ public class CuratorEventListener implements CuratorListener {
 
 	private CuratorClient client;
 
-	private ServiceChangeListener serviceChangeListener = DefaultServiceChangeListener.INSTANCE;
+	private final RegistryNotifyListener registryNotifyListener = RegistryNotifyListenerLoader.getRegistryNotifyListener();
 
 	public CuratorEventListener(CuratorClient client) {
 		this.client = client;
@@ -94,7 +92,7 @@ public class CuratorEventListener implements CuratorListener {
 			String hosts = client.get(pathInfo.path);
 			logger.info("Service address changed, path " + pathInfo.path + " value " + hosts);
 			List<String[]> hostDetail = Utils.getServiceIpPortList(hosts);
-			serviceChangeListener.onServiceHostChange(pathInfo.serviceName, hostDetail);
+			registryNotifyListener.onServiceHostChange(pathInfo.serviceName, hostDetail, Constants.REGISTRY_CURATOR_NAME);
 		}
 		// Watch again
 		client.watch(pathInfo.path);
@@ -127,7 +125,7 @@ public class CuratorEventListener implements CuratorListener {
 			String newValue = client.get(pathInfo.path);
 			logger.info("service weight changed, path " + pathInfo.path + " value " + newValue);
 			int weight = newValue == null ? 0 : Integer.parseInt(newValue);
-			serviceChangeListener.onHostWeightChange(pathInfo.server, weight);
+			registryNotifyListener.onHostWeightChange(pathInfo.server, weight, Constants.REGISTRY_CURATOR_NAME);
 			client.watch(pathInfo.path);
 		} catch (Exception e) {
 			throw new RegistryException(e);
@@ -138,7 +136,7 @@ public class CuratorEventListener implements CuratorListener {
 		try {
 			String app = client.get(pathInfo.path);
 			logger.info("app changed, path " + pathInfo.path + " value " + app);
-			RegistryEventListener.serverAppChanged(pathInfo.server, app);
+			registryNotifyListener.serverAppChanged(pathInfo.server, app, Constants.REGISTRY_CURATOR_NAME);
 			client.watch(pathInfo.path);
 		} catch (Exception e) {
 			throw new RegistryException(e);
@@ -149,7 +147,7 @@ public class CuratorEventListener implements CuratorListener {
 		try {
 			String version = client.get(pathInfo.path);
 			logger.info("version changed, path " + pathInfo.path + " value " + version);
-			RegistryEventListener.serverVersionChanged(pathInfo.server, version);
+			registryNotifyListener.serverVersionChanged(pathInfo.server, version, Constants.REGISTRY_CURATOR_NAME);
 			client.watch(pathInfo.path);
 		} catch (Exception e) {
 			throw new RegistryException(e);
@@ -161,7 +159,7 @@ public class CuratorEventListener implements CuratorListener {
 			String info = client.get(pathInfo.path);
 			Map<String, Boolean> infoMap = Utils.getProtocolInfoMap(info);
 			logger.info("protocol changed, path " + pathInfo.path + " value " + info);
-			RegistryEventListener.serverProtocolChanged(pathInfo.server, infoMap);
+			registryNotifyListener.serverProtocolChanged(pathInfo.server, infoMap, Constants.REGISTRY_CURATOR_NAME);
 		} catch (Throwable e) {
 			throw new RegistryException(e);
 		} finally {

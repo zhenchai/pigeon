@@ -1,7 +1,7 @@
 package com.dianping.pigeon.registry;
 
 import java.util.List;
-import java.util.concurrent.ConcurrentMap;
+import java.util.Map;
 
 import com.dianping.pigeon.registry.config.RegistryConfig;
 import com.dianping.pigeon.registry.exception.RegistryException;
@@ -62,6 +62,9 @@ public interface Registry {
 
     // for invoker
     byte getServerHeartBeatSupport(String serviceAddress) throws RegistryException;
+
+    // for invoker
+    Map<String,Boolean> getServiceProtocols(String serviceAddress) throws RegistryException;
 
     // for invoker
     boolean isSupportNewProtocol(String serviceAddress) throws RegistryException;

@@ -1,14 +1,9 @@
 package com.dianping.pigeon.registry.zookeeper;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentMap;
+import java.util.*;
 
 import com.dianping.pigeon.registry.config.RegistryConfig;
 import org.apache.commons.lang.StringUtils;
-import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.KeeperException.BadVersionException;
 import org.apache.zookeeper.KeeperException.NoNodeException;
 import org.apache.zookeeper.KeeperException.NodeExistsException;
@@ -86,8 +81,7 @@ public class CuratorRegistry implements Registry {
     @Override
     public String getServiceAddress(String remoteAppkey, String serviceName, String group, boolean fallbackDefaultGroup)
             throws RegistryException {
-        // mtthrift service, pigeon zk registry do nothing
-        return "";
+        return getServiceAddress(remoteAppkey, serviceName, group, fallbackDefaultGroup, true);
     }
 
     @Override
@@ -456,6 +450,24 @@ public class CuratorRegistry implements Registry {
         }
 
         return VersionUtils.isThriftSupported(version);
+    }
+
+    @Override
+    public Map<String, Boolean> getServiceProtocols(String serviceAddress) throws RegistryException {
+        try {
+            String protocolPath = Utils.getProtocolPath(serviceAddress);
+            String info = client.get(protocolPath);
+
+            if (info != null) {
+                return Utils.getProtocolInfoMap(info);
+            }
+        } catch (Throwable e) {
+            logger.info("failed to get service protocols of host:" + serviceAddress + ", caused by:"
+                    + e.getMessage());
+            throw new RegistryException(e);
+        }
+
+        return new HashMap<>();
     }
 
     @Override

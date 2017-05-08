@@ -38,6 +38,7 @@ public final class Constants {
 	public static final String REGISTRY_MNS_NAME = "mns";
 	public static final String REGISTRY_CURATOR_NAME = "curator";
 	public static final String REGISTRY_COMPOSITE_NAME = "composite";
+	public static final String REGISTRY_MIX_NAME = "mix";
 
 	private static ConfigManager configManager = ConfigManagerLoader.getConfigManager();
 
