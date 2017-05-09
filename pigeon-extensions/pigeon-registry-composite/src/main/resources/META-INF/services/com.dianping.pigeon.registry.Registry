@@ -1,1 +1,2 @@
-com.dianping.pigeon.registry.composite.CompositeRegistry
+#com.dianping.pigeon.registry.composite.CompositeRegistry
+com.dianping.pigeon.registry.composite.MixRegistry

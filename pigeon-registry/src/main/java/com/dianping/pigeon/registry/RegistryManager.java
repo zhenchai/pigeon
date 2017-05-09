@@ -4,16 +4,13 @@
  */
 package com.dianping.pigeon.registry;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 import com.dianping.pigeon.registry.config.RegistryConfig;
 import com.dianping.pigeon.registry.config.ServiceConfig;
+import com.google.common.collect.Interner;
+import com.google.common.collect.Interners;
 import org.apache.commons.lang.StringUtils;
 
 import com.dianping.pigeon.config.ConfigChangeListener;
@@ -40,11 +37,11 @@ public class RegistryManager {
 
 	private static Throwable initializeException = null;
 
-	private static RegistryManager instance = new RegistryManager();
+	private static final RegistryManager instance = new RegistryManager();
 
 	private static volatile Registry registry = null;
 
-	private static final String KEY_PIGEON_REGISTRY_CUSTOMIZED = "pigeon.registry.customized";
+	private static final String KEY_PIGEON_REGISTRY_CUSTOMIZED = "pigeon.registry.customized.active";
 
 	private static final String BLANK_GROUP = "";
 
@@ -52,16 +49,15 @@ public class RegistryManager {
 
 	private static ConcurrentHashMap<String, HostInfo> referencedAddresses = new ConcurrentHashMap<String, HostInfo>();
 
+	private static final Interner<String> stringInterner = Interners.newWeakInterner();
+
 	private volatile static RegistryConfig registryConfig = new RegistryConfig();
 
-	private static ConfigManager configManager = ConfigManagerLoader.getConfigManager();
+	private static final ConfigManager configManager = ConfigManagerLoader.getConfigManager();
 
 	private static ConcurrentHashMap<String, Object> registeredServices = new ConcurrentHashMap<String, Object>();
 
-	// host --> (service --> support)
-	private static ConcurrentHashMap<String, Map<String, Boolean>> referencedServiceProtocols = new ConcurrentHashMap<String, Map<String, Boolean>>();
-
-	Monitor monitor = MonitorLoader.getMonitor();
+	private static final Monitor monitor = MonitorLoader.getMonitor();
 
 	public static final boolean fallbackDefaultGroup = configManager.getBooleanValue("pigeon.registry.group.fallback",
 			true);
@@ -99,7 +95,7 @@ public class RegistryManager {
 		try {
 			if (_registryList.size() > 0) {
 				String customizedRegistryName = configManager.getStringValue(KEY_PIGEON_REGISTRY_CUSTOMIZED,
-						Constants.REGISTRY_CURATOR_NAME);
+						Constants.REGISTRY_MIX_NAME);
 				for (Registry registry : _registryList) {
 					if (registry.getName().equals(customizedRegistryName)) {
 						registry.init();
@@ -127,6 +123,19 @@ public class RegistryManager {
 
 	public Set<String> getRegisteredServices() {
 		return registeredServices.keySet();
+	}
+
+	public Set<String> getReferencedServices(String serverAddress) {
+		HostInfo hostInfo = referencedAddresses.get(serverAddress);
+		if (hostInfo != null) {
+			return hostInfo.getServices();
+		}
+
+		return new HashSet<>();
+	}
+
+	public HostInfo getHostInfo(String serverAddress) {
+		return referencedAddresses.get(serverAddress);
 	}
 
 	public boolean isReferencedService(String serviceName, String group) {
@@ -296,8 +305,53 @@ public class RegistryManager {
 	public void addServiceAddress(String serviceName, String host, int port, int weight) {
 		Utils.validateWeight(host, port, weight);
 
-		Set<HostInfo> hostInfos = referencedServiceAddresses.get(serviceName);
+		String serviceAddress = host + ":" + port;
+		HostInfo hostInfo = referencedAddresses.get(serviceAddress);
+		if (hostInfo == null) {
+			synchronized (stringInterner.intern(serviceAddress)) {
+				hostInfo = referencedAddresses.get(serviceAddress);
+				if (hostInfo == null) {
+					hostInfo = new HostInfo(host, port, weight);
+					referencedAddresses.put(serviceAddress, hostInfo);
 
+					if (registry != null) {
+						try {
+							String app = registry.getServerApp(serviceAddress);
+							hostInfo.setApp(app);
+						} catch (RegistryException e) {
+							logger.info("failed to update app in cache for: " + serviceAddress);
+						}
+
+						try {
+							String version = registry.getServerVersion(serviceAddress);
+							hostInfo.setVersion(version);
+						} catch (RegistryException e) {
+							logger.info("failed to update version in cache for: " + serviceAddress);
+						}
+
+						try {
+							byte heartBeatSupport = registry.getServerHeartBeatSupport(serviceAddress);
+							hostInfo.setHeartBeatSupport(heartBeatSupport);
+						} catch (RegistryException e) {
+							logger.info("failed to update heartBeatSupport in cache for: " + serviceAddress);
+						}
+
+						// invoker读取注册中心的协议信息并且put进去
+						try {
+							Map<String, Boolean> serviceProtocols
+									= registry.getServiceProtocols(serviceAddress);
+							hostInfo.setServiceProtocols(serviceProtocols);
+						} catch (RegistryException e) {
+							logger.info("failed to update service protocols in cache for: " + serviceAddress);
+						}
+
+					}
+				}
+			}
+		}
+		hostInfo.addService(serviceName);
+
+		Set<HostInfo> hostInfos = referencedServiceAddresses.get(serviceName);
 		if (hostInfos == null) {
 			hostInfos = Collections.newSetFromMap(new ConcurrentHashMap<HostInfo, Boolean>());
 			Set<HostInfo> oldHostInfos = referencedServiceAddresses.putIfAbsent(serviceName, hostInfos);
@@ -305,58 +359,8 @@ public class RegistryManager {
 				hostInfos = oldHostInfos;
 			}
 		}
-
-		HostInfo hostInfo = new HostInfo(host, port, weight);
-		hostInfos.remove(hostInfo);
 		hostInfos.add(hostInfo);
-		String serviceAddress = hostInfo.getConnect();
 
-		// 添加服务端是否支持新协议的缓存
-		Map<String, Boolean> protocolInfoMap = referencedServiceProtocols.get(serviceAddress);
-		if (protocolInfoMap == null) {
-			protocolInfoMap = new ConcurrentHashMap<String, Boolean>();
-			Map<String, Boolean> oldProtocolInfoMap = referencedServiceProtocols.putIfAbsent(serviceAddress,
-					protocolInfoMap);
-			if (oldProtocolInfoMap != null) {
-				protocolInfoMap = oldProtocolInfoMap;
-			}
-		}
-		// invoker读取注册中心的协议信息并且put进去
-		boolean support = false;
-		try {
-			support = isSupportNewProtocol(serviceAddress, serviceName, false);
-		} catch (RegistryException e) {
-			logger.info(e.getMessage(), e);
-		}
-		protocolInfoMap.put(serviceName, support);
-
-		if (!referencedAddresses.containsKey(serviceAddress)) {
-			referencedAddresses.put(serviceAddress, hostInfo);
-			if (registry != null) {
-
-				try {
-					String app = registry.getServerApp(hostInfo.getConnect());
-					hostInfo.setApp(app);
-				} catch (RegistryException e) {
-					logger.info("failed to update app in cache for: " + serviceAddress);
-				}
-
-				try {
-					String version = registry.getServerVersion(hostInfo.getConnect());
-					hostInfo.setVersion(version);
-				} catch (RegistryException e) {
-					logger.info("failed to update version in cache for: " + serviceAddress);
-				}
-
-				try {
-					byte heartBeatSupport = registry.getServerHeartBeatSupport(hostInfo.getConnect());
-					hostInfo.setHeartBeatSupport(heartBeatSupport);
-				} catch (RegistryException e) {
-					logger.info("failed to update heartBeatSupport in cache for: " + serviceAddress);
-				}
-
-			}
-		}
 	}
 
 	public void removeServiceAddress(String serviceName, HostInfo hostInfo) {
@@ -367,6 +371,11 @@ public class RegistryManager {
 		}
 		hostInfos.remove(hostInfo);
 		logger.info("removed address:" + hostInfo + " from service:" + serviceName);
+
+		HostInfo cachedHostInfo = referencedAddresses.get(hostInfo.getConnect());
+		if (cachedHostInfo != null) {
+			cachedHostInfo.removeService(serviceName);
+		}
 
 		// If server is not referencd any more, remove from server list
 		if (!isAddressReferenced(hostInfo)) {
@@ -409,7 +418,13 @@ public class RegistryManager {
 	}
 
 	public Map<String, Boolean> getProtocolInfoFromCache(String serviceAddress) {
-		Map<String, Boolean> protocolInfoMap = referencedServiceProtocols.get(serviceAddress);
+		HostInfo hostInfo = referencedAddresses.get(serviceAddress);
+		Map<String, Boolean> protocolInfoMap = new HashMap<String, Boolean>();
+
+		if (hostInfo != null) {
+			protocolInfoMap = hostInfo.getServiceProtocols();
+		}
+
 		if (protocolInfoMap != null) {
 			return protocolInfoMap;
 		}
@@ -418,7 +433,13 @@ public class RegistryManager {
 	}
 
 	public boolean isSupportNewProtocolFromCache(String serviceAddress, String serviceName) {
-		Map<String, Boolean> protocolInfoMap = referencedServiceProtocols.get(serviceAddress);
+		HostInfo hostInfo = referencedAddresses.get(serviceAddress);
+		Map<String, Boolean> protocolInfoMap = new HashMap<String, Boolean>();
+
+		if (hostInfo != null) {
+			protocolInfoMap = hostInfo.getServiceProtocols();
+		}
+
 		if (protocolInfoMap != null && protocolInfoMap.containsKey(serviceName)) {
 			return protocolInfoMap.get(serviceName);
 		}
@@ -494,6 +515,33 @@ public class RegistryManager {
 		}
 	}
 
+	public boolean getReferencedProtocol(String serverAddress, String serviceName) {
+		boolean support = false;
+
+		try {
+			Map<String, Boolean> serviceProtocols = registry.getServiceProtocols(serverAddress);
+
+			setReferencedProtocols(serverAddress, serviceProtocols);
+			Boolean _support = serviceProtocols.get(serviceName);
+
+			if (_support != null) {
+				support = _support;
+			}
+
+		} catch (Throwable t) {
+			logger.info("failed to get protocol for " + serverAddress + "#" + serviceName, t);
+		}
+
+		return support;
+	}
+
+	private void setReferencedProtocols(String serverAddress, Map<String, Boolean> serviceProtocols) {
+		HostInfo hostInfo = referencedAddresses.get(serverAddress);
+		if (hostInfo != null) {
+			hostInfo.setServiceProtocols(serviceProtocols);
+		}
+	}
+
 	public void setServerVersion(String serverAddress, String version) {
 		if (registry != null) {
 			registry.setServerVersion(serverAddress, version);
@@ -558,7 +606,10 @@ public class RegistryManager {
 		@Override
 		public void onServerProtocolChange(String serverAddress, Map<String, Boolean> protocolInfoMap) {
 			// 更新invoker缓存的服务端协议详情
-			referencedServiceProtocols.put(serverAddress, protocolInfoMap);
+			HostInfo hostInfo = referencedAddresses.get(serverAddress);
+			if (hostInfo != null) {
+				hostInfo.setServiceProtocols(protocolInfoMap);
+			}
 		}
 
 		@Override
@@ -647,24 +698,32 @@ public class RegistryManager {
 	public boolean isSupportNewProtocol(String serviceAddress, String serviceName, boolean readCache)
 			throws RegistryException {
 		if (readCache) {
-			Map<String, Boolean> protocolInfoMap = referencedServiceProtocols.get(serviceAddress);
-			if (protocolInfoMap != null && protocolInfoMap.containsKey(serviceName)) {
-				return protocolInfoMap.get(serviceName);
+			HostInfo hostInfo = referencedAddresses.get(serviceAddress);
+			Map<String, Boolean> serviceProtocols = new HashMap<String, Boolean>();
+
+			if (hostInfo != null) {
+				serviceProtocols = hostInfo.getServiceProtocols();
+			}
+
+			if (serviceProtocols != null && serviceProtocols.containsKey(serviceName)) {
+				return serviceProtocols.get(serviceName);
 			}
 		}
 
 		boolean support = false;
 
 		try {
-			support = registry.isSupportNewProtocol(serviceAddress, serviceName);
-			Map<String, Boolean> protocolInfoMap = referencedServiceProtocols.get(serviceAddress);
+			Map<String, Boolean> serviceProtocols = registry.getServiceProtocols(serviceAddress);
 
-			if (protocolInfoMap != null) {
-				protocolInfoMap.put(serviceName, support);
+			setReferencedProtocols(serviceAddress, serviceProtocols);
+			Boolean _support = serviceProtocols.get(serviceName);
+
+			if (_support != null) {
+				support = _support;
 			}
+
 		} catch (Throwable t) {
-			logger.info("failed to get protocol for " + serviceAddress + "#" + serviceName);
-            throw new RegistryException(t);
+			logger.info("failed to get protocol for " + serviceAddress + "#" + serviceName, t);
 		}
 
 		return support;
@@ -692,26 +751,6 @@ public class RegistryManager {
 			registry.unregisterSupportNewProtocol(serviceAddress, serviceName, support);
 		}
 		monitor.logEvent("PigeonService.protocol", serviceName, "unregister");
-	}
-
-	public boolean getReferencedProtocol(String serverAddress, String serviceName) {
-		boolean support = false;
-
-		try {
-			support = registry.isSupportNewProtocol(serverAddress, serviceName);
-			setReferencedProtocol(serverAddress, serviceName, support);
-		} catch (Throwable t) {
-			logger.info("failed to get protocol for " + serverAddress + "#" + serviceName, t);
-		}
-
-		return support;
-	}
-
-	private void setReferencedProtocol(String serverAddress, String serviceName, boolean support) {
-		Map<String, Boolean> infoMap = referencedServiceProtocols.get(serverAddress);
-		if (infoMap != null) {
-			infoMap.put(serviceName, support);
-		}
 	}
 
 	/**

@@ -24,6 +24,7 @@ import com.google.common.collect.Sets;
 /**
  * Created by chenchongze on 16/8/15.
  */
+@Deprecated
 public class CompositeRegistry implements Registry {
 
     private final Logger logger = LoggerLoader.getLogger(getClass());
@@ -369,6 +370,28 @@ public class CompositeRegistry implements Registry {
         support = checkValueConsistency(checkList, "server heartbeat support");
 
         return support;
+    }
+
+    @Override
+    public Map<String, Boolean> getServiceProtocols(String serviceAddress) throws RegistryException {
+        Map<String, Boolean> serviceProtocols = new HashMap<String, Boolean>();
+        List<Map<String, Boolean>> checkList = Lists.newArrayList();
+
+        for (Registry registry : registryList) {
+            try {
+                checkList.add(registry.getServiceProtocols(serviceAddress));
+            } catch (Throwable t) {
+                logger.info("failed to get service protocols from registry: " + registry.getName());
+            }
+        }
+
+        if (checkList.size() == 0) {
+            throw new RegistryException("failed to get service protocols for " + serviceAddress);
+        }
+
+        serviceProtocols = checkValueConsistency(checkList, "service protocols");
+
+        return serviceProtocols;
     }
 
     @Override

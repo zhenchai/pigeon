@@ -4,6 +4,10 @@
  */
 package com.dianping.pigeon.domain;
 
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
 /**
  * 
  * 
@@ -17,6 +21,10 @@ public class HostInfo {
 	private String app;
 	private String version;
 	private byte heartBeatSupport;
+	// serviceName --> support new protocol
+	private Map<String, Boolean> serviceProtocols;
+	// all referenced serviceName
+	private Set<String> services = new HashSet<>();
 
 	public String getVersion() {
 		return version;
@@ -86,5 +94,25 @@ public class HostInfo {
 
 	public void setHeartBeatSupport(byte heartBeatSupport) {
 		this.heartBeatSupport = heartBeatSupport;
+	}
+
+	public Map<String, Boolean> getServiceProtocols() {
+		return serviceProtocols;
+	}
+
+	public void setServiceProtocols(Map<String, Boolean> serviceProtocols) {
+		this.serviceProtocols = serviceProtocols;
+	}
+
+	public void addService(String serviceName) {
+		services.add(serviceName);
+	}
+
+	public void removeService(String serviceName) {
+		services.remove(serviceName);
+	}
+
+	public Set<String> getServices() {
+		return services;
 	}
 }
