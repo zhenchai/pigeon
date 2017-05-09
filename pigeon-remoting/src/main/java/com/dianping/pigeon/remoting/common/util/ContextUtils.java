@@ -146,6 +146,16 @@ public class ContextUtils {
         responseContext.remove();
     }
 
+    public static Long getRemainedTimeMillis() {
+        Integer timeout = (Integer) getLocalContext(Constants.CONTEXT_KEY_TIMEOUT_MILLIS);
+        Integer createTime = (Integer) getLocalContext(Constants.CONTEXT_KEY_CREATE_TIME_MILLIS);
+        if (createTime == null || timeout == null) {
+            return null;
+        } else {
+            return timeout - (System.currentTimeMillis() - createTime);
+        }
+    }
+
     public static void convertContext(Map<String, Serializable> srcCtx, Map<String, String> dstCtx) {
         if (srcCtx != null) {
             for (Map.Entry<String, Serializable> entry : srcCtx.entrySet()) {
