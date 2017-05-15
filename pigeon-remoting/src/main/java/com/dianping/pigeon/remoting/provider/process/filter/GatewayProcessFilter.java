@@ -174,7 +174,7 @@ public class GatewayProcessFilter implements ServiceInvocationFilter<ProviderCon
 			if (Constants.MESSAGE_TYPE_SERVICE == request.getMessageType() && enableMethodThreadsLimit) {
 				decrementRequest(requestMethod);
 			}
-			if (!Constants.REPLY_MANUAL || !invocationContext.isAsync()) {
+			if (!(Constants.REPLY_MANUAL || invocationContext.isAsync())) {
 				ProviderStatisticsHolder.flowOut(request);
 			}
 		}
