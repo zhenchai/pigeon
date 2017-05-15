@@ -1,6 +1,7 @@
 package com.dianping.pigeon.remoting.provider.process.statistics;
 
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.dianping.pigeon.log.Logger;
 
@@ -22,6 +23,8 @@ public class ProviderStatisticsChecker implements Runnable {
 			}
 			Map<String, ProviderCapacityBucket> appCapacityBuckets = ProviderStatisticsHolder.getCapacityBuckets();
 			Map<String, ProviderCapacityBucket> methodCapacityBuckets = ProviderStatisticsHolder.getMethodCapacityBuckets();
+			Map<String, ConcurrentHashMap<String,ProviderCapacityBucket>> methodAppCapacityBuckets
+					= ProviderStatisticsHolder.getMethodAppCapacityBuckets();
 			if (appCapacityBuckets != null && methodCapacityBuckets != null) {
 				try {
 					for (String key : appCapacityBuckets.keySet()) {
@@ -32,6 +35,13 @@ public class ProviderStatisticsChecker implements Runnable {
 						ProviderCapacityBucket bucket = methodCapacityBuckets.get(key);
 						bucket.resetRequestsInSecondCounter();
 					}
+					for (String method : methodAppCapacityBuckets.keySet()) {
+						Map<String, ProviderCapacityBucket> appCapacityBucketMap = methodAppCapacityBuckets.get(method);
+						for (String app : appCapacityBucketMap.keySet()) {
+							ProviderCapacityBucket bucket = appCapacityBucketMap.get(app);
+							bucket.resetRequestsInSecondCounter();
+						}
+					}
 
 					if (++i % 12 == 0) {
 						i = 0;
@@ -40,6 +50,13 @@ public class ProviderStatisticsChecker implements Runnable {
 						}
 						for (ProviderCapacityBucket bucket : methodCapacityBuckets.values()) {
 							bucket.resetRequestsInMinuteCounter();
+						}
+						for (String method : methodAppCapacityBuckets.keySet()) {
+							Map<String, ProviderCapacityBucket> appCapacityBucketMap = methodAppCapacityBuckets.get(method);
+							for (String app : appCapacityBucketMap.keySet()) {
+								ProviderCapacityBucket bucket = appCapacityBucketMap.get(app);
+								bucket.resetRequestsInMinuteCounter();
+							}
 						}
 					}
 				} catch (Throwable e) {
