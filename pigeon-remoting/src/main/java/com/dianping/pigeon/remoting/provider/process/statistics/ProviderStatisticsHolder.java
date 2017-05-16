@@ -21,6 +21,8 @@ public final class ProviderStatisticsHolder {
 	private static ConcurrentHashMap<String, ConcurrentHashMap<String, ProviderCapacityBucket>>
 			methodAppCapacityBuckets = new ConcurrentHashMap<>();
 
+	private static final ProviderCapacityBucket globalCapacityBucket = new ProviderCapacityBucket(null);
+
 	public static final boolean statEnable = ConfigManagerLoader.getConfigManager().getBooleanValue(
 			"pigeon.providerstat.enable", true);
 
@@ -117,6 +119,9 @@ public final class ProviderStatisticsHolder {
 			if (methodAppBarrel != null) {
 				methodAppBarrel.flowIn(request);
 			}
+
+			// global level
+			globalCapacityBucket.flowIn(request);
 		}
 	}
 
@@ -140,7 +145,14 @@ public final class ProviderStatisticsHolder {
 			if (methodAppBarrel != null) {
 				methodAppBarrel.flowOut(request);
 			}
+
+			// global level
+			globalCapacityBucket.flowOut(request);
 		}
+	}
+
+	public static ProviderCapacityBucket getGlobalCapacityBucket() {
+		return globalCapacityBucket;
 	}
 
 	public static boolean checkRequestNeedStat(InvocationRequest request) {

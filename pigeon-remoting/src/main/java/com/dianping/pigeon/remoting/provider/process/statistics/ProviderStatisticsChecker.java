@@ -25,7 +25,9 @@ public class ProviderStatisticsChecker implements Runnable {
 			Map<String, ProviderCapacityBucket> methodCapacityBuckets = ProviderStatisticsHolder.getMethodCapacityBuckets();
 			Map<String, ConcurrentHashMap<String,ProviderCapacityBucket>> methodAppCapacityBuckets
 					= ProviderStatisticsHolder.getMethodAppCapacityBuckets();
-			if (appCapacityBuckets != null && methodCapacityBuckets != null && methodAppCapacityBuckets != null) {
+			ProviderCapacityBucket globalCapacityBucket = ProviderStatisticsHolder.getGlobalCapacityBucket();
+			if (appCapacityBuckets != null && methodCapacityBuckets != null
+					&& methodAppCapacityBuckets != null && globalCapacityBucket != null) {
 				try {
 					for (String key : appCapacityBuckets.keySet()) {
 						ProviderCapacityBucket bucket = appCapacityBuckets.get(key);
@@ -42,6 +44,7 @@ public class ProviderStatisticsChecker implements Runnable {
 							bucket.resetRequestsInSecondCounter();
 						}
 					}
+					globalCapacityBucket.resetRequestsInSecondCounter();
 
 					if (++i % 12 == 0) {
 						i = 0;
@@ -58,6 +61,7 @@ public class ProviderStatisticsChecker implements Runnable {
 								bucket.resetRequestsInMinuteCounter();
 							}
 						}
+						globalCapacityBucket.resetRequestsInMinuteCounter();
 					}
 				} catch (Throwable e) {
 					logger.error("Check expired request in app statistics failed, detail[" + e.getMessage() + "].", e);

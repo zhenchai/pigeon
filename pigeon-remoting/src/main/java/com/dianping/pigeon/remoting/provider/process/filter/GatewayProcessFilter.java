@@ -52,12 +52,16 @@ public class GatewayProcessFilter implements ServiceInvocationFilter<ProviderCon
 	private static final ConfigManager configManager = ConfigManagerLoader.getConfigManager();
 	private static final String KEY_APPLIMIT_ENABLE = "pigeon.provider.applimit.enable";
 	private static final String KEY_METHODAPPLIMIT_ENABLE = "pigeon.provider.methodapplimit.active";
+	private static final String KEY_GLOBALLIMIT_ENABLE = "pigeon.provider.globallimit.enable";
 	private static final String KEY_METHODTHREADSLIMIT_ENABLE = "pigeon.provider.methodthreadslimit.enable";
 	private static final String KEY_APPLIMIT = "pigeon.provider.applimit";
 	private static final String KEY_METHODAPPLIMIT = "pigeon.provider.methodapplimit";
+	private static final String KEY_GLOBALLIMIT = "pigeon.provider.globallimit";
 	private static volatile Map<String, Long> appLimitMap = new ConcurrentHashMap<String, Long>();
 	// api#method --> {app1 --> qpslimit, app2 --> qpslimit}
 	private static volatile Map<String, Map<String, Long>> methodAppLimitMap = Maps.newConcurrentMap();
+	private static volatile Long globalLimit = Long.MAX_VALUE;
+
 	private static final JacksonSerializer jacksonSerializer = new JacksonSerializer();
 	private static ThreadPool statisticsCheckerPool = new DefaultThreadPool("Pigeon-Server-Statistics-Checker");
 	private static final ConcurrentHashMap<String, AtomicInteger> methodActives = new ConcurrentHashMap<String, AtomicInteger>();
@@ -69,8 +73,12 @@ public class GatewayProcessFilter implements ServiceInvocationFilter<ProviderCon
 	private static volatile boolean enableAppLimit = configManager.getBooleanValue(KEY_APPLIMIT_ENABLE, false);
 	private static volatile boolean enableMethodAppLimit = configManager.getBooleanValue(KEY_METHODAPPLIMIT_ENABLE,
 			false);
+	private static volatile boolean enableGlobalLimit = configManager.getBooleanValue(KEY_GLOBALLIMIT_ENABLE, false);
 
 	static {
+		String globalLimitConfig = configManager.getStringValue(KEY_GLOBALLIMIT);
+		parseGlobalLimitConfig(globalLimitConfig);
+
 		String methodAppLimitConfig = configManager.getStringValue(KEY_METHODAPPLIMIT);
 		parseMethodAppLimitConfig(methodAppLimitConfig);
 
@@ -84,6 +92,19 @@ public class GatewayProcessFilter implements ServiceInvocationFilter<ProviderCon
 
 	public void destroy() throws Exception {
 		ThreadPoolUtils.shutdown(statisticsCheckerPool.getExecutor());
+	}
+
+	private static void parseGlobalLimitConfig(String globalLimitConfig) {
+		if (StringUtils.isNotBlank(globalLimitConfig)) {
+			try {
+				Long _globalLimit = Long.parseLong(globalLimitConfig);
+				if (_globalLimit >= 0) {
+					globalLimit = _globalLimit;
+				}
+			} catch (Throwable t) {
+				logger.error("error while parsing global limit configuration:" + globalLimitConfig, t);
+			}
+		}
 	}
 
 	private static void parseMethodAppLimitConfig(String methodAppLimitConfig) {
@@ -167,6 +188,17 @@ public class GatewayProcessFilter implements ServiceInvocationFilter<ProviderCon
 						}
 					}
 				}
+
+				if (enableGlobalLimit) {
+					Long limit = globalLimit;
+					if (limit >= 0) {
+						long requests = ProviderStatisticsHolder.getGlobalCapacityBucket().getRequestsInCurrentSecond();
+						if (requests + 1 > limit) {
+							throw new RejectedException(String
+									.format("Max requests limit %s reached for global limitation", limit));
+						}
+					}
+				}
 			}
 			response = handler.handle(invocationContext);
 			return response;
@@ -241,28 +273,24 @@ public class GatewayProcessFilter implements ServiceInvocationFilter<ProviderCon
 
 		@Override
 		public void onKeyUpdated(String key, String value) {
-			if (key.endsWith(KEY_APPLIMIT)) {
-				parseAppLimitConfig(value);
-			} else if (key.endsWith(KEY_METHODAPPLIMIT)) {
-				parseMethodAppLimitConfig(value);
-			} else if (key.endsWith(KEY_APPLIMIT_ENABLE)) {
-				try {
+			try {
+				if (key.endsWith(KEY_APPLIMIT)) {
+                    parseAppLimitConfig(value);
+                } else if (key.endsWith(KEY_METHODAPPLIMIT)) {
+                    parseMethodAppLimitConfig(value);
+                } else if (key.endsWith(KEY_APPLIMIT_ENABLE)) {
 					enableAppLimit = Boolean.valueOf(value);
-				} catch (RuntimeException e) {
-					logger.warn("invalid value for key " + key, e);
-				}
-			} else if (key.endsWith(KEY_METHODAPPLIMIT_ENABLE)) {
-				try {
+                } else if (key.endsWith(KEY_METHODAPPLIMIT_ENABLE)) {
 					enableMethodAppLimit = Boolean.valueOf(value);
-				} catch (RuntimeException e) {
-					logger.warn("invalid value for key " + key, e);
-				}
-			} else if (key.endsWith(KEY_METHODTHREADSLIMIT_ENABLE)) {
-				try {
+                } else if (key.endsWith(KEY_METHODTHREADSLIMIT_ENABLE)) {
 					enableMethodThreadsLimit = Boolean.valueOf(value);
-				} catch (RuntimeException e) {
-					logger.warn("invalid value for key " + key, e);
+                } else if (key.endsWith(KEY_GLOBALLIMIT_ENABLE)) {
+                    enableGlobalLimit = Boolean.valueOf(value);
+                } else if (key.endsWith(KEY_GLOBALLIMIT)) {
+					parseGlobalLimitConfig(value);
 				}
+			} catch (Throwable t) {
+				logger.warn("invalid value for key " + key, t);
 			}
 		}
 
