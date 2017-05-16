@@ -60,13 +60,14 @@ public class AbstractPublishPolicy implements PublishPolicy {
         } else if (!serviceUrl.equals(customUrl) && !isStockService(customUrl)) {
             // 非存量服务,不允许注册,抛出异常或强制转换为类路径服务名
             if (IS_CHECK_SERVICE_EXCEPTION_DEFAULT) {
-                throw new RuntimeException("customized [serviceName] cannot provide service to OCTO invoker "
+                logger.error("customized [serviceName] cannot provide service to OCTO invoker "
                         + "unless set the [serviceName] to full class name "
                         + "or just keep [serviceName] config to blank.\n"
                         + "[serviceName] should be replaced by full class name: "
                         + serviceUrl + ", more help refer to: "
                         + configManager.getStringValue("pigeon.help.provider.octo.url"
                         , "http://wiki.sankuai.com/pages/viewpage.action?pageId=606809899"));
+                System.exit(1);
             } else {
                 logger.warn("customized [serviceName] cannot provide service to OCTO invoker "
                         + "unless set the [serviceName] to full class name "
