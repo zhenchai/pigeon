@@ -56,7 +56,7 @@ public final class Resources extends Object {
         try {
             clazz = getClassLoader().loadClass(className);
         } catch (Exception e) {
-            e.printStackTrace();
+            //e.printStackTrace();
         }
         if (clazz == null) {
             clazz = Class.forName(className);
