@@ -1027,7 +1027,7 @@ pigeon支持在服务端配置某个客户端应用的最大请求QPS
 
 2、配置某个接口方法对应的客户端应用的最大QPS:
 
-首先打开开关：xxx-service.pigeon.provider.methodapplimit.enable=true
+首先打开开关：xxx-service.pigeon.provider.methodapplimit.active=true
 
 增加配置项：xxx-service.pigeon.provider.methodapplimit
 
