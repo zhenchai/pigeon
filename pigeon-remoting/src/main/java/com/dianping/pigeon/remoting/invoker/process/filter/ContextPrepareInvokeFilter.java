@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
+import com.dianping.pigeon.util.AppUtils;
 import org.apache.commons.lang.StringUtils;
 
 import com.dianping.pigeon.config.ConfigChangeListener;
@@ -109,7 +110,7 @@ public class ContextPrepareInvokeFilter extends InvocationInvokeFilter {
 
         initRequest(invocationContext);
 
-        if(contextEnable) {
+        if (contextEnable) {
             transferContextValueToRequest(invocationContext, invocationContext.getRequest());
         }
 
@@ -126,6 +127,17 @@ public class ContextPrepareInvokeFilter extends InvocationInvokeFilter {
         if (transaction != null) {
             Client client = invocationContext.getClient();
             String targetApp = RegistryManager.getInstance().getReferencedAppFromCache(client.getAddress());
+
+            if (StringUtils.isEmpty(targetApp)) {
+                InvokerConfig invokerConfig = invocationContext.getInvokerConfig();
+                String vip = invokerConfig.getVip();
+
+                if (vip != null && vip.startsWith("console:")) {
+                    targetApp = AppUtils.getAppName();
+                } else {
+                    targetApp = AppUtils.UNKNOWN;
+                }
+            }
 
             transaction.readMonitorContext(targetApp);
         }
