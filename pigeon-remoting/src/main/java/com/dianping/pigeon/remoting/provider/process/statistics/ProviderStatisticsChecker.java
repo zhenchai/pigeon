@@ -25,7 +25,7 @@ public class ProviderStatisticsChecker implements Runnable {
 			Map<String, ProviderCapacityBucket> methodCapacityBuckets = ProviderStatisticsHolder.getMethodCapacityBuckets();
 			Map<String, ConcurrentHashMap<String,ProviderCapacityBucket>> methodAppCapacityBuckets
 					= ProviderStatisticsHolder.getMethodAppCapacityBuckets();
-			if (appCapacityBuckets != null && methodCapacityBuckets != null) {
+			if (appCapacityBuckets != null && methodCapacityBuckets != null && methodAppCapacityBuckets != null) {
 				try {
 					for (String key : appCapacityBuckets.keySet()) {
 						ProviderCapacityBucket bucket = appCapacityBuckets.get(key);

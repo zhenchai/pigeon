@@ -51,7 +51,7 @@ public class GatewayProcessFilter implements ServiceInvocationFilter<ProviderCon
 	private static final Logger logger = LoggerLoader.getLogger(GatewayProcessFilter.class);
 	private static final ConfigManager configManager = ConfigManagerLoader.getConfigManager();
 	private static final String KEY_APPLIMIT_ENABLE = "pigeon.provider.applimit.enable";
-	private static final String KEY_METHODAPPLIMIT_ENABLE = "pigeon.provider.methodapplimit.enable";
+	private static final String KEY_METHODAPPLIMIT_ENABLE = "pigeon.provider.methodapplimit.active";
 	private static final String KEY_METHODTHREADSLIMIT_ENABLE = "pigeon.provider.methodthreadslimit.enable";
 	private static final String KEY_APPLIMIT = "pigeon.provider.applimit";
 	private static final String KEY_METHODAPPLIMIT = "pigeon.provider.methodapplimit";

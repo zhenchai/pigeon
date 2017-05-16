@@ -15,6 +15,7 @@ import com.dianping.pigeon.remoting.invoker.config.InvokerConfig;
 import com.dianping.pigeon.remoting.invoker.exception.RouteException;
 import com.dianping.pigeon.util.ClassUtils;
 import com.dianping.pigeon.util.ServiceUtils;
+import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.*;
@@ -37,6 +38,7 @@ public enum RegionPolicyManager {
                if (!isInitialized) {
                    register(AutoSwitchRegionPolicy.NAME, null, AutoSwitchRegionPolicy.INSTANCE);
                    register(WeightBasedRegionPolicy.NAME, null, WeightBasedRegionPolicy.INSTANCE);
+                   register(ForceRegionPolicy.NAME, null, ForceRegionPolicy.INSTANCE);
 
                    if(configManager.getBooleanValue(KEY_ENABLEREGIONPOLICY, DEFAULT_ENABLEREGIONPOLICY)) {
                        initRegionsConfig();
@@ -65,11 +67,14 @@ public enum RegionPolicyManager {
     private volatile boolean isEnabled = false;
 
     // example: 10.66 --> region1
-    private Map<String, Region> patternRegionMappings = new HashMap<String, Region>();
+    private final Map<String, Region> patternRegionMappings = new HashMap<String, Region>();
 
-    private volatile List<Region> regionArray;
+    private volatile List<Region> regionArray = new ArrayList<>();
 
     private volatile Region localRegion;
+
+    // regionName --> region : shanghai --> regionObj
+    private volatile Map<String, Region> regionMap = new HashMap<>();
 
     public final String DEFAULT_REGIONPOLICY = configManager.getStringValue(
             Constants.KEY_REGIONPOLICY, AutoSwitchRegionPolicy.NAME);
@@ -258,18 +263,21 @@ public enum RegionPolicyManager {
                     regionsPreferConfig = configManager.getStringValue(KEY_REGION_PREFER_BASE + localRegionName);
                 }
                 List<Region> regions = initRegionsWithPriority(regionsPreferConfig);
+                Map<String, Region> _regionMap = new HashMap<>();
                 if(regionSet.size() == regions.size()) {
                     for(Region region : regions) {
                         if(!regionSet.contains(region.getName())) {
                             logger.error("Error! Regions prefer not match regions config: " + region.getName());
                             return;
                         }
+                        _regionMap.put(region.getName(), region);
                     }
 
                     //(re)init
                     regionArray = Collections.unmodifiableList(regions);// 下面的步骤都基于regionArray
                     initPatterRegionMappings(patternRegionNameMappings);// 初始化pattern region映射
                     localRegion = getRegionByName(localRegionName);
+                    regionMap = ImmutableMap.copyOf(_regionMap);
                     clearRegion();
                     isEnabled = true;
                     logger.info("Region route policy switch on! Local region is: " + regionArray.get(0));
@@ -343,5 +351,9 @@ public enum RegionPolicyManager {
 
     public Region getLocalRegion() {
         return localRegion;
+    }
+
+    public Map<String, Region> getRegionMap() {
+        return regionMap;
     }
 }
