@@ -11,9 +11,11 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.api.CuratorEvent;
 import org.apache.curator.framework.api.CuratorListener;
+import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher.Event.EventType;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -156,8 +158,14 @@ public class CuratorEventListener implements CuratorListener {
 
 	private void protocolChanged(PathInfo pathInfo) throws Exception {
 		try {
-			String info = client.get(pathInfo.path);
-			Map<String, Boolean> infoMap = Utils.getProtocolInfoMap(info);
+			String info = "{}";
+			Map<String, Boolean> infoMap = new HashMap<>();
+			try {
+				info = client.get(pathInfo.path);
+				infoMap = Utils.getProtocolInfoMap(info);
+			} catch (KeeperException.NoNodeException e) {
+				logger.info("failed to get protocol info: " + e.toString());
+			}
 			logger.info("protocol changed, path " + pathInfo.path + " value " + info);
 			registryNotifyListener.serverProtocolChanged(pathInfo.server, infoMap, Constants.REGISTRY_CURATOR_NAME);
 		} catch (Throwable e) {
