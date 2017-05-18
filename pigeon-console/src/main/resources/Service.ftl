@@ -39,6 +39,7 @@
 					for(var i = 0; i < treeNode.parameters; i++){
 						content.append("<p><input type='text' value=''/></p>");
 					}
+                    content.append("<p><select id ='invokeType'><option value='GET'>GET</option><option value='POST'>POST</option></select></p>");
 					content.append("<button id='invokeBtn' class='submit'>invoke</button>");
 					$("button.submit", content).on("click", function(){
 						var pdata = {};
@@ -51,8 +52,9 @@
 						pdata.url = treeNode.data_url;
 						pdata.method = treeNode.data_method;
 						pdata.parameterTypes = treeNode.data_parameterTypes.split(',');
-
+                        var type = $('#invokeType').val();
 						$.ajax({
+                            type:type,
 							url:"./invoke.json?validate=true&app=${appName}&timestamp=${timestamp}&direct=${direct!"true"}&token=" + $("#token").val(),
 							data: pdata,
 							success: function(m){
