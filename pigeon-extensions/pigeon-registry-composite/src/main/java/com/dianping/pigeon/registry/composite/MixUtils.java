@@ -25,7 +25,11 @@ public class MixUtils {
 
     public static final String KEY_MIX_MODE_READ_PREFER = "pigeon.registry.mix.mode.read.prefer";
 
+    public static final String KEY_MIX_MODE_FORCE_DOUBLE_WRITE = "pigeon.registry.mix.mode.force.double.write";
+
     private volatile static String mixReadPrefer = configManager.getStringValue(KEY_MIX_MODE_READ_PREFER, Constants.REGISTRY_MIX_NAME);
+
+    private volatile static boolean mixForceDoubleWrite = configManager.getBooleanValue(KEY_MIX_MODE_FORCE_DOUBLE_WRITE, true);
 
     // registryName --> registry
     private static final Map<String, Registry> registrys = new HashMap<>();
@@ -42,6 +46,14 @@ public class MixUtils {
 
     public static void setMixReadPrefer(String mixReadPrefer) {
         MixUtils.mixReadPrefer = mixReadPrefer;
+    }
+
+    public static boolean isMixForceDoubleWrite() {
+        return mixForceDoubleWrite;
+    }
+
+    public static void setMixForceDoubleWrite(boolean mixForceDoubleWrite) {
+        MixUtils.mixForceDoubleWrite = mixForceDoubleWrite;
     }
 
     public static Map<String, Registry> getRegistrys() {

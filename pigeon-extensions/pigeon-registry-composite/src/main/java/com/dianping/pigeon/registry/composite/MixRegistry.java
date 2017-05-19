@@ -57,7 +57,7 @@ public class MixRegistry implements Registry {
                         configManager.registerConfigChangeListener(new InnerConfigChangeListener());
                         inited = true;
                     } catch (Throwable t) {
-                        logger.error("failed to init composite registry...");
+                        logger.error("failed to init mix registry...");
                         throw new RuntimeException(t);
                     }
                 }
@@ -100,7 +100,7 @@ public class MixRegistry implements Registry {
     @Override
     public void registerService(String serviceName, String group, String serviceAddress, int weight)
             throws RegistryException {
-        for (Registry registry : registrys.values()) {
+        for (Registry registry : getCurrentWriteRegistries().values()) {
             try {
                 registry.registerService(serviceName, group, serviceAddress, weight);
             } catch (Throwable t) {
@@ -112,7 +112,7 @@ public class MixRegistry implements Registry {
 
     @Override
     public void unregisterService(String serviceName, String serviceAddress) throws RegistryException {
-        for (Registry registry : registrys.values()) {
+        for (Registry registry : getCurrentWriteRegistries().values()) {
             try {
                 registry.unregisterService(serviceName, serviceAddress);
             } catch (Throwable t) {
@@ -124,7 +124,7 @@ public class MixRegistry implements Registry {
 
     @Override
     public void unregisterService(String serviceName, String group, String serviceAddress) throws RegistryException {
-        for (Registry registry : registrys.values()) {
+        for (Registry registry : getCurrentWriteRegistries().values()) {
             try {
                 registry.unregisterService(serviceName, group, serviceAddress);
             } catch (Throwable t) {
@@ -162,7 +162,7 @@ public class MixRegistry implements Registry {
 
     @Override
     public void setServerWeight(String serverAddress, int weight) throws RegistryException {
-        for (Registry registry : registrys.values()) {
+        for (Registry registry : getCurrentWriteRegistries().values()) {
             try {
                 registry.setServerWeight(serverAddress, weight);
             } catch (Throwable t) {
@@ -195,7 +195,7 @@ public class MixRegistry implements Registry {
 
     @Override
     public void setServerApp(String serverAddress, String app) {
-        for (Registry registry : registrys.values()) {
+        for (Registry registry : getCurrentWriteRegistries().values()) {
             try {
                 registry.setServerApp(serverAddress, app);
             } catch (Throwable t) {
@@ -206,7 +206,7 @@ public class MixRegistry implements Registry {
 
     @Override
     public void unregisterServerApp(String serverAddress) {
-        for (Registry registry : registrys.values()) {
+        for (Registry registry : getCurrentWriteRegistries().values()) {
             try {
                 registry.unregisterServerApp(serverAddress);
             } catch (Throwable t) {
@@ -217,7 +217,7 @@ public class MixRegistry implements Registry {
 
     @Override
     public void setServerVersion(String serverAddress, String version) {
-        for (Registry registry : registrys.values()) {
+        for (Registry registry : getCurrentWriteRegistries().values()) {
             try {
                 registry.setServerVersion(serverAddress, version);
             } catch (Throwable t) {
@@ -249,7 +249,7 @@ public class MixRegistry implements Registry {
 
     @Override
     public void unregisterServerVersion(String serverAddress) {
-        for (Registry registry : registrys.values()) {
+        for (Registry registry : getCurrentWriteRegistries().values()) {
             try {
                 registry.unregisterServerVersion(serverAddress);
             } catch (Throwable t) {
@@ -262,7 +262,7 @@ public class MixRegistry implements Registry {
     public String getStatistics() {
         String stats = "";
 
-        for (Registry registry : registrys.values()) {
+        for (Registry registry : getCurrentWriteRegistries().values()) {
             stats += registry.getStatistics() + ",";
         }
 
@@ -356,7 +356,7 @@ public class MixRegistry implements Registry {
     @Override
     public void setSupportNewProtocol(String serviceAddress, String serviceName, boolean support)
             throws RegistryException {
-        for (Registry registry : registrys.values()) {
+        for (Registry registry : getCurrentWriteRegistries().values()) {
             try {
                 registry.setSupportNewProtocol(serviceAddress, serviceName, support);
             } catch (Throwable t) {
@@ -369,7 +369,7 @@ public class MixRegistry implements Registry {
     @Override
     public void unregisterSupportNewProtocol(String serviceAddress, String serviceName, boolean support)
             throws RegistryException {
-        for (Registry registry : registrys.values()) {
+        for (Registry registry : getCurrentWriteRegistries().values()) {
             try {
                 registry.unregisterSupportNewProtocol(serviceAddress, serviceName, support);
             } catch (Throwable t) {
@@ -381,7 +381,7 @@ public class MixRegistry implements Registry {
 
     @Override
     public void updateHeartBeat(String serviceAddress, Long heartBeatTimeMillis) {
-        for (Registry registry : registrys.values()) {
+        for (Registry registry : getCurrentWriteRegistries().values()) {
             try {
                 registry.updateHeartBeat(serviceAddress, heartBeatTimeMillis);
             } catch (Throwable t) {
@@ -392,7 +392,7 @@ public class MixRegistry implements Registry {
 
     @Override
     public void deleteHeartBeat(String serviceAddress) {
-        for (Registry registry : registrys.values()) {
+        for (Registry registry : getCurrentWriteRegistries().values()) {
             try {
                 registry.deleteHeartBeat(serviceAddress);
             } catch (Throwable t) {
@@ -403,7 +403,7 @@ public class MixRegistry implements Registry {
 
     @Override
     public void setServerService(String serviceName, String group, String hosts) throws RegistryException {
-        for (Registry registry : registrys.values()) {
+        for (Registry registry : getCurrentWriteRegistries().values()) {
             try {
                 registry.setServerService(serviceName, group, hosts);
             } catch (Throwable t) {
@@ -414,7 +414,7 @@ public class MixRegistry implements Registry {
 
     @Override
     public void delServerService(String serviceName, String group) throws RegistryException {
-        for (Registry registry : registrys.values()) {
+        for (Registry registry : getCurrentWriteRegistries().values()) {
             try {
                 registry.delServerService(serviceName, group);
             } catch (Throwable t) {
@@ -425,7 +425,7 @@ public class MixRegistry implements Registry {
 
     @Override
     public void setHostsWeight(String serviceName, String group, String hosts, int weight) throws RegistryException {
-        for (Registry registry : registrys.values()) {
+        for (Registry registry : getCurrentWriteRegistries().values()) {
             try {
                 registry.setHostsWeight(serviceName, group, hosts, weight);
             } catch (Throwable t) {
@@ -513,7 +513,7 @@ public class MixRegistry implements Registry {
 
     @Override
     public void setConsoleAddress(String consoleAddress) {
-        for (Registry registry : registrys.values()) {
+        for (Registry registry : getCurrentWriteRegistries().values()) {
             try {
                 registry.setConsoleAddress(consoleAddress);
             } catch (Throwable t) {
@@ -524,7 +524,7 @@ public class MixRegistry implements Registry {
 
     @Override
     public void unregisterConsoleAddress(String consoleAddress) {
-        for (Registry registry : registrys.values()) {
+        for (Registry registry : getCurrentWriteRegistries().values()) {
             try {
                 registry.unregisterConsoleAddress(consoleAddress);
             } catch (Throwable t) {
@@ -538,7 +538,7 @@ public class MixRegistry implements Registry {
     public List<String> getConsoleAddresses() {
         List<String> consoleAddresses = new ArrayList<>();
 
-        for (Registry registry : registrys.values()) {
+        for (Registry registry : getCurrentWriteRegistries().values()) {
             try {
                 List<String> tempAddresses = registry.getConsoleAddresses();
                 if (tempAddresses != null && !tempAddresses.isEmpty()) {
@@ -557,7 +557,7 @@ public class MixRegistry implements Registry {
         RegistryConfig registryConfig;
         List<RegistryConfig> checkList = Lists.newArrayList();
 
-        for (Registry registry : registrys.values()) {
+        for (Registry registry : getCurrentWriteRegistries().values()) {
             try {
                 checkList.add(registry.getRegistryConfig(ip));
             } catch (Throwable t) {
@@ -603,6 +603,19 @@ public class MixRegistry implements Registry {
         return result;
     }
 
+    private Map<String, Registry> getCurrentWriteRegistries() {
+        if (!MixUtils.isMixForceDoubleWrite()) {
+            Registry _registry = registrys.get(MixUtils.getMixReadPrefer());
+            if (_registry != null && !Constants.REGISTRY_MIX_NAME.equals(_registry.getName())) {
+                Map<String, Registry> registryMap = new HashMap<>();
+                registryMap.put(_registry.getName(), _registry);
+                return registryMap;
+            }
+        }
+
+        return registrys;
+    }
+
     private class InnerConfigChangeListener implements ConfigChangeListener {
         @Override
         public void onKeyUpdated(String key, String value) {
@@ -625,6 +638,8 @@ public class MixRegistry implements Registry {
                         MixUtils.setMixReadPrefer(_mixReadPrefer);
                         RegistryEventListener.connectionReconnected();
                     }
+                } else if (key.endsWith(MixUtils.KEY_MIX_MODE_FORCE_DOUBLE_WRITE)) {
+                    MixUtils.setMixForceDoubleWrite(Boolean.valueOf(value));
                 }
             } catch (Throwable t) {
                 logger.warn("failed to handle change of key: " + key, t);
