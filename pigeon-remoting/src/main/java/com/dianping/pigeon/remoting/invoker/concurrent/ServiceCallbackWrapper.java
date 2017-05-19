@@ -95,7 +95,7 @@ public class ServiceCallbackWrapper implements Callback {
                     try {
                         invocationContext.getDegradeInfo().setFailureDegrade(true);
                         invocationContext.getDegradeInfo().setCause(e);
-                        degradedResponse = DegradationFilter.degradeCall(invocationContext, false);
+                        degradedResponse = DegradationFilter.degradeCall(invocationContext);
                     } catch (Throwable t) {
                         logger.warn("failure degrade in callback call type error: " + t.toString());
                     }
@@ -122,7 +122,7 @@ public class ServiceCallbackWrapper implements Callback {
                         try {
                             invocationContext.getDegradeInfo().setFailureDegrade(true);
                             invocationContext.getDegradeInfo().setCause(e);
-                            degradedResponse = DegradationFilter.degradeCall(invocationContext, false);
+                            degradedResponse = DegradationFilter.degradeCall(invocationContext);
                         } catch (Throwable t) {
                             logger.warn("failure degrade in callback call type error: " + t.toString());
                         }

@@ -96,7 +96,7 @@ public class ServiceFutureImpl extends CallbackFuture implements Future {
 					try {
 						invocationContext.getDegradeInfo().setFailureDegrade(true);
 						invocationContext.getDegradeInfo().setCause(e);
-						degradedResponse = DegradationFilter.degradeCall(invocationContext, true);
+						degradedResponse = DegradationFilter.degradeCall(invocationContext);
 					} catch (Throwable t) {
 						// won't happen
 						logger.warn("failure degrade in future call type error: " + t.toString());
@@ -124,7 +124,7 @@ public class ServiceFutureImpl extends CallbackFuture implements Future {
 					try {
 						invocationContext.getDegradeInfo().setFailureDegrade(true);
 						invocationContext.getDegradeInfo().setCause(InvokerUtils.toRpcException(response));
-						degradedResponse = DegradationFilter.degradeCall(invocationContext, true);
+						degradedResponse = DegradationFilter.degradeCall(invocationContext);
 					} catch (Throwable t) {
 						// won't happen
 						logger.warn("failure degrade in future call type error: " + t.toString());
