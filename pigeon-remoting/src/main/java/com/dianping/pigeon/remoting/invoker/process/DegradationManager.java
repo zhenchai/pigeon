@@ -16,6 +16,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import com.dianping.pigeon.monitor.MonitorTransaction;
 import com.dianping.pigeon.remoting.common.util.InvocationUtils;
+import com.dianping.pigeon.remoting.invoker.exception.*;
 import org.springframework.util.CollectionUtils;
 
 import com.dianping.pigeon.config.ConfigChangeListener;
@@ -27,10 +28,6 @@ import com.dianping.pigeon.monitor.Monitor;
 import com.dianping.pigeon.monitor.MonitorLoader;
 import com.dianping.pigeon.remoting.common.exception.RejectedException;
 import com.dianping.pigeon.remoting.invoker.domain.InvokerContext;
-import com.dianping.pigeon.remoting.invoker.exception.RemoteInvocationException;
-import com.dianping.pigeon.remoting.invoker.exception.RequestTimeoutException;
-import com.dianping.pigeon.remoting.invoker.exception.ServiceDegradedException;
-import com.dianping.pigeon.remoting.invoker.exception.ServiceUnavailableException;
 import com.dianping.pigeon.remoting.invoker.process.filter.DegradationFilter;
 import com.dianping.pigeon.remoting.invoker.route.quality.RequestQualityManager;
 import com.dianping.pigeon.remoting.invoker.route.quality.RequestQualityManager.Quality;
@@ -179,7 +176,8 @@ public enum DegradationManager {
 
 	public void addFailedRequest(InvokerContext context, Throwable t) {
 		if (t instanceof ServiceUnavailableException || t instanceof RequestTimeoutException
-				|| t instanceof RemoteInvocationException || t instanceof RejectedException) {
+				|| t instanceof RemoteInvocationException || t instanceof RejectedException
+				|| t instanceof ServiceFailureDegreadedException) {
 			addRequest(context, t, false);
 		}
 	}

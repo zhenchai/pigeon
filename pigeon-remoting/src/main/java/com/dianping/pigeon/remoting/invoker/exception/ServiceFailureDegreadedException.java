@@ -1,11 +1,11 @@
 package com.dianping.pigeon.remoting.invoker.exception;
 
-import com.dianping.pigeon.remoting.common.exception.ApplicationException;
+import com.dianping.pigeon.remoting.common.exception.RpcException;
 
 /**
  * Created by chenchongze on 17/5/19.
  */
-public class ServiceFailureDegreadedException extends ApplicationException {
+public class ServiceFailureDegreadedException extends RpcException {
 
     public ServiceFailureDegreadedException() {
         super();
