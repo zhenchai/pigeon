@@ -95,7 +95,7 @@ public class RegistryManager {
 		try {
 			if (_registryList.size() > 0) {
 				String customizedRegistryName = configManager.getStringValue(KEY_PIGEON_REGISTRY_CUSTOMIZED,
-						Constants.REGISTRY_MIX_NAME);
+						Constants.REGISTRY_CURATOR_NAME);
 				for (Registry registry : _registryList) {
 					if (registry.getName().equals(customizedRegistryName)) {
 						registry.init();
