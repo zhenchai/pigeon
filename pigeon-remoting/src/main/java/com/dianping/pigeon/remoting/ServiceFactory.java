@@ -9,6 +9,7 @@ import java.util.Map;
 
 import com.dianping.pigeon.remoting.provider.publish.PublishPolicy;
 import com.dianping.pigeon.remoting.provider.publish.PublishPolicyLoader;
+import com.dianping.pigeon.util.ThriftUtils;
 import org.apache.commons.lang.StringUtils;
 
 import com.dianping.pigeon.log.Logger;
@@ -55,26 +56,19 @@ public class ServiceFactory {
 	}
 
 	public static <T> String getServiceUrl(Class<T> serviceInterface) {
-		String url = serviceInterface.getCanonicalName();
-		return url;
+		if (ThriftUtils.isIDL(serviceInterface)) {
+			return serviceInterface.getEnclosingClass().getName();
+		} else {
+			return serviceInterface.getName();
+		}
 	}
 
 	public static <T> String getServiceUrl(InvokerConfig<T> invokerConfig) {
-		String url = invokerConfig.getServiceInterface().getCanonicalName();
-		int index = url.indexOf("$Iface");
-		if (index != -1) {
-			url =  url.substring(0, index);
-		}
-		return url;
+		return getServiceUrl(invokerConfig.getServiceInterface());
 	}
 
 	public static <T> String getServiceUrl(ProviderConfig<T> providerConfig) {
-		String url = providerConfig.getServiceInterface().getCanonicalName();
-		int index = url.indexOf("$Iface");
-		if (index != -1) {
-			url =  url.substring(0, index);
-		}
-		return url;
+		return getServiceUrl(providerConfig.getServiceInterface());
 	}
 
 	public static <T> T getService(Class<T> serviceInterface) throws RpcException {
