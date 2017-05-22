@@ -129,7 +129,7 @@ public final class Constants {
     public static final String KEY_NOTIFY_ENABLE = "pigeon.notify.enable";
     public static final String KEY_HEARTBEAT_ENABLE = "pigeon.heartbeat.enable";
     public static final String KEY_TEST_ENABLE = "pigeon.test.enable";
-    public static final String KEY_PROVIDER_HEARTBEAT_INTERNAL = "pigeon.provider.heartbeat.internal";
+    public static final String KEY_PROVIDER_HEARTBEAT_INTERVAL = "pigeon.provider.heartbeat.internal";
     public static final String KEY_REGIONPOLICY = "pigeon.regionpolicy.defaulttype";
 
     public static final String KEY_CODEC_COMPRESS_ENABLE = "pigeon.codec.compress.enable";
@@ -168,7 +168,7 @@ public final class Constants {
     public static final boolean DEFAULT_NOTIFY_ENABLE = false;
     public static final boolean DEFAULT_TEST_ENABLE = true;
     public static final int DEFAULT_WEIGHT_STARTDELAY = 30000;
-    public static final int DEFAULT_PROVIDER_HEARTBEAT_INTERNAL = 60000;
+    public static final int DEFAULT_PROVIDER_HEARTBEAT_INTERVAL = 60000;
 
     public static final boolean DEFAULT_CODEC_COMPRESS_ENABLE = false;
     public static final int DEFAULT_CODEC_COMPRESS_THRESHOLD = 5000;

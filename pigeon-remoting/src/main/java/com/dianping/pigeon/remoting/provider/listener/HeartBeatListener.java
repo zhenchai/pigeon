@@ -31,8 +31,8 @@ public class HeartBeatListener extends Thread {
 
     private static final Set<String> serviceHeartBeatCache = Collections.synchronizedSet(new HashSet<String>());
 
-    private static volatile int REFRESH_INTERVAL = configManager.getIntValue(Constants.KEY_PROVIDER_HEARTBEAT_INTERNAL,
-            Constants.DEFAULT_PROVIDER_HEARTBEAT_INTERNAL);
+    private static volatile int refreshInterval = configManager.getIntValue(Constants.KEY_PROVIDER_HEARTBEAT_INTERVAL,
+            Constants.DEFAULT_PROVIDER_HEARTBEAT_INTERVAL);
 
     private static volatile HeartBeatListener heartBeatListener = null;
 
@@ -109,9 +109,9 @@ public class HeartBeatListener extends Thread {
                     registryManager.updateHeartBeat(serviceAddress, heartbeat);
                 }
 
-                Long internal = REFRESH_INTERVAL - System.currentTimeMillis() + heartbeat;
-                if(internal > 0) {
-                    Thread.sleep(internal);
+                Long interval = refreshInterval - System.currentTimeMillis() + heartbeat;
+                if(interval > 0) {
+                    Thread.sleep(interval);
                 }
             }
         } catch (Throwable e) {
@@ -128,7 +128,7 @@ public class HeartBeatListener extends Thread {
 
         // 等待之后重启心跳线程
         try {
-            Thread.sleep(REFRESH_INTERVAL);
+            Thread.sleep(refreshInterval);
             initHeartBeat(heartBeatListener.serviceAddress);
         } catch (Exception e) {
             logger.fatal("HeartBeat restart failed! Please check!", e);
@@ -150,11 +150,11 @@ public class HeartBeatListener extends Thread {
 
             @Override
             public void onKeyUpdated(String key, String value) {
-                if (Constants.KEY_PROVIDER_HEARTBEAT_INTERNAL.equals(key)) {
+                if (Constants.KEY_PROVIDER_HEARTBEAT_INTERVAL.equals(key)) {
                     try {
-                        REFRESH_INTERVAL = Integer.parseInt(value);
+                        refreshInterval = Integer.parseInt(value);
                     } catch (NumberFormatException e) {
-                        logger.info("failed to change heartbeat refresh internal, please check value: " + value);
+                        logger.info("failed to change heartbeat refresh interval, please check value: " + value);
                     }
                 }
             }
