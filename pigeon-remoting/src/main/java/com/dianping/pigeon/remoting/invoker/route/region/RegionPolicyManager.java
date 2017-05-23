@@ -14,6 +14,7 @@ import com.dianping.pigeon.remoting.invoker.ClientManager;
 import com.dianping.pigeon.remoting.invoker.config.InvokerConfig;
 import com.dianping.pigeon.remoting.invoker.exception.RouteException;
 import com.dianping.pigeon.util.ClassUtils;
+import com.dianping.pigeon.util.CollectionUtils;
 import com.dianping.pigeon.util.ServiceUtils;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang.StringUtils;
@@ -82,7 +83,7 @@ public enum RegionPolicyManager {
     private Map<String, RegionPolicy> regionPolicyMap = new ConcurrentHashMap<String, RegionPolicy>();
 
     private void checkClientsNotNull(List<Client> clientList, InvokerConfig<?> invokerConfig) {
-        if(clientList == null) {
+        if(CollectionUtils.isEmpty(clientList)) {
             throw new RouteException("no available clientList in region policy for service[" + invokerConfig + "], env:"
                     + ConfigManagerLoader.getConfigManager().getEnv());
         }
