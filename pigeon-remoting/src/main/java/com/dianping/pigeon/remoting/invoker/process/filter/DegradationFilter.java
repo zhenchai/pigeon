@@ -8,6 +8,7 @@ import java.io.Serializable;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.dianping.pigeon.remoting.common.exception.ApplicationException;
 import com.dianping.pigeon.remoting.invoker.exception.*;
 import org.apache.commons.lang.StringUtils;
 
@@ -193,8 +194,7 @@ public class DegradationFilter extends InvocationInvokeFilter {
                     RpcException rpcException = InvokerUtils.toRpcException(response);
                     if (rpcException instanceof RemoteInvocationException
                             || rpcException instanceof RejectedException) {
-                        failed = true;
-                        DegradationManager.INSTANCE.addFailedRequest(context, rpcException);
+                        throw rpcException;
                     }
                 }
             }
