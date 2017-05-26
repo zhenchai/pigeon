@@ -13,6 +13,7 @@ import com.dianping.pigeon.monitor.MonitorLoader;
 import com.dianping.pigeon.monitor.MonitorTransaction;
 import com.dianping.pigeon.registry.RegistryManager;
 import com.dianping.pigeon.remoting.common.codec.SerializerType;
+import com.dianping.pigeon.remoting.common.domain.CallMethod;
 import com.dianping.pigeon.remoting.common.domain.InvocationContext.TimePhase;
 import com.dianping.pigeon.remoting.common.domain.InvocationContext.TimePoint;
 import com.dianping.pigeon.remoting.common.domain.InvocationRequest;
@@ -45,6 +46,8 @@ public class RemoteCallMonitorInvokeFilter extends InvocationInvokeFilter {
         String targetApp = null;
         String callInterface = null;
         InvokerConfig<?> invokerConfig = invocationContext.getInvokerConfig();
+        byte callMethodCode = invokerConfig.getCallMethod(invocationContext.getMethodName());
+        CallMethod callMethod = CallMethod.getCallMethod(callMethodCode);
         if (monitor != null) {
             try {
                 callInterface = InvocationUtils.getRemoteCallFullName(invokerConfig.getUrl(),
@@ -68,7 +71,9 @@ public class RemoteCallMonitorInvokeFilter extends InvocationInvokeFilter {
         try {
             InvocationResponse response = handler.handle(invocationContext);
             if (transaction != null) {
-                DegradationManager.INSTANCE.monitorDegrade(invocationContext, transaction);
+                if (CallMethod.SYNC == callMethod) {
+                    DegradationManager.INSTANCE.monitorDegrade(invocationContext, transaction);
+                }
                 Client client = invocationContext.getClient();
                 if (client != null) {
                     targetApp = RegistryManager.getInstance().getReferencedAppFromCache(client.getAddress());
@@ -100,7 +105,9 @@ public class RemoteCallMonitorInvokeFilter extends InvocationInvokeFilter {
             return response;
         } catch (Throwable e) {
             if (transaction != null) {
-                DegradationManager.INSTANCE.monitorDegrade(invocationContext, transaction);
+                if (CallMethod.SYNC == callMethod) {
+                    DegradationManager.INSTANCE.monitorDegrade(invocationContext, transaction);
+                }
                 Client client = invocationContext.getClient();
                 String remoteAddress = null;
                 if (client != null) {
