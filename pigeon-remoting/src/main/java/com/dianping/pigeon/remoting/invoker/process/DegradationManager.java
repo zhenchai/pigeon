@@ -74,12 +74,7 @@ public enum DegradationManager {
 	private static final String KEY_DEGRADE_CUSTOMIZED_EXCEPTION = "pigeon.invoker.degrade.customized.exception";
 	private static volatile Set<String> degradeCustomizedExceptions = new HashSet<>();
 
-	private DegradationManager() {
-		String degradeCustomizedExceptionConfig = ConfigManagerLoader.getConfigManager()
-				.getStringValue(KEY_DEGRADE_CUSTOMIZED_EXCEPTION, "");
-		parseDegradeCustomizedExceptions(degradeCustomizedExceptionConfig);
-		ConfigManagerLoader.getConfigManager().registerConfigChangeListener(new InnerConfigChangeListener());
-	}
+	DegradationManager() { }
 
 	private static void parseDegradeCustomizedExceptions(String config) {
 		Set<String> set = new HashSet<>();
@@ -148,6 +143,10 @@ public enum DegradationManager {
 
 	static {
 		checkThreadPool.execute(new Checker());
+		String degradeCustomizedExceptionConfig = ConfigManagerLoader.getConfigManager()
+				.getStringValue(KEY_DEGRADE_CUSTOMIZED_EXCEPTION, "");
+		parseDegradeCustomizedExceptions(degradeCustomizedExceptionConfig);
+		ConfigManagerLoader.getConfigManager().registerConfigChangeListener(new InnerConfigChangeListener());
 	}
 
 	public String getRequestUrl(InvokerContext context) {
