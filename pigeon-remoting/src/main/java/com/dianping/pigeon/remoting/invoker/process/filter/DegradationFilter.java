@@ -276,6 +276,7 @@ public class DegradationFilter extends InvocationInvokeFilter {
                     monitorData.degrade();
                 }
 
+                context.getDegradeInfo().setDegrade(true);
                 if (context.getDegradeInfo().isFailureDegrade()) {
                     DegradationManager.INSTANCE.addFailedRequest(context, new ServiceFailureDegreadedException());
                 } else {
@@ -285,14 +286,13 @@ public class DegradationFilter extends InvocationInvokeFilter {
             }
             return resp;
         } catch (Exception e) {
+            context.getDegradeInfo().setDegrade(true);
             if (context.getDegradeInfo().isFailureDegrade()) {
                 DegradationManager.INSTANCE.addFailedRequest(context, e);
             } else {
                 DegradationManager.INSTANCE.addDegradedRequest(context, e);
             }
             throw e;
-        } finally {
-            context.getDegradeInfo().setDegrade(true);
         }
     }
 

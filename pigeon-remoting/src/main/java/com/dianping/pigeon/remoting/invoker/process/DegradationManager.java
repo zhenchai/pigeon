@@ -261,7 +261,8 @@ public enum DegradationManager {
 		if (context.getDegradeInfo().isDegrade()
 				&& !context.getDegradeInfo().isFailureDegrade()) {
 			transaction.logEvent("PigeonCall.degrade", callInterface, "");
-		} else if (context.getDegradeInfo().isFailureDegrade()) {
+		} else if (context.getDegradeInfo().isDegrade()
+				&& context.getDegradeInfo().isFailureDegrade()) {
 			transaction.logEvent("PigeonCall.failureDegrade", callInterface,
 					context.getDegradeInfo().getCause() == null ?
 							"" : context.getDegradeInfo().getCause().toString());
