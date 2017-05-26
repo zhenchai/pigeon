@@ -72,7 +72,7 @@ public class CuratorEventListener implements CuratorListener {
 				registryConfigChanged(pathInfo);
 			}
 		} catch (Throwable e) {
-			logger.error("Error in ZookeeperWatcher.process()", e);
+			logger.info("Error in ZookeeperWatcher.process()", e);
 			return;
 		}
 	}

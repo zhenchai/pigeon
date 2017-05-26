@@ -112,11 +112,14 @@ public class ServiceCallbackWrapper implements Callback {
                 if (response.getMessageType() == Constants.MESSAGE_TYPE_SERVICE) {
                     completeTransaction(transaction);
                     isSuccess = true;
+                    DegradationManager.INSTANCE.addNormalRequest(invocationContext);
                     this.callback.onSuccess(response.getReturn());
                 } else if (response.getMessageType() == Constants.MESSAGE_TYPE_EXCEPTION) {
                     RpcException e = ExceptionManager.INSTANCE.logRemoteCallException(addr,
                             invocationContext.getInvokerConfig().getUrl(), invocationContext.getMethodName(),
                             "remote call error with callback", request, response, transaction);
+                    completeTransaction(transaction);
+
                     InvocationResponse degradedResponse = null;
                     if (DegradationManager.INSTANCE.needFailureDegrade(invocationContext)) {
                         try {
@@ -127,19 +130,38 @@ public class ServiceCallbackWrapper implements Callback {
                             logger.warn("failure degrade in callback call type error: " + t.toString());
                         }
                     }
+
                     if (degradedResponse == null) {
                         DegradationManager.INSTANCE.addFailedRequest(invocationContext, e);
-                    }
-                    completeTransaction(transaction);
-                    if (degradedResponse == null) {
                         this.callback.onFailure(e);
                     }
+
                 } else if (response.getMessageType() == Constants.MESSAGE_TYPE_SERVICE_EXCEPTION) {
                     Exception e = ExceptionManager.INSTANCE
                             .logRemoteServiceException("remote service biz error with callback", request, response);
                     completeTransaction(transaction);
 
-                    this.callback.onFailure(e);
+                    InvocationResponse degradedResponse = null;
+                    if (DegradationManager.INSTANCE.needFailureDegrade(invocationContext)
+                            && DegradationManager.INSTANCE.isCustomizedDegradeException(e)) {
+                        try {
+                            invocationContext.getDegradeInfo().setFailureDegrade(true);
+                            invocationContext.getDegradeInfo().setCause(e);
+                            degradedResponse = DegradationFilter.degradeCall(invocationContext);
+                        } catch (Throwable t) {
+                            logger.warn("failure degrade in callback call type error: " + t.toString());
+                        }
+
+                        if (degradedResponse == null) { // 没失败降级成功,由于是业务指定降级异常,也得计入失败统计
+                            DegradationManager.INSTANCE.addFailedRequest(invocationContext, e);
+                        }
+                    } else {
+                        DegradationManager.INSTANCE.addNormalRequest(invocationContext);
+                    }
+
+                    if (degradedResponse == null) {
+                        this.callback.onFailure(e);
+                    }
                 } else {
                     RpcException e = new BadResponseException(response.toString());
                     monitor.logError(e);

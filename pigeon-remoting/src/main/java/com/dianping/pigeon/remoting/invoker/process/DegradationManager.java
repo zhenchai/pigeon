@@ -5,9 +5,7 @@
 package com.dianping.pigeon.remoting.invoker.process;
 
 import java.io.Serializable;
-import java.util.Calendar;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
@@ -17,6 +15,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import com.dianping.pigeon.monitor.MonitorTransaction;
 import com.dianping.pigeon.remoting.common.util.InvocationUtils;
 import com.dianping.pigeon.remoting.invoker.exception.*;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.util.CollectionUtils;
 
 import com.dianping.pigeon.config.ConfigChangeListener;
@@ -72,8 +71,32 @@ public enum DegradationManager {
 	private static volatile int degradeCheckInterval = configManager.getIntValue(KEY_DEGRADE_CHECK_INTERVAL, 2);
 	private static volatile boolean isLogDegrade = configManager.getBooleanValue(KEY_DEGRADE_LOG_ENABLE, false);
 
+	private static final String KEY_DEGRADE_CUSTOMIZED_EXCEPTION = "pigeon.invoker.degrade.customized.exception";
+	private static volatile Set<String> degradeCustomizedExceptions = new HashSet<>();
+
 	private DegradationManager() {
+		String degradeCustomizedExceptionConfig = ConfigManagerLoader.getConfigManager()
+				.getStringValue(KEY_DEGRADE_CUSTOMIZED_EXCEPTION, "");
+		parseDegradeCustomizedExceptions(degradeCustomizedExceptionConfig);
 		ConfigManagerLoader.getConfigManager().registerConfigChangeListener(new InnerConfigChangeListener());
+	}
+
+	private static void parseDegradeCustomizedExceptions(String config) {
+		Set<String> set = new HashSet<>();
+		String[] exceptions = config.split(",");
+		for (String ex : exceptions) {
+			if (StringUtils.isNotBlank(ex)) {
+				set.add(ex);
+			}
+		}
+		degradeCustomizedExceptions = set;
+	}
+
+	public boolean isCustomizedDegradeException(Throwable throwable) {
+		if (throwable != null) {
+			return degradeCustomizedExceptions.contains(throwable.getClass().getName());
+		}
+		return false;
 	}
 
 	private static class InnerConfigChangeListener implements ConfigChangeListener {
@@ -103,6 +126,8 @@ public enum DegradationManager {
 					degradeCheckInterval = Integer.valueOf(value);
 				} else if (key.endsWith(KEY_DEGRADE_LOG_ENABLE)) {
 					isLogDegrade = Boolean.valueOf(value);
+				} else if (key.endsWith(KEY_DEGRADE_CUSTOMIZED_EXCEPTION)) {
+					parseDegradeCustomizedExceptions(value);
 				}
 			} catch (RuntimeException e) {
 				logger.warn("invalid value for key " + key, e);
@@ -159,6 +184,10 @@ public enum DegradationManager {
 		return false;
 	}
 
+	public static Map<String, Count> getRequestCountMap() {
+		return requestCountMap;
+	}
+
 	public boolean needFailureDegrade(InvokerContext context) {
 		return degradationIsEnable(context)
 				&& (isAutoDegrade || isFailureDegrade);
@@ -177,7 +206,7 @@ public enum DegradationManager {
 	public void addFailedRequest(InvokerContext context, Throwable t) {
 		if (t instanceof ServiceUnavailableException || t instanceof RequestTimeoutException
 				|| t instanceof RemoteInvocationException || t instanceof RejectedException
-				|| t instanceof ServiceFailureDegreadedException) {
+				|| t instanceof ServiceFailureDegreadedException || isCustomizedDegradeException(t)) {
 			addRequest(context, t, false);
 		}
 	}
@@ -189,6 +218,10 @@ public enum DegradationManager {
 			ex.setStackTrace(new StackTraceElement[] {});
 			monitor.logError(ex);
 		}
+	}
+
+	public void addNormalRequest(InvokerContext context) {
+		addRequest(context, null, false);
 	}
 
 	private void addRequest(InvokerContext context, Throwable t, boolean degraded) {
@@ -326,7 +359,7 @@ public enum DegradationManager {
 
 	}
 
-	private static class Count {
+	public static class Count {
 		private AtomicInteger failed = new AtomicInteger();
 		private AtomicInteger total = new AtomicInteger();
 		private AtomicInteger degraded = new AtomicInteger();

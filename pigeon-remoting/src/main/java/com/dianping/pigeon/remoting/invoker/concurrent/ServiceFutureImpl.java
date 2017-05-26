@@ -116,11 +116,12 @@ public class ServiceFutureImpl extends CallbackFuture implements Future {
 
 			if (response.getMessageType() == Constants.MESSAGE_TYPE_SERVICE) {
 				isSuccess = true;
+				DegradationManager.INSTANCE.addNormalRequest(invocationContext);
 				return response.getReturn();
 			} else if (response.getMessageType() == Constants.MESSAGE_TYPE_EXCEPTION) {
-				// failure degrade condition
-				InvocationResponse degradedResponse = null;
-				if (DegradationManager.INSTANCE.needFailureDegrade(invocationContext)) {
+
+				if (DegradationManager.INSTANCE.needFailureDegrade(invocationContext)) {// failure degrade condition
+					InvocationResponse degradedResponse = null;
 					try {
 						invocationContext.getDegradeInfo().setFailureDegrade(true);
 						invocationContext.getDegradeInfo().setCause(InvokerUtils.toRpcException(response));
@@ -129,10 +130,11 @@ public class ServiceFutureImpl extends CallbackFuture implements Future {
 						// won't happen
 						logger.warn("failure degrade in future call type error: " + t.toString());
 					}
+					if (degradedResponse != null) {// 返回失败降级结果
+						return degradedResponse.getReturn();
+					}
 				}
-				if (degradedResponse != null) {// 返回同步调用模式的失败降级结果
-					return degradedResponse.getReturn();
-				}
+
 				// not failure degrade
 				RpcException e = ExceptionManager.INSTANCE.logRemoteCallException(addr,
 						invocationContext.getInvokerConfig().getUrl(), invocationContext.getMethodName(),
@@ -144,6 +146,28 @@ public class ServiceFutureImpl extends CallbackFuture implements Future {
 			} else if (response.getMessageType() == Constants.MESSAGE_TYPE_SERVICE_EXCEPTION) {
 				Throwable e = ExceptionManager.INSTANCE
 						.logRemoteServiceException("remote service biz error with future call", request, response);
+
+				if (DegradationManager.INSTANCE.needFailureDegrade(invocationContext)
+						&& DegradationManager.INSTANCE.isCustomizedDegradeException(e)) { // failure degrade condition
+					InvocationResponse degradedResponse = null;
+					try {
+						invocationContext.getDegradeInfo().setFailureDegrade(true);
+						invocationContext.getDegradeInfo().setCause(e);
+						degradedResponse = DegradationFilter.degradeCall(invocationContext);
+					} catch (Throwable t) {
+						// won't happen
+						logger.warn("failure degrade in future call type error: " + t.toString());
+					}
+
+					if (degradedResponse != null) {// 返回失败降级结果
+						return degradedResponse.getReturn();
+					} else { // 没失败降级成功,由于是业务指定降级异常,也得计入失败统计
+						DegradationManager.INSTANCE.addFailedRequest(invocationContext, e);
+					}
+				} else {
+					DegradationManager.INSTANCE.addNormalRequest(invocationContext);
+				}
+
 				if (e instanceof RuntimeException) {
 					throw (RuntimeException) e;
 				} else if (e != null) {

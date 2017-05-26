@@ -176,26 +176,70 @@ public class DegradationFilter extends InvocationInvokeFilter {
     @Override
     public InvocationResponse invoke(ServiceInvocationHandler handler, InvokerContext context) throws Throwable {
         context.getTimeline().add(new TimePoint(TimePhase.D));
-        InvocationResponse response = null;
+
+        InvocationResponse degradeResponse;
         if (DegradationManager.INSTANCE.needDegrade(context)) {
-            response = degradeCall(context);
-        }
-        if (response != null) {// 返回三种调用模式的降级结果
-            return response;
+            degradeResponse = degradeCall(context);
+
+            if (degradeResponse != null) {// 返回三种调用模式的降级结果
+                return degradeResponse;
+            }
         }
 
         boolean failed = false;
+        Throwable failedException = null;
+
         try {
-            response = handler.handle(context);
+            InvocationResponse response = handler.handle(context);
             Object responseReturn = response.getReturn();
             if (responseReturn != null) {
                 int messageType = response.getMessageType();
+
                 if (messageType == Constants.MESSAGE_TYPE_EXCEPTION) {
                     RpcException rpcException = InvokerUtils.toRpcException(response);
                     if (rpcException instanceof RemoteInvocationException
                             || rpcException instanceof RejectedException) {
-                        throw rpcException;
+                        failed = true;
+                        failedException = rpcException;
+                        if (DegradationManager.INSTANCE.needFailureDegrade(context)) {
+                            context.getDegradeInfo().setFailureDegrade(true);
+                            context.getDegradeInfo().setCause(rpcException);
+                            degradeResponse = degradeCall(context);
+
+                            if (degradeResponse != null) {// 返回同步调用模式的失败降级结果
+                                return degradeResponse;
+                            }
+                        }
                     }
+                } else if (messageType == Constants.MESSAGE_TYPE_SERVICE_EXCEPTION) {
+                    // 如果捕捉到用户指定的业务异常,包装为降级异常捕捉
+                    Exception exception = InvokerUtils.toApplicationException(response);
+                    if (DegradationManager.INSTANCE.needFailureDegrade(context)
+                            && DegradationManager.INSTANCE.isCustomizedDegradeException(exception)) {
+                        failed = true;
+                        failedException = exception;
+                        if (DegradationManager.INSTANCE.needFailureDegrade(context)) {
+                            context.getDegradeInfo().setFailureDegrade(true);
+                            context.getDegradeInfo().setCause(exception);
+                            degradeResponse = degradeCall(context);
+
+                            if (degradeResponse != null) {// 返回同步调用模式的失败降级结果
+                                return degradeResponse;
+                            }
+                        }
+                    }
+                }
+            }
+
+            InvokerConfig<?> invokerConfig = context.getInvokerConfig();
+            byte callMethodCode = invokerConfig.getCallMethod(context.getMethodName());
+            CallMethod callMethod = CallMethod.getCallMethod(callMethodCode);
+
+            if (CallMethod.SYNC == callMethod) {
+                if (failed) {
+                    DegradationManager.INSTANCE.addFailedRequest(context, failedException);
+                } else {
+                    DegradationManager.INSTANCE.addNormalRequest(context);
                 }
             }
 
@@ -207,11 +251,13 @@ public class DegradationFilter extends InvocationInvokeFilter {
             if (DegradationManager.INSTANCE.needFailureDegrade(context)) {
                 context.getDegradeInfo().setFailureDegrade(true);
                 context.getDegradeInfo().setCause(e);
-                response = degradeCall(context);
+                degradeResponse = degradeCall(context);
+
+                if (degradeResponse != null) {// 返回同步调用模式的失败降级结果
+                    return degradeResponse;
+                }
             }
-            if (response != null) {// 返回同步调用模式的失败降级结果
-                return response;
-            }
+
             DegradationManager.INSTANCE.addFailedRequest(context, e);
             throw e;
         } finally {

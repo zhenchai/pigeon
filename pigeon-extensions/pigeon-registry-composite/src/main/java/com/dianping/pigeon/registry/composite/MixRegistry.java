@@ -15,6 +15,8 @@ import com.dianping.pigeon.registry.exception.RegistryException;
 import com.dianping.pigeon.registry.listener.RegistryEventListener;
 import com.dianping.pigeon.registry.util.Constants;
 import com.dianping.pigeon.registry.util.HeartBeatSupport;
+import com.dianping.pigeon.remoting.provider.publish.ServicePublisher;
+import com.dianping.pigeon.util.VersionUtils;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
 
@@ -148,6 +150,11 @@ public class MixRegistry implements Registry {
             weight = registrys.get(Constants.REGISTRY_MNS_NAME).getServerWeight(serverAddress);
         } else if (Boolean.FALSE.equals(serverActive)) {
             weight = registrys.get(Constants.REGISTRY_CURATOR_NAME).getServerWeight(serverAddress);
+        } else if (configManager.getLocalIp().equals(MixUtils.getIp(serverAddress))) {
+            Integer _weight = ServicePublisher.getServerWeight().get(serverAddress);
+            if (_weight != null) {
+                weight = _weight;
+            }
         } else {
             monitor.logEvent("PigeonReg.activeNullError", serverAddress + "#weight", "");
         }
@@ -186,6 +193,8 @@ public class MixRegistry implements Registry {
             app = registrys.get(Constants.REGISTRY_MNS_NAME).getServerApp(serverAddress);
         } else if (Boolean.FALSE.equals(serverActive)) {
             app = registrys.get(Constants.REGISTRY_CURATOR_NAME).getServerApp(serverAddress);
+        } else if (configManager.getLocalIp().equals(MixUtils.getIp(serverAddress))) {
+            app = configManager.getAppName();
         } else {
             monitor.logEvent("PigeonReg.activeNullError", serverAddress + "#app", "");
         }
@@ -240,6 +249,8 @@ public class MixRegistry implements Registry {
             version = registrys.get(Constants.REGISTRY_MNS_NAME).getServerVersion(serverAddress);
         } else if (Boolean.FALSE.equals(serverActive)) {
             version = registrys.get(Constants.REGISTRY_CURATOR_NAME).getServerVersion(serverAddress);
+        } else if (configManager.getLocalIp().equals(MixUtils.getIp(serverAddress))) {
+            version = VersionUtils.VERSION;
         } else {
             monitor.logEvent("PigeonReg.activeNullError", serverAddress + "#version", "");
         }
@@ -283,6 +294,8 @@ public class MixRegistry implements Registry {
             support = registrys.get(Constants.REGISTRY_MNS_NAME).getServerHeartBeatSupport(serviceAddress);
         } else if (Boolean.FALSE.equals(serverActive)) {
             support = registrys.get(Constants.REGISTRY_CURATOR_NAME).getServerHeartBeatSupport(serviceAddress);
+        } else if (configManager.getLocalIp().equals(MixUtils.getIp(serviceAddress))) {
+            // keep default
         } else {
             monitor.logEvent("PigeonReg.activeNullError", serviceAddress + "#heartBeatSupport", "");
         }
@@ -304,6 +317,8 @@ public class MixRegistry implements Registry {
             serviceProtocols = registrys.get(Constants.REGISTRY_MNS_NAME).getServiceProtocols(serviceAddress);
         } else if (Boolean.FALSE.equals(serverActive)) {
             serviceProtocols = registrys.get(Constants.REGISTRY_CURATOR_NAME).getServiceProtocols(serviceAddress);
+        } else if (configManager.getLocalIp().equals(MixUtils.getIp(serviceAddress))) {
+            // keep default
         } else {
             monitor.logEvent("PigeonReg.activeNullError", serviceAddress + "#serviceProtocols", "");
         }
@@ -325,6 +340,8 @@ public class MixRegistry implements Registry {
             support = registrys.get(Constants.REGISTRY_MNS_NAME).isSupportNewProtocol(serviceAddress);
         } else if (Boolean.FALSE.equals(serverActive)) {
             support = registrys.get(Constants.REGISTRY_CURATOR_NAME).isSupportNewProtocol(serviceAddress);
+        } else if (configManager.getLocalIp().equals(MixUtils.getIp(serviceAddress))) {
+            // keep default
         } else {
             monitor.logEvent("PigeonReg.activeNullError", serviceAddress + "#supportNewProtocol", "");
         }
@@ -346,6 +363,8 @@ public class MixRegistry implements Registry {
             support = registrys.get(Constants.REGISTRY_MNS_NAME).isSupportNewProtocol(serviceAddress, serviceName);
         } else if (Boolean.FALSE.equals(serverActive)) {
             support = registrys.get(Constants.REGISTRY_CURATOR_NAME).isSupportNewProtocol(serviceAddress, serviceName);
+        } else if (configManager.getLocalIp().equals(MixUtils.getIp(serviceAddress))) {
+            // keep default
         } else {
             monitor.logEvent("PigeonReg.activeNullError", serviceAddress + ":" + serviceName + "#supportNewProtocol", "");
         }

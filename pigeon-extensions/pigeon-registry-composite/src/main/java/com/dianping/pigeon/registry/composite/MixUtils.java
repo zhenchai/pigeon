@@ -2,6 +2,7 @@ package com.dianping.pigeon.registry.composite;
 
 import com.dianping.pigeon.config.ConfigManager;
 import com.dianping.pigeon.config.ConfigManagerLoader;
+import com.dianping.pigeon.domain.HostInfo;
 import com.dianping.pigeon.log.Logger;
 import com.dianping.pigeon.log.LoggerLoader;
 import com.dianping.pigeon.registry.Registry;
@@ -92,5 +93,18 @@ public class MixUtils {
             }
         }
         return result;
+    }
+
+    public static String getIp(String host) {
+        int idx = host.lastIndexOf(":");
+        if (idx != -1) {
+            try {
+                return host.substring(0, idx);
+            } catch (RuntimeException e) {
+                // ignore
+            }
+        }
+
+        return null;
     }
 }

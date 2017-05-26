@@ -20,6 +20,10 @@
             <artifactId>pigeon-registry</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.dianping</groupId>
+            <artifactId>pigeon-remoting</artifactId>
+        </dependency>
+        <dependency>
             <groupId>commons-lang</groupId>
             <artifactId>commons-lang</artifactId>
         </dependency>
