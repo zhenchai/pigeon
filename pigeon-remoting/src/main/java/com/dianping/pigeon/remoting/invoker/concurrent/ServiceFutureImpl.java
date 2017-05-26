@@ -8,6 +8,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.jar.Pack200;
 
 import com.dianping.pigeon.log.Logger;
 import com.dianping.pigeon.log.LoggerLoader;
@@ -90,9 +91,8 @@ public class ServiceFutureImpl extends CallbackFuture implements Future {
 					invocationContext.getTimeline().add(new TimePoint(TimePhase.F, System.currentTimeMillis()));
 				}
 			} catch (RuntimeException e) {
-				// failure degrade condition
-				InvocationResponse degradedResponse = null;
-				if (DegradationManager.INSTANCE.needFailureDegrade(invocationContext)) {
+				if (DegradationManager.INSTANCE.needFailureDegrade(invocationContext)) { // failure degrade condition
+					InvocationResponse degradedResponse = null;
 					try {
 						invocationContext.getDegradeInfo().setFailureDegrade(true);
 						invocationContext.getDegradeInfo().setCause(e);
@@ -101,10 +101,18 @@ public class ServiceFutureImpl extends CallbackFuture implements Future {
 						// won't happen
 						logger.warn("failure degrade in future call type error: " + t.toString());
 					}
+					if (degradedResponse != null) {// 返回失败降级结果
+						Object responseReturn = degradedResponse.getReturn();
+						if  (responseReturn instanceof RuntimeException) {
+							throw (RuntimeException) responseReturn;
+						} else if (responseReturn instanceof Throwable) {
+							throw new ApplicationException(responseReturn.toString());
+						} else {
+							return responseReturn;
+						}
+					}
 				}
-				if (degradedResponse != null) {// 返回同步调用模式的失败降级结果
-					return degradedResponse.getReturn();
-				}
+
 				// not failure degrade
 				DegradationManager.INSTANCE.addFailedRequest(invocationContext, e);
 				ExceptionManager.INSTANCE.logRpcException(addr, invocationContext.getInvokerConfig().getUrl(),
@@ -119,8 +127,7 @@ public class ServiceFutureImpl extends CallbackFuture implements Future {
 				DegradationManager.INSTANCE.addNormalRequest(invocationContext);
 				return response.getReturn();
 			} else if (response.getMessageType() == Constants.MESSAGE_TYPE_EXCEPTION) {
-
-				if (DegradationManager.INSTANCE.needFailureDegrade(invocationContext)) {// failure degrade condition
+				if (DegradationManager.INSTANCE.needFailureDegrade(invocationContext)) { // failure degrade condition
 					InvocationResponse degradedResponse = null;
 					try {
 						invocationContext.getDegradeInfo().setFailureDegrade(true);
@@ -131,7 +138,14 @@ public class ServiceFutureImpl extends CallbackFuture implements Future {
 						logger.warn("failure degrade in future call type error: " + t.toString());
 					}
 					if (degradedResponse != null) {// 返回失败降级结果
-						return degradedResponse.getReturn();
+						Object responseReturn = degradedResponse.getReturn();
+						if  (responseReturn instanceof RuntimeException) {
+							throw (RuntimeException) responseReturn;
+						} else if (responseReturn instanceof Throwable) {
+							throw new ApplicationException(responseReturn.toString());
+						} else {
+							return responseReturn;
+						}
 					}
 				}
 
@@ -144,6 +158,7 @@ public class ServiceFutureImpl extends CallbackFuture implements Future {
 					throw e;
 				}
 			} else if (response.getMessageType() == Constants.MESSAGE_TYPE_SERVICE_EXCEPTION) {
+				isSuccess = true;
 				Throwable e = ExceptionManager.INSTANCE
 						.logRemoteServiceException("remote service biz error with future call", request, response);
 
@@ -160,7 +175,14 @@ public class ServiceFutureImpl extends CallbackFuture implements Future {
 					}
 
 					if (degradedResponse != null) {// 返回失败降级结果
-						return degradedResponse.getReturn();
+						Object responseReturn = degradedResponse.getReturn();
+						if  (responseReturn instanceof RuntimeException) {
+							throw (RuntimeException) responseReturn;
+						} else if (responseReturn instanceof Throwable) {
+							throw new ApplicationException(responseReturn.toString());
+						} else {
+							return responseReturn;
+						}
 					} else { // 没失败降级成功,由于是业务指定降级异常,也得计入失败统计
 						DegradationManager.INSTANCE.addFailedRequest(invocationContext, e);
 					}
@@ -174,6 +196,7 @@ public class ServiceFutureImpl extends CallbackFuture implements Future {
 					throw new ApplicationException(e);
 				}
 			}
+
 			RpcException e = new BadResponseException(response.toString());
 			throw e;
 		} finally {
