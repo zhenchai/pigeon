@@ -2,6 +2,7 @@ package com.dianping.pigeon.remoting.invoker.proxy;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.UndeclaredThrowableException;
 
 /**
  * Created by chenchongze on 16/8/22.
@@ -25,7 +26,11 @@ public class MockProxyWrapper {
         try {
             return method.invoke(proxy, arguments);
         }  catch (InvocationTargetException e) {
-            throw e.getTargetException();
+            Throwable t = e.getTargetException();
+            if (t instanceof UndeclaredThrowableException && t.getCause() != null) {
+                throw t.getCause();
+            }
+            throw t;
         }
     }
 }

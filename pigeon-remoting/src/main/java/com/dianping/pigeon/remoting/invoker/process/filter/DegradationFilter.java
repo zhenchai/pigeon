@@ -405,7 +405,7 @@ public class DegradationFilter extends InvocationInvokeFilter {
                     if (t instanceof Exception) {
                         response = callBackOnfailure(context, (Exception) t);
                     } else {
-                        response = callBackOnfailure(context, new ApplicationException(t.toString()));
+                        response = callBackOnfailure(context, new ApplicationException(t));
                     }
                 }
                 break;

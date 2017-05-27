@@ -93,7 +93,7 @@ public class DegradeServiceFuture extends CallbackFuture implements Future {
                 if  (responseReturn instanceof RuntimeException) {
                     throw (RuntimeException) responseReturn;
                 } else if (responseReturn instanceof Throwable) {
-                    throw new ApplicationException(responseReturn.toString());
+                    throw new ApplicationException((Throwable) responseReturn);
                 } else {
                     return responseReturn;
                 }
