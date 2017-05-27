@@ -105,7 +105,7 @@ public class RemoteCallMonitorInvokeFilter extends InvocationInvokeFilter {
             return response;
         } catch (Throwable e) {
             if (transaction != null) {
-                if (CallMethod.SYNC == callMethod) {
+                if (CallMethod.SYNC == callMethod || CallMethod.ONEWAY == callMethod) {
                     DegradationManager.INSTANCE.monitorDegrade(invocationContext, transaction);
                 }
                 Client client = invocationContext.getClient();
