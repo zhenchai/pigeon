@@ -102,12 +102,17 @@ public class MixRegistry implements Registry {
     @Override
     public void registerService(String serviceName, String group, String serviceAddress, int weight)
             throws RegistryException {
+
         for (Registry registry : getCurrentWriteRegistries().values()) {
             try {
                 registry.registerService(serviceName, group, serviceAddress, weight);
             } catch (Throwable t) {
                 logger.info("failed to register service to registry: " + registry.getName());
-                throw new RegistryException(t);
+                if (!MixUtils.isMixForceDoubleWrite()
+                        && (Constants.REGISTRY_MNS_NAME.equals(MixUtils.getMixReadPrefer())
+                        || Constants.REGISTRY_CURATOR_NAME.equals(MixUtils.getMixReadPrefer()))) {
+                    throw new RegistryException(t);
+                }
             }
         }
     }
@@ -119,7 +124,11 @@ public class MixRegistry implements Registry {
                 registry.unregisterService(serviceName, serviceAddress);
             } catch (Throwable t) {
                 logger.info("failed to unregister service to registry: " + registry.getName());
-                throw new RegistryException(t);
+                if (!MixUtils.isMixForceDoubleWrite()
+                        && (Constants.REGISTRY_MNS_NAME.equals(MixUtils.getMixReadPrefer())
+                        || Constants.REGISTRY_CURATOR_NAME.equals(MixUtils.getMixReadPrefer()))) {
+                    throw new RegistryException(t);
+                }
             }
         }
     }
@@ -131,7 +140,11 @@ public class MixRegistry implements Registry {
                 registry.unregisterService(serviceName, group, serviceAddress);
             } catch (Throwable t) {
                 logger.info("failed to unregister service to registry: " + registry.getName());
-                throw new RegistryException(t);
+                if (!MixUtils.isMixForceDoubleWrite()
+                        && (Constants.REGISTRY_MNS_NAME.equals(MixUtils.getMixReadPrefer())
+                        || Constants.REGISTRY_CURATOR_NAME.equals(MixUtils.getMixReadPrefer()))) {
+                    throw new RegistryException(t);
+                }
             }
         }
     }
@@ -174,7 +187,11 @@ public class MixRegistry implements Registry {
                 registry.setServerWeight(serverAddress, weight);
             } catch (Throwable t) {
                 logger.info("failed to set weight to registry: " + registry.getName());
-                throw new RegistryException(t);
+                if (!MixUtils.isMixForceDoubleWrite()
+                        && (Constants.REGISTRY_MNS_NAME.equals(MixUtils.getMixReadPrefer())
+                        || Constants.REGISTRY_CURATOR_NAME.equals(MixUtils.getMixReadPrefer()))) {
+                    throw new RegistryException(t);
+                }
             }
         }
     }
@@ -380,7 +397,11 @@ public class MixRegistry implements Registry {
                 registry.setSupportNewProtocol(serviceAddress, serviceName, support);
             } catch (Throwable t) {
                 logger.info("failed to set support new protocol to registry: " + registry.getName());
-                throw new RegistryException(t);
+                if (!MixUtils.isMixForceDoubleWrite()
+                        && (Constants.REGISTRY_MNS_NAME.equals(MixUtils.getMixReadPrefer())
+                        || Constants.REGISTRY_CURATOR_NAME.equals(MixUtils.getMixReadPrefer()))) {
+                    throw new RegistryException(t);
+                }
             }
         }
     }
@@ -393,7 +414,11 @@ public class MixRegistry implements Registry {
                 registry.unregisterSupportNewProtocol(serviceAddress, serviceName, support);
             } catch (Throwable t) {
                 logger.info("failed to unregister support new protocol to registry: " + registry.getName());
-                throw new RegistryException(t);
+                if (!MixUtils.isMixForceDoubleWrite()
+                        && (Constants.REGISTRY_MNS_NAME.equals(MixUtils.getMixReadPrefer())
+                        || Constants.REGISTRY_CURATOR_NAME.equals(MixUtils.getMixReadPrefer()))) {
+                    throw new RegistryException(t);
+                }
             }
         }
     }
