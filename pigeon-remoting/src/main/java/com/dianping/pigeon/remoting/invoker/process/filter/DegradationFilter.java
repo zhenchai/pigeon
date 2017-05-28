@@ -492,8 +492,8 @@ public class DegradationFilter extends InvocationInvokeFilter {
         }
         callback.onFailure(exception);
         InvocationResponse response = NO_RETURN_RESPONSE;
-        ExceptionManager.INSTANCE.logRpcException(null, context.getInvokerConfig().getUrl(), context.getMethodName(),
-                "callback degraded", exception, null, response, MonitorLoader.getMonitor().getCurrentCallTransaction());
+        /*ExceptionManager.INSTANCE.logRpcException(null, context.getInvokerConfig().getUrl(), context.getMethodName(),
+                "callback degraded", exception, null, response, MonitorLoader.getMonitor().getCurrentCallTransaction());*/
         return response;
     }
 
