@@ -174,9 +174,9 @@ public class ServiceServlet extends HttpServlet {
 		page.setAppName(configManager.getAppName());
 		page.setStartTime(ProviderBootStrap.getStartTime() + "");
 		page.setValidate("" + isValidate);
-		String governorAddr = configManager.getStringValue("pigeon.governor.address");
-		if (StringUtils.isNotBlank(governorAddr)) {
-			page.setGovernorUrl(governorAddr + "/#/tree/project/" + configManager.getAppName() + "/services");
+		String governorAddrServiceListBase = configManager.getStringValue("pigeon.governor.address.service.list.base");
+		if (StringUtils.isNotBlank(governorAddrServiceListBase)) {
+			page.setGovernorUrl(governorAddrServiceListBase.replace("${APP}", configManager.getAppName()));
 		}
 		this.model = page;
 		return true;
