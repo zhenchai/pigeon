@@ -176,7 +176,7 @@ public class ServiceServlet extends HttpServlet {
 		page.setValidate("" + isValidate);
 		String governorAddr = configManager.getStringValue("pigeon.governor.address");
 		if (StringUtils.isNotBlank(governorAddr)) {
-			page.setGovernorUrl(governorAddr + "/services/" + configManager.getAppName());
+			page.setGovernorUrl(governorAddr + "/#/tree/project/" + configManager.getAppName() + "/services");
 		}
 		this.model = page;
 		return true;
