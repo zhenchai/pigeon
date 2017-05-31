@@ -123,7 +123,7 @@ public class CuratorRegistry implements Registry {
         } catch (Throwable e) {
             if (e instanceof BadVersionException || e instanceof NodeExistsException) {
                 try {
-                    Thread.sleep(500);
+                    Thread.sleep(10);
                 } catch (InterruptedException ie) {
                     // ignore
                 }
@@ -191,7 +191,7 @@ public class CuratorRegistry implements Registry {
         } catch (Throwable e) {
             if (e instanceof BadVersionException) {
                 try {
-                    Thread.sleep(500);
+                    Thread.sleep(10);
                 } catch (InterruptedException ie) {
                     // ignore
                 }
@@ -514,7 +514,7 @@ public class CuratorRegistry implements Registry {
         } catch (Throwable e) {
             if (e instanceof BadVersionException || e instanceof NodeExistsException) {
                 try {
-                    Thread.sleep(500);
+                    Thread.sleep(10);
                 } catch (InterruptedException ie) {
                     // ignore
                 }
@@ -552,7 +552,7 @@ public class CuratorRegistry implements Registry {
         } catch (Throwable e) {
             if (e instanceof BadVersionException || e instanceof NodeExistsException) {
                 try {
-                    Thread.sleep(500);
+                    Thread.sleep(10);
                 } catch (InterruptedException ie) {
                     // ignore
                 }
