@@ -167,11 +167,12 @@ public class CuratorClient {
 		public void run() {
 			int failCount = 0;
 			boolean isSuccess = true;
+			logger.info("start [curator-state] task");
 			while (!Thread.currentThread().isInterrupted() && curatorStateListenerActive) {
 				try {
 					Thread.sleep(retryInterval * (1 + RandomUtils.nextInt(20)));
 					final CuratorFramework cf = getClient();
-					if (cf != null) {
+					if (cf != null && !(cf instanceof BlankCuratorFramework)) {
 						int retryCount = ((MyRetryPolicy) cf.getZookeeperClient().getRetryPolicy()).getRetryCount();
 						boolean isConnected = false;
 						try {
@@ -205,6 +206,7 @@ public class CuratorClient {
 					logger.warn("[curator-state] task failed:", e);
 				}
 			}
+			logger.info("exit [curator-state] task");
 		}
 
 	}
@@ -475,8 +477,10 @@ public class CuratorClient {
 						if (isConnected()) {
 							RegistryEventListener.connectionReconnected();
 						}
+						logger.info("reopen curator client success!");
                     } else {
                         destroy();
+						logger.info("close curator client success!");
                     }
 				} catch (Exception e) {
 					logger.warn("Failed to handle key: [" + key + "] with value: [" + value + "].");
