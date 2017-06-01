@@ -32,8 +32,6 @@ public class CuratorEventListener implements CuratorListener {
 
 	private CuratorClient client;
 
-	private final RegistryNotifyListener registryNotifyListener = RegistryNotifyListenerLoader.getRegistryNotifyListener();
-
 	public CuratorEventListener(CuratorClient client) {
 		this.client = client;
 	}
@@ -94,7 +92,8 @@ public class CuratorEventListener implements CuratorListener {
 			String hosts = client.get(pathInfo.path);
 			logger.info("Service address changed, path " + pathInfo.path + " value " + hosts);
 			List<String[]> hostDetail = Utils.getServiceIpPortList(hosts);
-			registryNotifyListener.onServiceHostChange(pathInfo.serviceName, hostDetail, Constants.REGISTRY_CURATOR_NAME);
+			RegistryNotifyListenerLoader.getRegistryNotifyListener()
+					.onServiceHostChange(pathInfo.serviceName, hostDetail, Constants.REGISTRY_CURATOR_NAME);
 		}
 		// Watch again
 		client.watch(pathInfo.path);
@@ -127,7 +126,8 @@ public class CuratorEventListener implements CuratorListener {
 			String newValue = client.get(pathInfo.path);
 			logger.info("service weight changed, path " + pathInfo.path + " value " + newValue);
 			int weight = newValue == null ? 0 : Integer.parseInt(newValue);
-			registryNotifyListener.onHostWeightChange(pathInfo.server, weight, Constants.REGISTRY_CURATOR_NAME);
+			RegistryNotifyListenerLoader.getRegistryNotifyListener()
+					.onHostWeightChange(pathInfo.server, weight, Constants.REGISTRY_CURATOR_NAME);
 			client.watch(pathInfo.path);
 		} catch (Exception e) {
 			throw new RegistryException(e);
@@ -138,7 +138,8 @@ public class CuratorEventListener implements CuratorListener {
 		try {
 			String app = client.get(pathInfo.path);
 			logger.info("app changed, path " + pathInfo.path + " value " + app);
-			registryNotifyListener.serverAppChanged(pathInfo.server, app, Constants.REGISTRY_CURATOR_NAME);
+			RegistryNotifyListenerLoader.getRegistryNotifyListener()
+					.serverAppChanged(pathInfo.server, app, Constants.REGISTRY_CURATOR_NAME);
 			client.watch(pathInfo.path);
 		} catch (Exception e) {
 			throw new RegistryException(e);
@@ -149,7 +150,8 @@ public class CuratorEventListener implements CuratorListener {
 		try {
 			String version = client.get(pathInfo.path);
 			logger.info("version changed, path " + pathInfo.path + " value " + version);
-			registryNotifyListener.serverVersionChanged(pathInfo.server, version, Constants.REGISTRY_CURATOR_NAME);
+			RegistryNotifyListenerLoader.getRegistryNotifyListener()
+					.serverVersionChanged(pathInfo.server, version, Constants.REGISTRY_CURATOR_NAME);
 			client.watch(pathInfo.path);
 		} catch (Exception e) {
 			throw new RegistryException(e);
@@ -167,7 +169,8 @@ public class CuratorEventListener implements CuratorListener {
 				logger.info("failed to get protocol info: " + e.toString());
 			}
 			logger.info("protocol changed, path " + pathInfo.path + " value " + info);
-			registryNotifyListener.serverProtocolChanged(pathInfo.server, infoMap, Constants.REGISTRY_CURATOR_NAME);
+			RegistryNotifyListenerLoader.getRegistryNotifyListener()
+					.serverProtocolChanged(pathInfo.server, infoMap, Constants.REGISTRY_CURATOR_NAME);
 		} catch (Throwable e) {
 			throw new RegistryException(e);
 		} finally {

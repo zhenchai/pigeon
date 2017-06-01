@@ -4,17 +4,24 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.RandomUtils;
 import org.apache.curator.CuratorZookeeperClient;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
+import org.apache.curator.framework.api.*;
+import org.apache.curator.framework.api.transaction.CuratorTransaction;
+import org.apache.curator.framework.imps.CuratorFrameworkState;
+import org.apache.curator.framework.listen.Listenable;
 import org.apache.curator.framework.state.ConnectionState;
 import org.apache.curator.framework.state.ConnectionStateListener;
 import org.apache.curator.retry.RetryNTimes;
+import org.apache.curator.utils.EnsurePath;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.data.Stat;
 
 import com.dianping.pigeon.config.ConfigChangeListener;
@@ -59,15 +66,34 @@ public class CuratorClient {
 
 	private volatile String address;
 
+	private volatile boolean initialized = false;
+
+	private volatile boolean curatorStateListenerActive = false;
+
+	private static final String KEY_REGISTRY_CURATOR_CLIENT_ACTIVE = "pigeon.registry.curator.client.active";
+
 	private final String EVENT_NAME = "Pigeon.registry";
 
-	public CuratorClient(String zkAddress) throws Exception {
-		newCuratorClient(zkAddress);
+	public CuratorClient() throws Exception {
+		boolean curatorClientActive = configManager.getBooleanValue(KEY_REGISTRY_CURATOR_CLIENT_ACTIVE, true);
+		if (curatorClientActive) {
+			init();
+		} else {
+			destroy();
+		}
+		configManager.registerConfigChangeListener(new InnerConfigChangeListener());
 	}
 
-	public CuratorClient() throws Exception {
-		String zkAddress = configManager.getStringValue(KEY_REGISTRY_ADDRESS);
-		newCuratorClient(zkAddress);
+	private void init() throws Exception {
+		if (!initialized) {
+			synchronized (this) {
+				if (!initialized) {
+					curatorStateListenerActive = true;
+					newCuratorClient(configManager.getStringValue(KEY_REGISTRY_ADDRESS));
+					initialized = true;
+				}
+			}
+		}
 	}
 
 	private void newCuratorClient(String zkAddress) throws Exception {
@@ -78,7 +104,6 @@ public class CuratorClient {
 		this.address = zkAddress;
 		newCuratorClient();
 		curatorStateListenerThreadPool.execute(new CuratorStateListener());
-		configManager.registerConfigChangeListener(new InnerConfigChangeListener());
 		logger.info("succeed to initialize zookeeper client:" + zkAddress);
 	}
 
@@ -140,12 +165,11 @@ public class CuratorClient {
 		private final Logger logger = LoggerLoader.getLogger(CuratorStateListener.class);
 
 		public void run() {
-			long sleepTime = retryInterval;
 			int failCount = 0;
 			boolean isSuccess = true;
-			while (!Thread.currentThread().isInterrupted()) {
+			while (!Thread.currentThread().isInterrupted() && curatorStateListenerActive) {
 				try {
-					Thread.sleep(sleepTime * (1 + RandomUtils.nextInt(20)));
+					Thread.sleep(retryInterval * (1 + RandomUtils.nextInt(20)));
 					final CuratorFramework cf = getClient();
 					if (cf != null) {
 						int retryCount = ((MyRetryPolicy) cf.getZookeeperClient().getRetryPolicy()).getRetryCount();
@@ -186,11 +210,14 @@ public class CuratorClient {
 	}
 
 	private boolean rebuildCuratorClient() throws InterruptedException {
-		boolean isSuccess = newCuratorClient();
-		if (isSuccess) {
-			RegistryEventListener.connectionReconnected();
+		if (curatorStateListenerActive) {
+			boolean isSuccess = newCuratorClient();
+			if (isSuccess) {
+				RegistryEventListener.connectionReconnected();
+			}
+			return isSuccess;
 		}
-		return isSuccess;
+		return false;
 	}
 
 	private static class MyRetryPolicy extends RetryNTimes {
@@ -394,6 +421,21 @@ public class CuratorClient {
 		}
 	}
 
+	public void destroy() throws Exception {
+		if (initialized) {
+			synchronized (this) {
+				if (initialized) {
+					curatorStateListenerActive = false;
+					if (client != null) {
+						client.close();
+					}
+					client = new BlankCuratorFramework();
+					initialized = false;
+				}
+			}
+		}
+	}
+
 	private class InnerConfigChangeListener implements ConfigChangeListener {
 
 		@Override
@@ -426,6 +468,19 @@ public class CuratorClient {
 				} catch (Exception e) {
 					logger.warn("rebuild curator client failed:", e);
 				}
+			} else if (key.endsWith(KEY_REGISTRY_CURATOR_CLIENT_ACTIVE)) {
+				try {
+					if (Boolean.valueOf(value)) {
+                        init();
+						if (isConnected()) {
+							RegistryEventListener.connectionReconnected();
+						}
+                    } else {
+                        destroy();
+                    }
+				} catch (Exception e) {
+					logger.warn("Failed to handle key: [" + key + "] with value: [" + value + "].");
+				}
 			}
 		}
 
@@ -443,6 +498,139 @@ public class CuratorClient {
 		CuratorZookeeperClient client = getClient().getZookeeperClient();
 		return new StringBuilder().append("address:").append(client.getCurrentConnectionString()).append(", connected:").append(isConnected()).append(", retries:")
 				.append(((MyRetryPolicy) client.getRetryPolicy()).getRetryCount()).toString();
+	}
+
+	private class BlankCuratorFramework implements CuratorFramework {
+
+		@Override
+		public void start() {
+
+		}
+
+		@Override
+		public void close() {
+
+		}
+
+		@Override
+		public CuratorFrameworkState getState() {
+			return null;
+		}
+
+		@Override
+		public boolean isStarted() {
+			return false;
+		}
+
+		@Override
+		public CreateBuilder create() {
+			return null;
+		}
+
+		@Override
+		public DeleteBuilder delete() {
+			return null;
+		}
+
+		@Override
+		public ExistsBuilder checkExists() {
+			return null;
+		}
+
+		@Override
+		public GetDataBuilder getData() {
+			return null;
+		}
+
+		@Override
+		public SetDataBuilder setData() {
+			return null;
+		}
+
+		@Override
+		public GetChildrenBuilder getChildren() {
+			return null;
+		}
+
+		@Override
+		public GetACLBuilder getACL() {
+			return null;
+		}
+
+		@Override
+		public SetACLBuilder setACL() {
+			return null;
+		}
+
+		@Override
+		public CuratorTransaction inTransaction() {
+			return null;
+		}
+
+		@Override
+		public void sync(String path, Object backgroundContextObject) {
+
+		}
+
+		@Override
+		public SyncBuilder sync() {
+			return null;
+		}
+
+		@Override
+		public Listenable<ConnectionStateListener> getConnectionStateListenable() {
+			return null;
+		}
+
+		@Override
+		public Listenable<CuratorListener> getCuratorListenable() {
+			return null;
+		}
+
+		@Override
+		public Listenable<UnhandledErrorListener> getUnhandledErrorListenable() {
+			return null;
+		}
+
+		@Override
+		public CuratorFramework nonNamespaceView() {
+			return null;
+		}
+
+		@Override
+		public CuratorFramework usingNamespace(String newNamespace) {
+			return null;
+		}
+
+		@Override
+		public String getNamespace() {
+			return null;
+		}
+
+		@Override
+		public CuratorZookeeperClient getZookeeperClient() {
+			return null;
+		}
+
+		@Override
+		public EnsurePath newNamespaceAwareEnsurePath(String path) {
+			return null;
+		}
+
+		@Override
+		public void clearWatcherReferences(Watcher watcher) {
+
+		}
+
+		@Override
+		public boolean blockUntilConnected(int maxWaitTime, TimeUnit units) throws InterruptedException {
+			return false;
+		}
+
+		@Override
+		public void blockUntilConnected() throws InterruptedException {
+
+		}
 	}
 
 }
