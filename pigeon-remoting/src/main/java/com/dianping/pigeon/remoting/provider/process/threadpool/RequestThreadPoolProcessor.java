@@ -8,12 +8,9 @@ import java.util.*;
 import java.util.concurrent.*;
 
 import com.dianping.pigeon.remoting.common.domain.MessageType;
-import com.dianping.pigeon.remoting.common.monitor.trace.ProviderMonitorData;
+import com.dianping.pigeon.remoting.common.monitor.trace.*;
 import com.dianping.pigeon.config.ConfigManager;
-import com.dianping.pigeon.remoting.common.monitor.trace.ApplicationKey;
-import com.dianping.pigeon.remoting.common.monitor.trace.MethodKey;
 import com.dianping.pigeon.remoting.common.codec.json.JacksonSerializer;
-import com.dianping.pigeon.remoting.common.monitor.trace.MonitorDataFactory;
 import com.dianping.pigeon.remoting.common.util.Constants;
 import com.dianping.pigeon.remoting.provider.config.*;
 import com.dianping.pigeon.remoting.provider.publish.ServicePublisher;
@@ -182,7 +179,7 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
                                                        final ProviderContext providerContext) {
         requestContextMap.put(request, providerContext);
 
-        doMonitorData(request, providerContext);
+        startMonitorData(request, providerContext);
 
         Callable<InvocationResponse> requestExecutor = new Callable<InvocationResponse>() {
 
@@ -212,12 +209,13 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
             return pool.submit(requestExecutor);
         } catch (RejectedExecutionException e) {
             requestContextMap.remove(request);
+            endMonitorData(request, providerContext);
             throw new RejectedException(getProcessorStatistics(pool), e);
         }
 
     }
 
-    private void doMonitorData(InvocationRequest request, ProviderContext providerContext) {
+    private void startMonitorData(InvocationRequest request, ProviderContext providerContext) {
         if (isTrace) {
             if (MessageType.isService((byte) request.getMessageType())) {
 
@@ -228,6 +226,20 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
 
                 monitorData.start();
             }
+        }
+    }
+
+    private void endMonitorData(InvocationRequest request, ProviderContext providerContext) {
+        ProviderMonitorData monitorData = (ProviderMonitorData) providerContext.getMonitorData();
+        if (monitorData != null) {
+            monitorData.setCallType((byte) request.getCallType());
+            monitorData.setSerialize(request.getSerialize());
+            monitorData.setTimeout(request.getTimeout());
+
+            monitorData.add();
+
+            monitorData.setIsSuccess(false);
+            monitorData.complete();
         }
     }
 
