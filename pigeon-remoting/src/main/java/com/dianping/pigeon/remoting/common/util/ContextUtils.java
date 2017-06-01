@@ -148,7 +148,7 @@ public class ContextUtils {
 
     public static Long getRemainedTimeMillis() {
         Integer timeout = (Integer) getLocalContext(Constants.CONTEXT_KEY_TIMEOUT_MILLIS);
-        Integer createTime = (Integer) getLocalContext(Constants.CONTEXT_KEY_CREATE_TIME_MILLIS);
+        Long createTime = (Long) getLocalContext(Constants.CONTEXT_KEY_CREATE_TIME_MILLIS);
         if (createTime == null || timeout == null) {
             return null;
         } else {

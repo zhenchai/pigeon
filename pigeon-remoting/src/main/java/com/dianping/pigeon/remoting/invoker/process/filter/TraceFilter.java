@@ -86,8 +86,7 @@ public class TraceFilter extends InvocationInvokeFilter {
             } else {
 
                 if (CallMethod.isSync(code)) {
-                    if (MessageType.isServiceException((byte) response.getMessageType()) ||
-                            MessageType.isException((byte) response.getMessageType())) {
+                    if (MessageType.isException((byte) response.getMessageType())) {
                         monitorData.setIsSuccess(false);
                     } else {
                         monitorData.setIsSuccess(true);
