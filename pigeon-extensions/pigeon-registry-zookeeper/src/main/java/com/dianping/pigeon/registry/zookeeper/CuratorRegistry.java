@@ -3,7 +3,6 @@ package com.dianping.pigeon.registry.zookeeper;
 import java.util.*;
 
 import com.dianping.pigeon.registry.config.RegistryConfig;
-import com.dianping.pigeon.registry.listener.RegistryEventListener;
 import org.apache.commons.lang.StringUtils;
 import org.apache.zookeeper.KeeperException.BadVersionException;
 import org.apache.zookeeper.KeeperException.NoNodeException;

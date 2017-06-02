@@ -9,10 +9,12 @@ import com.dianping.pigeon.config.ConfigManagerLoader;
 import com.dianping.pigeon.domain.HostInfo;
 import com.dianping.pigeon.log.LoggerLoader;
 import com.dianping.pigeon.registry.RegistryManager;
+import com.dianping.pigeon.registry.util.HeartBeatSupport;
 import com.dianping.pigeon.remoting.ServiceFactory;
 import com.dianping.pigeon.remoting.invoker.Client;
 import com.dianping.pigeon.remoting.invoker.ClientManager;
 import com.dianping.pigeon.remoting.invoker.config.InvokerConfig;
+import com.dianping.pigeon.util.VersionUtils;
 import org.apache.commons.lang.StringUtils;
 import com.dianping.pigeon.log.Logger;
 import org.springframework.util.CollectionUtils;
@@ -115,17 +117,28 @@ public class ProviderAvailableListener implements Runnable {
 			Set<HostInfo> hosts = serviceAddresses.get(serviceName);
 			if (hosts != null) {
 				for (HostInfo host : hosts) {
-					if (host.getApp() == null) {
+					if (StringUtils.isBlank(host.getApp())) {
 						String app = RegistryManager.getInstance().getReferencedApp(host.getConnect(), serviceName);
 						logger.info("set " + host.getConnect() + "'s app to " + app);
 						host.setApp(app);
 						RegistryManager.getInstance().setReferencedApp(host.getConnect(), app);
 					}
-					if (host.getVersion() == null) {
+					if (StringUtils.isBlank(host.getVersion())) {
 						String version = RegistryManager.getInstance().getReferencedVersion(host.getConnect(), serviceName);
 						logger.info("set " + host.getConnect() + "'s version to " + version);
 						host.setVersion(version);
 						RegistryManager.getInstance().setReferencedVersion(host.getConnect(), version);
+						if (StringUtils.isNotBlank(version)) {
+							byte heartBeatSupport;
+							if (VersionUtils.isThriftSupported(version)) {
+								heartBeatSupport = HeartBeatSupport.BothSupport.getValue();
+							} else {
+								heartBeatSupport = HeartBeatSupport.P2POnly.getValue();
+							}
+							logger.info("set " + host.getConnect() + "'s heartBeatSupport to " + heartBeatSupport);
+							host.setHeartBeatSupport(heartBeatSupport);
+							RegistryManager.getInstance().setServerHeartBeatSupport(host.getConnect(), heartBeatSupport);
+						}
 					}
 				}
 			}
