@@ -108,9 +108,9 @@ public class RegistryEventListener {
 	}
 
 	public static void serverInfoChanged(String serviceName, String serverAddress) {
-		RegistryManager.getInstance().getReferencedApp(serverAddress);
-		RegistryManager.getInstance().getReferencedVersion(serverAddress);
-		RegistryManager.getInstance().getServerHeartBeatSupport(serverAddress);
+		RegistryManager.getInstance().getReferencedApp(serverAddress, serviceName);
+		RegistryManager.getInstance().getReferencedVersion(serverAddress, serviceName);
+		RegistryManager.getInstance().getServerHeartBeatSupport(serverAddress, serviceName);
 		RegistryManager.getInstance().getReferencedProtocol(serverAddress, serviceName);
 	}
 

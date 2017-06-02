@@ -60,7 +60,8 @@ public class AbstractPublishPolicy implements PublishPolicy {
         } else if (!serviceUrl.equals(customUrl) && !isStockService(customUrl)) {
             // 非存量服务,不允许注册,抛出异常或强制转换为类路径服务名
             if (IS_CHECK_SERVICE_EXCEPTION_DEFAULT) {
-                logger.error("customized [serviceName] cannot provide service to OCTO invoker "
+                logger.error("customized [serviceName]: " + customUrl
+                        + " cannot provide service to OCTO invoker "
                         + "unless set the [serviceName] to full class name "
                         + "or just keep [serviceName] config to blank.\n"
                         + "[serviceName] should be replaced by full class name: "
@@ -69,7 +70,8 @@ public class AbstractPublishPolicy implements PublishPolicy {
                         , "http://wiki.sankuai.com/pages/viewpage.action?pageId=606809899"));
                 System.exit(1);
             } else {
-                logger.warn("customized [serviceName] cannot provide service to OCTO invoker "
+                logger.warn("customized [serviceName]: " + customUrl
+                        + " cannot provide service to OCTO invoker "
                         + "unless set the [serviceName] to full class name "
                         + "or just keep [serviceName] config to blank.\n"
                         + "[serviceName] will be replaced by full class name: "
@@ -128,12 +130,11 @@ public class AbstractPublishPolicy implements PublishPolicy {
                 getMethod.releaseConnection();
             }
         }
-        boolean isSuccess = false;
+        boolean isSuccess = IS_CHECK_SERVICE_DEFAULT;
         if (response.startsWith("0")) {
             isSuccess = true;
-        } else if (response.startsWith("-1")) {
-            logger.warn("failed to check service in stock, response:" + response);
-            isSuccess = IS_CHECK_SERVICE_DEFAULT;
+        } else if (response.startsWith("1")) {
+            isSuccess = false;
         }
         return isSuccess;
     }

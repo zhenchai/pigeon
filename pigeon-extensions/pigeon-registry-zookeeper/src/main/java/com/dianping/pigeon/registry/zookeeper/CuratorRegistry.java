@@ -3,6 +3,7 @@ package com.dianping.pigeon.registry.zookeeper;
 import java.util.*;
 
 import com.dianping.pigeon.registry.config.RegistryConfig;
+import com.dianping.pigeon.registry.listener.RegistryEventListener;
 import org.apache.commons.lang.StringUtils;
 import org.apache.zookeeper.KeeperException.BadVersionException;
 import org.apache.zookeeper.KeeperException.NoNodeException;
@@ -204,7 +205,7 @@ public class CuratorRegistry implements Registry {
     }
 
     @Override
-    public int getServerWeight(String serverAddress) throws RegistryException {
+    public int getServerWeight(String serverAddress, String serviceName) throws RegistryException {
         String path = Utils.getWeightPath(serverAddress);
         String strWeight;
         try {
@@ -255,7 +256,7 @@ public class CuratorRegistry implements Registry {
     }
 
     @Override
-    public String getServerApp(String serverAddress) throws RegistryException {
+    public String getServerApp(String serverAddress, String serviceName) throws RegistryException {
         String path = Utils.getAppPath(serverAddress);
         try {
             return client.get(path);
@@ -301,7 +302,7 @@ public class CuratorRegistry implements Registry {
     }
 
     @Override
-    public String getServerVersion(String serverAddress) throws RegistryException {
+    public String getServerVersion(String serverAddress, String serviceName) throws RegistryException {
         String path = Utils.getVersionPath(serverAddress);
         try {
             return client.get(path);
@@ -328,7 +329,7 @@ public class CuratorRegistry implements Registry {
     }
 
     @Override
-    public byte getServerHeartBeatSupport(String serviceAddress) throws RegistryException {
+    public byte getServerHeartBeatSupport(String serviceAddress, String serviceName) throws RegistryException {
         if (isSupportNewProtocol(serviceAddress)) {
             return HeartBeatSupport.BothSupport.getValue();
         } else {
@@ -397,7 +398,7 @@ public class CuratorRegistry implements Registry {
                     for (String addr : addressArray) {
                         addr = addr.trim();
                         if (addr.length() > 0) {
-                            int weight = RegistryManager.getInstance().getServiceWeight(addr);
+                            int weight = RegistryManager.getInstance().getServiceWeight(addr, serviceName);
                             if (weight > 0) {
                                 weightCount += weight;
                             }
@@ -443,7 +444,7 @@ public class CuratorRegistry implements Registry {
 
     @Override
     public boolean isSupportNewProtocol(String serviceAddress) throws RegistryException {
-        String version = getServerVersion(serviceAddress);
+        String version = getServerVersion(serviceAddress, null);
 
         if (StringUtils.isBlank(version)) {
             throw new RegistryException("version is blank");
@@ -453,7 +454,7 @@ public class CuratorRegistry implements Registry {
     }
 
     @Override
-    public Map<String, Boolean> getServiceProtocols(String serviceAddress) throws RegistryException {
+    public Map<String, Boolean> getServiceProtocols(String serviceAddress, String serviceName) throws RegistryException {
         try {
             String protocolPath = Utils.getProtocolPath(serviceAddress);
             String info = client.get(protocolPath);

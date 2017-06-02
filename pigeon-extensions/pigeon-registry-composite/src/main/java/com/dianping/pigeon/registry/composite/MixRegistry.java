@@ -146,19 +146,19 @@ public class MixRegistry implements Registry {
     }
 
     @Override
-    public int getServerWeight(String serverAddress) throws RegistryException {
+    public int getServerWeight(String serverAddress, String serviceName) throws RegistryException {
         Registry _registry = registrys.get(MixUtils.getMixReadPrefer());
         if (_registry != null && !Constants.REGISTRY_MIX_NAME.equals(_registry.getName())) {
-            return _registry.getServerWeight(serverAddress);
+            return _registry.getServerWeight(serverAddress, serviceName);
         }
 
         int weight = Constants.DEFAULT_WEIGHT;
         Boolean serverActive = MixUtils.getMachineActives().get(serverAddress);
 
         if (Boolean.TRUE.equals(serverActive)) {
-            weight = registrys.get(Constants.REGISTRY_MNS_NAME).getServerWeight(serverAddress);
+            weight = registrys.get(Constants.REGISTRY_MNS_NAME).getServerWeight(serverAddress, serviceName);
         } else if (Boolean.FALSE.equals(serverActive)) {
-            weight = registrys.get(Constants.REGISTRY_CURATOR_NAME).getServerWeight(serverAddress);
+            weight = registrys.get(Constants.REGISTRY_CURATOR_NAME).getServerWeight(serverAddress, serviceName);
         } else if (configManager.getLocalIp().equals(MixUtils.getIp(serverAddress))) {
             Integer _weight = ServicePublisher.getServerWeight().get(serverAddress);
             if (_weight != null) {
@@ -192,19 +192,19 @@ public class MixRegistry implements Registry {
     }
 
     @Override
-    public String getServerApp(String serverAddress) throws RegistryException {
+    public String getServerApp(String serverAddress, String serviceName) throws RegistryException {
         Registry _registry = registrys.get(MixUtils.getMixReadPrefer());
         if (_registry != null && !Constants.REGISTRY_MIX_NAME.equals(_registry.getName())) {
-            return _registry.getServerApp(serverAddress);
+            return _registry.getServerApp(serverAddress, serviceName);
         }
 
         String app = "";
         Boolean serverActive = MixUtils.getMachineActives().get(serverAddress);
 
         if (Boolean.TRUE.equals(serverActive)) {
-            app = registrys.get(Constants.REGISTRY_MNS_NAME).getServerApp(serverAddress);
+            app = registrys.get(Constants.REGISTRY_MNS_NAME).getServerApp(serverAddress, serviceName);
         } else if (Boolean.FALSE.equals(serverActive)) {
-            app = registrys.get(Constants.REGISTRY_CURATOR_NAME).getServerApp(serverAddress);
+            app = registrys.get(Constants.REGISTRY_CURATOR_NAME).getServerApp(serverAddress, serviceName);
         } else if (configManager.getLocalIp().equals(MixUtils.getIp(serverAddress))) {
             app = configManager.getAppName();
         } else {
@@ -248,19 +248,19 @@ public class MixRegistry implements Registry {
     }
 
     @Override
-    public String getServerVersion(String serverAddress) throws RegistryException {
+    public String getServerVersion(String serverAddress, String serviceName) throws RegistryException {
         Registry _registry = registrys.get(MixUtils.getMixReadPrefer());
         if (_registry != null && !Constants.REGISTRY_MIX_NAME.equals(_registry.getName())) {
-            return _registry.getServerVersion(serverAddress);
+            return _registry.getServerVersion(serverAddress, serviceName);
         }
 
         String version = "";
         Boolean serverActive = MixUtils.getMachineActives().get(serverAddress);
 
         if (Boolean.TRUE.equals(serverActive)) {
-            version = registrys.get(Constants.REGISTRY_MNS_NAME).getServerVersion(serverAddress);
+            version = registrys.get(Constants.REGISTRY_MNS_NAME).getServerVersion(serverAddress, serviceName);
         } else if (Boolean.FALSE.equals(serverActive)) {
-            version = registrys.get(Constants.REGISTRY_CURATOR_NAME).getServerVersion(serverAddress);
+            version = registrys.get(Constants.REGISTRY_CURATOR_NAME).getServerVersion(serverAddress, serviceName);
         } else if (configManager.getLocalIp().equals(MixUtils.getIp(serverAddress))) {
             version = VersionUtils.VERSION;
         } else {
@@ -293,19 +293,19 @@ public class MixRegistry implements Registry {
     }
 
     @Override
-    public byte getServerHeartBeatSupport(String serviceAddress) throws RegistryException {
+    public byte getServerHeartBeatSupport(String serviceAddress, String serviceName) throws RegistryException {
         Registry _registry = registrys.get(MixUtils.getMixReadPrefer());
         if (_registry != null && !Constants.REGISTRY_MIX_NAME.equals(_registry.getName())) {
-            return _registry.getServerHeartBeatSupport(serviceAddress);
+            return _registry.getServerHeartBeatSupport(serviceAddress, serviceName);
         }
 
         byte support = HeartBeatSupport.BothSupport.getValue();
         Boolean serverActive = MixUtils.getMachineActives().get(serviceAddress);
 
         if (Boolean.TRUE.equals(serverActive)) {
-            support = registrys.get(Constants.REGISTRY_MNS_NAME).getServerHeartBeatSupport(serviceAddress);
+            support = registrys.get(Constants.REGISTRY_MNS_NAME).getServerHeartBeatSupport(serviceAddress, serviceName);
         } else if (Boolean.FALSE.equals(serverActive)) {
-            support = registrys.get(Constants.REGISTRY_CURATOR_NAME).getServerHeartBeatSupport(serviceAddress);
+            support = registrys.get(Constants.REGISTRY_CURATOR_NAME).getServerHeartBeatSupport(serviceAddress, serviceName);
         } else if (configManager.getLocalIp().equals(MixUtils.getIp(serviceAddress))) {
             // keep default
         } else {
@@ -316,19 +316,19 @@ public class MixRegistry implements Registry {
     }
 
     @Override
-    public Map<String, Boolean> getServiceProtocols(String serviceAddress) throws RegistryException {
+    public Map<String, Boolean> getServiceProtocols(String serviceAddress, String serviceName) throws RegistryException {
         Registry _registry = registrys.get(MixUtils.getMixReadPrefer());
         if (_registry != null && !Constants.REGISTRY_MIX_NAME.equals(_registry.getName())) {
-            return _registry.getServiceProtocols(serviceAddress);
+            return _registry.getServiceProtocols(serviceAddress, serviceName);
         }
 
         Map<String, Boolean> serviceProtocols = new HashMap<>();
         Boolean serverActive = MixUtils.getMachineActives().get(serviceAddress);
 
         if (Boolean.TRUE.equals(serverActive)) {
-            serviceProtocols = registrys.get(Constants.REGISTRY_MNS_NAME).getServiceProtocols(serviceAddress);
+            serviceProtocols = registrys.get(Constants.REGISTRY_MNS_NAME).getServiceProtocols(serviceAddress, serviceName);
         } else if (Boolean.FALSE.equals(serverActive)) {
-            serviceProtocols = registrys.get(Constants.REGISTRY_CURATOR_NAME).getServiceProtocols(serviceAddress);
+            serviceProtocols = registrys.get(Constants.REGISTRY_CURATOR_NAME).getServiceProtocols(serviceAddress, serviceName);
         } else if (configManager.getLocalIp().equals(MixUtils.getIp(serviceAddress))) {
             // keep default
         } else {
@@ -515,7 +515,7 @@ public class MixRegistry implements Registry {
                 Boolean machineActiveCache = MixUtils.getMachineActives().put(address, true);
                 if (machineActiveCache != null && Boolean.FALSE.equals(machineActiveCache)) {
                     // 通知machine刷新信息
-                    RegistryManager.getInstance().getServiceWeight(address, false);
+                    RegistryManager.getInstance().getServiceWeight(address, serviceName, false);
                     RegistryEventListener.serverInfoChanged(serviceName, address);
                     monitor.logEvent("PigeonReg.machineChange", address + "#" + Constants.REGISTRY_MNS_NAME, "");
                 }
@@ -532,7 +532,7 @@ public class MixRegistry implements Registry {
                 Boolean machineActiveCache = MixUtils.getMachineActives().put(address, false);
                 if (machineActiveCache != null && Boolean.TRUE.equals(machineActiveCache)) {
                     // 通知machine刷新信息
-                    RegistryManager.getInstance().getServiceWeight(address, false);
+                    RegistryManager.getInstance().getServiceWeight(address, serviceName, false);
                     RegistryEventListener.serverInfoChanged(serviceName, address);
                     monitor.logEvent("PigeonReg.machineChange", address + "#" + Constants.REGISTRY_CURATOR_NAME, "");
                 }

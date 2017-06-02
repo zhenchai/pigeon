@@ -221,7 +221,7 @@ public class RegistryManager {
 	}
 
 	// invoker
-	public int getServiceWeight(String serverAddress, boolean readCache) {
+	public int getServiceWeight(String serverAddress, String serviceName, boolean readCache) {
 		if (readCache) {
 			HostInfo hostInfo = referencedAddresses.get(serverAddress);
 			if (hostInfo != null) {
@@ -232,7 +232,7 @@ public class RegistryManager {
 
 		if (registry != null) {
 			try {
-				weight = registry.getServerWeight(serverAddress);
+				weight = registry.getServerWeight(serverAddress, serviceName);
 				HostInfo hostInfo = referencedAddresses.get(serverAddress);
 				if (hostInfo != null) {
 					hostInfo.setWeight(weight);
@@ -246,8 +246,8 @@ public class RegistryManager {
 	}
 
 	// invoker
-	public int getServiceWeight(String serverAddress) {
-		return getServiceWeight(serverAddress, true);
+	public int getServiceWeight(String serverAddress, String serviceName) {
+		return getServiceWeight(serverAddress, serviceName, true);
 	}
 
 	/**
@@ -316,21 +316,21 @@ public class RegistryManager {
 
 					if (registry != null) {
 						try {
-							String app = registry.getServerApp(serviceAddress);
+							String app = registry.getServerApp(serviceAddress, serviceName);
 							hostInfo.setApp(app);
 						} catch (RegistryException e) {
 							logger.info("failed to update app in cache for: " + serviceAddress);
 						}
 
 						try {
-							String version = registry.getServerVersion(serviceAddress);
+							String version = registry.getServerVersion(serviceAddress, serviceName);
 							hostInfo.setVersion(version);
 						} catch (RegistryException e) {
 							logger.info("failed to update version in cache for: " + serviceAddress);
 						}
 
 						try {
-							byte heartBeatSupport = registry.getServerHeartBeatSupport(serviceAddress);
+							byte heartBeatSupport = registry.getServerHeartBeatSupport(serviceAddress, serviceName);
 							hostInfo.setHeartBeatSupport(heartBeatSupport);
 						} catch (RegistryException e) {
 							logger.info("failed to update heartBeatSupport in cache for: " + serviceAddress);
@@ -339,7 +339,7 @@ public class RegistryManager {
 						// invoker读取注册中心的协议信息并且put进去
 						try {
 							Map<String, Boolean> serviceProtocols
-									= registry.getServiceProtocols(serviceAddress);
+									= registry.getServiceProtocols(serviceAddress, serviceName);
 							hostInfo.setServiceProtocols(serviceProtocols);
 						} catch (RegistryException e) {
 							logger.info("failed to update service protocols in cache for: " + serviceAddress);
@@ -447,12 +447,12 @@ public class RegistryManager {
 		return false;
 	}
 
-	public String getReferencedApp(String serverAddress) {
+	public String getReferencedApp(String serverAddress, String serviceName) {
 		String app = "";
 
 		if (registry != null) {
 			try {
-				app = registry.getServerApp(serverAddress);
+				app = registry.getServerApp(serverAddress, serviceName);
 				setReferencedApp(serverAddress, app);
 			} catch (RegistryException e) {
 				logger.info("failed to update app in cache for: " + serverAddress);
@@ -495,11 +495,11 @@ public class RegistryManager {
 		return null;
 	}
 
-	public String getReferencedVersion(String serverAddress) {
+	public String getReferencedVersion(String serverAddress, String serviceName) {
 		String version = "";
 		if (registry != null) {
 			try {
-				version = registry.getServerVersion(serverAddress);
+				version = registry.getServerVersion(serverAddress, serviceName);
 				setReferencedVersion(serverAddress, version);
 			} catch (RegistryException e) {
 				logger.info("failed to update version in cache for: " + serverAddress);
@@ -519,7 +519,7 @@ public class RegistryManager {
 		boolean support = false;
 
 		try {
-			Map<String, Boolean> serviceProtocols = registry.getServiceProtocols(serverAddress);
+			Map<String, Boolean> serviceProtocols = registry.getServiceProtocols(serverAddress, serviceName);
 
 			setReferencedProtocols(serverAddress, serviceProtocols);
 			Boolean _support = serviceProtocols.get(serviceName);
@@ -648,12 +648,12 @@ public class RegistryManager {
 	}
 
 	// invoker
-	public byte getServerHeartBeatSupport(String serviceAddress) {
+	public byte getServerHeartBeatSupport(String serviceAddress, String serviceName) {
 		byte heartBeatSupport = HeartBeatSupport.BothSupport.getValue();
 
 		if (registry != null) {
 			try {
-				heartBeatSupport = registry.getServerHeartBeatSupport(serviceAddress);
+				heartBeatSupport = registry.getServerHeartBeatSupport(serviceAddress, serviceName);
 				setServerHeartBeatSupport(serviceAddress, heartBeatSupport);
 			} catch (RegistryException e) {
 				logger.info("failed to update heartBeatSupport in cache for: " + serviceAddress);
@@ -713,7 +713,7 @@ public class RegistryManager {
 		boolean support = false;
 
 		try {
-			Map<String, Boolean> serviceProtocols = registry.getServiceProtocols(serviceAddress);
+			Map<String, Boolean> serviceProtocols = registry.getServiceProtocols(serviceAddress, serviceName);
 
 			setReferencedProtocols(serviceAddress, serviceProtocols);
 			Boolean _support = serviceProtocols.get(serviceName);

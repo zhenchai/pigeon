@@ -11,9 +11,7 @@ import com.dianping.pigeon.log.Logger;
 import com.dianping.pigeon.log.LoggerLoader;
 import com.dianping.pigeon.registry.RegistryManager;
 import com.dianping.pigeon.registry.config.RegistryConfig;
-import com.dianping.pigeon.registry.exception.RegistryException;
 import com.dianping.pigeon.registry.listener.*;
-import com.dianping.pigeon.registry.util.Constants;
 import com.dianping.pigeon.remoting.ServiceFactory;
 import com.dianping.pigeon.remoting.common.domain.Disposable;
 import com.dianping.pigeon.remoting.common.domain.InvocationRequest;
@@ -26,8 +24,6 @@ import com.dianping.pigeon.remoting.invoker.listener.DefaultClusterListener;
 import com.dianping.pigeon.remoting.invoker.listener.ProviderAvailableListener;
 import com.dianping.pigeon.remoting.invoker.route.DefaultRouteManager;
 import com.dianping.pigeon.remoting.invoker.route.RouteManager;
-import com.dianping.pigeon.remoting.provider.config.ProviderConfig;
-import com.dianping.pigeon.remoting.provider.publish.ServicePublisher;
 import com.dianping.pigeon.threadpool.DefaultThreadFactory;
 import com.dianping.pigeon.threadpool.DefaultThreadPool;
 import com.dianping.pigeon.threadpool.ThreadPool;
@@ -99,7 +95,7 @@ public class ClientManager {
 
 	public void registerClient(String serviceName, String host, int port, int weight) {
 		ConnectInfo connectInfo = new ConnectInfo(serviceName, host, port, weight);
-		this.clusterListenerManager.addConnect(connectInfo);
+		this.clusterListenerManager.addConnect(connectInfo, serviceName);
 		RegistryManager.getInstance().addServiceAddress(serviceName, host, port, weight);
 	}
 
@@ -208,7 +204,7 @@ public class ClientManager {
 							continue;
 						}
 						try {
-							int weight = RegistryManager.getInstance().getServiceWeight(address, false);
+							int weight = RegistryManager.getInstance().getServiceWeight(address, serviceName, false);
 							addresses.add(new HostInfo(host, port, weight));
 						} catch (Throwable e) {
 							logger.error("error while registering service invoker:" + serviceName + ", address:"

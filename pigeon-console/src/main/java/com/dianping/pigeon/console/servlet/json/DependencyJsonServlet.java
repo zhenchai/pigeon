@@ -58,14 +58,14 @@ public class DependencyJsonServlet extends ServiceServlet {
 
 		Map<String, List<Client>> clientsMap = clientManager.getClusterListener().getServiceClients();
 		if (clientsMap != null) {
-			for (String key : clientsMap.keySet()) {
-				List<Client> clients = clientsMap.get(key);
+			for (String serviceName : clientsMap.keySet()) {
+				List<Client> clients = clientsMap.get(serviceName);
 				List<ClientInfo> clientInfoList = new ArrayList<ClientInfo>();
 				for (Client client : clients) {
 					clientInfoList.add(new ClientInfo(client, RegistryManager.getInstance().getServiceWeight(
-							client.getAddress())));
+							client.getAddress(), serviceName)));
 				}
-				clientResults.put(key, clientInfoList);
+				clientResults.put(serviceName, clientInfoList);
 			}
 		}
 		page.setClients(clientResults);

@@ -38,13 +38,13 @@ public class ProviderAvailableListener implements Runnable {
 		configManager.getIntValue(KEY_AVAILABLE_LEAST, 1);
 	}
 
-	private int getAvailableClients(List<Client> clientList) {
+	private int getAvailableClients(List<Client> clientList, String serviceName) {
 		int available = 0;
 		if (CollectionUtils.isEmpty(clientList)) {
 			available = 0;
 		} else {
 			for (Client client : clientList) {
-				int w = RegistryManager.getInstance().getServiceWeight(client.getAddress());
+				int w = RegistryManager.getInstance().getServiceWeight(client.getAddress(), serviceName);
 				if (w > 0 && !client.isClosed() && client.isActive()) {
 					available += w;
 				}
@@ -76,7 +76,7 @@ public class ProviderAvailableListener implements Runnable {
 						continue;
 					}
 
-					int available = getAvailableClients(this.getWorkingClients().get(url));
+					int available = getAvailableClients(this.getWorkingClients().get(url), url);
 
 					if (available < configManager.getIntValue(KEY_AVAILABLE_LEAST, 1)) {
 						logger.info("check provider available for service:" + url);
@@ -111,18 +111,18 @@ public class ProviderAvailableListener implements Runnable {
 
 	private void checkReferencedServices() {
 		Map<String, Set<HostInfo>> serviceAddresses = RegistryManager.getInstance().getAllReferencedServiceAddresses();
-		for (String key : serviceAddresses.keySet()) {
-			Set<HostInfo> hosts = serviceAddresses.get(key);
+		for (String serviceName : serviceAddresses.keySet()) {
+			Set<HostInfo> hosts = serviceAddresses.get(serviceName);
 			if (hosts != null) {
 				for (HostInfo host : hosts) {
 					if (host.getApp() == null) {
-						String app = RegistryManager.getInstance().getReferencedApp(host.getConnect());
+						String app = RegistryManager.getInstance().getReferencedApp(host.getConnect(), serviceName);
 						logger.info("set " + host.getConnect() + "'s app to " + app);
 						host.setApp(app);
 						RegistryManager.getInstance().setReferencedApp(host.getConnect(), app);
 					}
 					if (host.getVersion() == null) {
-						String version = RegistryManager.getInstance().getReferencedVersion(host.getConnect());
+						String version = RegistryManager.getInstance().getReferencedVersion(host.getConnect(), serviceName);
 						logger.info("set " + host.getConnect() + "'s version to " + version);
 						host.setVersion(version);
 						RegistryManager.getInstance().setReferencedVersion(host.getConnect(), version);

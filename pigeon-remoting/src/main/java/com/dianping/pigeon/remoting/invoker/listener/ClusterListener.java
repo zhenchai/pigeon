@@ -9,7 +9,7 @@ import com.dianping.pigeon.remoting.invoker.domain.ConnectInfo;
 
 public interface ClusterListener {
 
-	void addConnect(ConnectInfo cmd);
+	void addConnect(ConnectInfo cmd, String serviceName);
 
 	void removeConnect(Client client);
 

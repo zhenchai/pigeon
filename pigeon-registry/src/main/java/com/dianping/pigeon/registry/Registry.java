@@ -37,13 +37,13 @@ public interface Registry {
     void unregisterService(String serviceName, String group, String serviceAddress) throws RegistryException;
 
     // for invoker
-    int getServerWeight(String serverAddress) throws RegistryException;
+    int getServerWeight(String serverAddress, String serviceName) throws RegistryException;
 
     // for provider
     void setServerWeight(String serverAddress, int weight) throws RegistryException;
 
     // for invoker
-    String getServerApp(String serverAddress) throws RegistryException;
+    String getServerApp(String serverAddress, String serviceName) throws RegistryException;
 
     // for provider
     void setServerApp(String serverAddress, String app);
@@ -52,7 +52,7 @@ public interface Registry {
     void unregisterServerApp(String serverAddress);
 
     // for invoker
-    String getServerVersion(String serverAddress) throws RegistryException;
+    String getServerVersion(String serverAddress, String serviceName) throws RegistryException;
 
     // for provider
     void setServerVersion(String serverAddress, String version);
@@ -61,10 +61,10 @@ public interface Registry {
     void unregisterServerVersion(String serverAddress);
 
     // for invoker
-    byte getServerHeartBeatSupport(String serviceAddress) throws RegistryException;
+    byte getServerHeartBeatSupport(String serviceAddress, String serviceName) throws RegistryException;
 
     // for invoker
-    Map<String,Boolean> getServiceProtocols(String serviceAddress) throws RegistryException;
+    Map<String,Boolean> getServiceProtocols(String serviceAddress, String serviceName) throws RegistryException;
 
     // for invoker
     boolean isSupportNewProtocol(String serviceAddress) throws RegistryException;

@@ -75,7 +75,7 @@ public class DefaultClusterListener implements ClusterListener {
     }
 
     @Override
-    public void addConnect(ConnectInfo connectInfo) {
+    public void addConnect(ConnectInfo connectInfo, String serviceName) {
         if (logger.isInfoEnabled()) {
             logger.info("[cluster-listener] add service provider:" + connectInfo);
         }
@@ -113,12 +113,12 @@ public class DefaultClusterListener implements ClusterListener {
             }
 
             for (Entry<String, Integer> sw : connectInfo.getServiceNames().entrySet()) {
-                String serviceName = sw.getKey();
-                RegistryEventListener.serverInfoChanged(serviceName, connectInfo.getConnect());
-                List<Client> clientList = this.serviceClients.get(serviceName);
+                String _serviceName = sw.getKey();
+                RegistryEventListener.serverInfoChanged(_serviceName, connectInfo.getConnect());
+                List<Client> clientList = this.serviceClients.get(_serviceName);
                 if (clientList == null) {
                     clientList = new CopyOnWriteArrayList<Client>();
-                    List<Client> oldClientList = this.serviceClients.putIfAbsent(serviceName, clientList);
+                    List<Client> oldClientList = this.serviceClients.putIfAbsent(_serviceName, clientList);
                     if (oldClientList != null) {
                         clientList = oldClientList;
                     }
