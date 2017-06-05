@@ -150,6 +150,9 @@ public class CuratorClient {
 	public boolean isConnected() {
 		final CuratorFramework cf = getClient();
 		if (cf != null) {
+			if (cf instanceof BlankCuratorFramework) {
+				return true;
+			}
 			try {
 				return cf.getZookeeperClient().getZooKeeper().getState().isConnected()
 						&& cf.getZookeeperClient().isConnected();
