@@ -502,6 +502,10 @@ public class CuratorClient {
 	}
 
 	public String getStatistics() {
+		if (getClient() instanceof BlankCuratorFramework) {
+			return BlankCuratorFramework.class.toString();
+		}
+
 		CuratorZookeeperClient client = getClient().getZookeeperClient();
 		return new StringBuilder().append("address:").append(client.getCurrentConnectionString()).append(", connected:").append(isConnected()).append(", retries:")
 				.append(((MyRetryPolicy) client.getRetryPolicy()).getRetryCount()).toString();
