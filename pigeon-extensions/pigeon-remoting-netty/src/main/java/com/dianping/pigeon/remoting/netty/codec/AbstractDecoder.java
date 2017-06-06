@@ -157,9 +157,11 @@ public abstract class AbstractDecoder extends OneToOneDecoder {
             }
 
             msg_.setSerialize(serialize);
+
+            doInitMsg(msg, channel, receiveTime);
         }
 
-        doInitMsg(msg, channel, receiveTime);
+
         return msg;
     }
 

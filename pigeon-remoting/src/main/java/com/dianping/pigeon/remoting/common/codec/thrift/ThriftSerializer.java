@@ -177,7 +177,7 @@ public class ThriftSerializer extends AbstractSerializer {
                         header.getResponseInfo().getSequenceId());
 
                 if (request == null) {
-                    throw new SerializationException("Deserialize cannot find related request, May be timeout. sequenceId " + header.getResponseInfo().getSequenceId());
+                    return null;
                 }
 
                 Class<?> iface = request.getServiceInterface();
