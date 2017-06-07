@@ -32,6 +32,8 @@ public class AbstractPublishPolicy implements PublishPolicy {
             = configManager.getBooleanValue("pigeon.check.is.stock.service.failure.exception.default", true);
     private static final boolean IS_CHECK_SERVICE_DEFAULT
             = configManager.getBooleanValue("pigeon.check.is.stock.service.failure.default", true);
+    private static final boolean IS_ALLOW_CUSTOMIZED_SERVICENAME
+            = configManager.getBooleanValue("pigeon.check.is.allow.customized.servicename", false);
 
     @Override
     public void init() {
@@ -58,6 +60,10 @@ public class AbstractPublishPolicy implements PublishPolicy {
         if (StringUtils.isBlank(customUrl)) {
             providerConfig.setUrl(serviceUrl);
         } else if (!serviceUrl.equals(customUrl) && !isStockService(customUrl)) {
+            if (IS_ALLOW_CUSTOMIZED_SERVICENAME) {
+                return;
+            }
+
             // 非存量服务,不允许注册,抛出异常或强制转换为类路径服务名
             if (IS_CHECK_SERVICE_EXCEPTION_DEFAULT) {
                 logger.error("customized [serviceName]: " + customUrl

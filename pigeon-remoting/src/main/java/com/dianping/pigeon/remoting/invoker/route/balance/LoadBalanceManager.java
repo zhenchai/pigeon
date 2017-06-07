@@ -69,6 +69,10 @@ public class LoadBalanceManager {
 		LoadBalanceManager.register(WeightedAutoawareLoadBalance.NAME, null, WeightedAutoawareLoadBalance.instance);
 	}
 
+	public static LoadBalance getLoadBalance(String loadBalanceKey) {
+		return loadBalanceMap.get(loadBalanceKey);
+	}
+
 	/**
 	 * 
 	 * 

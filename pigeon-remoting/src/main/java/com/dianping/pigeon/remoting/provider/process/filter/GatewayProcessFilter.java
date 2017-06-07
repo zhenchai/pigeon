@@ -57,9 +57,9 @@ public class GatewayProcessFilter implements ServiceInvocationFilter<ProviderCon
 	private static final String KEY_APPLIMIT = "pigeon.provider.applimit";
 	private static final String KEY_METHODAPPLIMIT = "pigeon.provider.methodapplimit";
 	private static final String KEY_GLOBALLIMIT = "pigeon.provider.globallimit";
-	private static volatile Map<String, Long> appLimitMap = new ConcurrentHashMap<String, Long>();
+	private static volatile Map<String, Long> appLimitMap = new HashMap<>();
 	// api#method --> {app1 --> qpslimit, app2 --> qpslimit}
-	private static volatile Map<String, Map<String, Long>> methodAppLimitMap = Maps.newConcurrentMap();
+	private static volatile Map<String, Map<String, Long>> methodAppLimitMap = new HashMap<>();
 	private static volatile Long globalLimit = Long.MAX_VALUE;
 
 	private static final JacksonSerializer jacksonSerializer = new JacksonSerializer();
@@ -84,7 +84,7 @@ public class GatewayProcessFilter implements ServiceInvocationFilter<ProviderCon
 
 		String appLimitConfig = configManager.getStringValue(KEY_APPLIMIT);
 		parseAppLimitConfig(appLimitConfig);
-		ConfigManagerLoader.getConfigManager().registerConfigChangeListener(new InnerConfigChangeListener());
+		configManager.registerConfigChangeListener(new InnerConfigChangeListener());
 		ProviderStatisticsChecker appStatisticsChecker = new ProviderStatisticsChecker();
 		statisticsCheckerPool.execute(appStatisticsChecker);
 		ServiceChangeListenerContainer.addServiceChangeListener(new InnerServiceChangeListener());
@@ -104,12 +104,14 @@ public class GatewayProcessFilter implements ServiceInvocationFilter<ProviderCon
 			} catch (Throwable t) {
 				logger.error("error while parsing global limit configuration:" + globalLimitConfig, t);
 			}
+		} else {
+			globalLimit = Long.MAX_VALUE;
 		}
 	}
 
 	private static void parseMethodAppLimitConfig(String methodAppLimitConfig) {
 		if (StringUtils.isNotBlank(methodAppLimitConfig)) {
-			Map<String, Map<String, Long>> map = Maps.newConcurrentMap();
+			Map<String, Map<String, Long>> map;
 			try {
 				map = (HashMap) jacksonSerializer.toObject(HashMap.class, methodAppLimitConfig);
 				for (Map<String, Long> appLimitMap : map.values()) {
@@ -118,17 +120,18 @@ public class GatewayProcessFilter implements ServiceInvocationFilter<ProviderCon
 						appLimitMap.put(app, limit);
 					}
 				}
-				methodAppLimitMap.clear();
-				methodAppLimitMap = new ConcurrentHashMap<>(map);
+				methodAppLimitMap = map;
 			} catch (Throwable t) {
 				logger.error("error while parsing method app limit configuration:" + methodAppLimitConfig, t);
 			}
+		} else {
+			methodAppLimitMap = new HashMap<>();
 		}
 	}
 
 	private static void parseAppLimitConfig(String appLimitConfig) {
 		if (StringUtils.isNotBlank(appLimitConfig)) {
-			ConcurrentHashMap<String, Long> map = new ConcurrentHashMap<String, Long>();
+			Map<String, Long> map = new HashMap<>();
 			try {
 				String[] appLimitConfigPair = appLimitConfig.split(",");
 				for (String str : appLimitConfigPair) {
@@ -139,11 +142,12 @@ public class GatewayProcessFilter implements ServiceInvocationFilter<ProviderCon
 						}
 					}
 				}
-				appLimitMap.clear();
 				appLimitMap = map;
 			} catch (RuntimeException e) {
 				logger.error("error while parsing app limit configuration:" + appLimitConfig, e);
 			}
+		} else {
+			appLimitMap = new HashMap<>();
 		}
 	}
 
