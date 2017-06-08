@@ -306,9 +306,19 @@ public class ClientManager {
 					// remove unreferenced service address
 					Set<HostInfo> currentAddresses = serviceAddresses.get(url);
 					if (currentAddresses != null && addresses != null) {
-						logger.info(
-								url + " 's addresses, new:" + addresses.size() + ", old:" + currentAddresses.size());
-						currentAddresses.retainAll(addresses);
+						logger.info(url + " 's addresses, new:"
+								+ addresses.size() + ", old:" + currentAddresses.size());
+
+						Set<HostInfo> toRemoveAddresses = new HashSet<>();
+						for (HostInfo currentAddress : currentAddresses) {
+							if (!addresses.contains(currentAddress)) {
+								toRemoveAddresses.add(currentAddress);
+							}
+						}
+
+						for (HostInfo hostPort : toRemoveAddresses) {
+							RegistryEventListener.providerRemoved(url, hostPort.getHost(), hostPort.getPort());
+						}
 					}
 				} catch (Throwable t) {
 					logger.warn(

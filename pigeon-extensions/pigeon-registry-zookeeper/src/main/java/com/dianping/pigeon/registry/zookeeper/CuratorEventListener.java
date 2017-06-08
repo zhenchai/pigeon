@@ -113,21 +113,37 @@ public class CuratorEventListener implements CuratorListener {
 		String serviceName = pathInfo.serviceName;
 		String currentGroup = RegistryManager.getInstance().getGroup(serviceName);
 		currentGroup = Utils.normalizeGroup(currentGroup);
-		if (currentGroup.equals(pathInfo.group))
-			return true;
-		if (StringUtils.isEmpty(currentGroup) && !StringUtils.isEmpty(pathInfo.group)) // 当前无group配置, 通知来自group
-			return false;
-		if (!StringUtils.isEmpty(currentGroup) && StringUtils.isEmpty(pathInfo.group)
-				&& RegistryManager.fallbackDefaultGroup) { // group中 && 默认group改变的通知 && 可fallback
-			String servicePath = Utils.getServicePath(pathInfo.serviceName, currentGroup);
-			if (!client.exists(servicePath)) { // group地址为空或被删除,fallback
-				return true;
+
+		// 1. 当前无group配置,通知来自默认路径 or 当前有group配置,接受group路径的value变更,当group路径无有效数据,fallback
+		if (currentGroup.equals(pathInfo.group)) {
+			if (StringUtils.isNotBlank(currentGroup) && RegistryManager.fallbackDefaultGroup) { // 有group配置,且可能fallback
+				String servicePath = Utils.getServicePath(pathInfo.serviceName, currentGroup);
+				String addr = client.get(servicePath); // 尝试取出group路径的value
+				if (!Utils.isValidAddress(addr)) { // group路径没有有效的value,尝试fallback
+					logger.info("node " + pathInfo.path + " does not contain valid address, fallback to default group");
+					pathInfo.path = Utils.getServicePath(pathInfo.serviceName, Constants.DEFAULT_GROUP);
+					pathInfo.group = Constants.DEFAULT_GROUP;
+					return true;
+				}
 			}
-			String addr = client.get(servicePath); // group地址不为空,取出group的value
-			if (!Utils.isValidAddress(addr)) { // group地址的value有效
+			return true;
+		}
+
+		// 2. 当前无group配置,通知来自group路径,一定不通知
+		if (StringUtils.isEmpty(currentGroup) && !StringUtils.isEmpty(pathInfo.group)) {
+			return false;
+		}
+
+		// 3. 当前有group配置 && 默认路径改变的通知 && 可fallback
+		if (!StringUtils.isEmpty(currentGroup) && StringUtils.isEmpty(pathInfo.group)
+				&& RegistryManager.fallbackDefaultGroup) {
+			String servicePath = Utils.getServicePath(pathInfo.serviceName, currentGroup);
+			String addr = client.get(servicePath); // 尝试取出group路径的value
+			if (!Utils.isValidAddress(addr)) { // group路径没有有效的value,fallback通知有效
 				return true;
 			}
 		}
+
 		return false;
 	}
 

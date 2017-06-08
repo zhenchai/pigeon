@@ -389,24 +389,8 @@ public class CuratorRegistry implements Registry {
             String address = client.get(path, needListener);
             if (!StringUtils.isBlank(group)) {
                 boolean needFallback = false;
-                if (StringUtils.isBlank(address)) {
+                if (!Utils.isValidAddress(address)) {
                     needFallback = true;
-                } else {
-                    String[] addressArray = address.split(",");
-                    int weightCount = 0;
-                    for (String addr : addressArray) {
-                        addr = addr.trim();
-                        if (addr.length() > 0) {
-                            int weight = RegistryManager.getInstance().getServiceWeight(addr, serviceName);
-                            if (weight > 0) {
-                                weightCount += weight;
-                            }
-                        }
-                    }
-                    if (weightCount == 0) {
-                        needFallback = true;
-                        logger.info("weight is 0 with address:" + address);
-                    }
                 }
                 if (fallbackDefaultGroup && needFallback) {
                     logger.info("node " + path + " does not exist, fallback to default group");

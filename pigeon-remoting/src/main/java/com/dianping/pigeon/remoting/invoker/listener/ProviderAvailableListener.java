@@ -9,6 +9,7 @@ import com.dianping.pigeon.config.ConfigManagerLoader;
 import com.dianping.pigeon.domain.HostInfo;
 import com.dianping.pigeon.log.LoggerLoader;
 import com.dianping.pigeon.registry.RegistryManager;
+import com.dianping.pigeon.registry.listener.RegistryEventListener;
 import com.dianping.pigeon.registry.util.HeartBeatSupport;
 import com.dianping.pigeon.remoting.ServiceFactory;
 import com.dianping.pigeon.remoting.invoker.Client;
@@ -19,6 +20,7 @@ import org.apache.commons.lang.StringUtils;
 import com.dianping.pigeon.log.Logger;
 import org.springframework.util.CollectionUtils;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -68,6 +70,8 @@ public class ProviderAvailableListener implements Runnable {
 				}
 
 				Set<InvokerConfig<?>> services = ServiceFactory.getAllServiceInvokers().keySet();
+				Map<String, Set<HostInfo>> serviceAddresses = RegistryManager.getInstance()
+						.getAllReferencedServiceAddresses();
 				long now = System.nanoTime();
 
 				for (InvokerConfig<?> invokerConfig : services) {
@@ -84,7 +88,24 @@ public class ProviderAvailableListener implements Runnable {
 						logger.info("check provider available for service:" + url);
 						String error = null;
 						try {
-							ClientManager.getInstance().registerClients(invokerConfig);
+							Set<HostInfo> addresses = ClientManager.getInstance().registerClients(invokerConfig);
+
+							Set<HostInfo> currentAddresses = serviceAddresses.get(url);
+							if (currentAddresses != null && addresses != null) {
+								logger.info(url + " 's addresses, new:"
+										+ addresses.size() + ", old:" + currentAddresses.size());
+
+								Set<HostInfo> toRemoveAddresses = new HashSet<>();
+								for (HostInfo currentAddress : currentAddresses) {
+									if (!addresses.contains(currentAddress)) {
+										toRemoveAddresses.add(currentAddress);
+									}
+								}
+
+								for (HostInfo hostPort : toRemoveAddresses) {
+									RegistryEventListener.providerRemoved(url, hostPort.getHost(), hostPort.getPort());
+								}
+							}
 						} catch (Throwable e) {
 							error = e.getMessage();
 						}
