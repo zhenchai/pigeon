@@ -34,13 +34,12 @@ public enum FaultInjectionManager {
     private volatile static Map<String, FaultInjectionConfig> configMap = new HashMap<String, FaultInjectionConfig>();
 
     static {
+        String configsStr = configManager.getStringValue(KEY_FAULT_INJECTION_CONFIGS);
         try {
-            String configsStr = configManager.getStringValue(KEY_FAULT_INJECTION_CONFIGS, "{}");
             refreshFaultInjectionConfigs(configsStr);
         } catch (Throwable t) {
-            logger.warn("failed to parse pigeon fault injection configs, please check!");
+            logger.warn("failed to parse pigeon fault injection configs, please check!", t);
         }
-
         configManager.registerConfigChangeListener(new InnerGroupChangeListener());
     }
 
@@ -214,6 +213,8 @@ public enum FaultInjectionManager {
         if (StringUtils.isNotBlank(info)) {
             JavaType type = getCollectionType(HashMap.class, Map.class, String.class, FaultInjectionConfig.class);
             configMap = mapper.readValue(info, type);
+        } else {
+            configMap = new HashMap<>();
         }
     }
 
