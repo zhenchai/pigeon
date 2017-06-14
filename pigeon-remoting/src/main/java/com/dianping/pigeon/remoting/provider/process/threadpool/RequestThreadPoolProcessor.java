@@ -299,19 +299,21 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
     private ThreadPool getConfigThreadPool(InvocationRequest request) {
         String serviceName = request.getServiceName();
         String methodName = request.getMethodName();
-        ProviderConfig providerConfig = ServicePublisher.getServiceConfig(serviceName);
+        if (StringUtils.isNotBlank(serviceName) && StringUtils.isNotBlank(methodName)) {
+            ProviderConfig providerConfig = ServicePublisher.getServiceConfig(serviceName);
 
-        if (providerConfig != null && needStandalonePool(providerConfig)) {
-            Map<String, ProviderMethodConfig> methods = providerConfig.getMethods();
-            if (!CollectionUtils.isEmpty(methods)) {
-                ProviderMethodConfig methodConfig = methods.get(methodName);
-                if (methodConfig != null && methodConfig.getPoolConfig() != null) {
-                    return DynamicThreadPoolFactory.getThreadPool(methodConfig.getPoolConfig());
+            if (providerConfig != null && needStandalonePool(providerConfig)) {
+                Map<String, ProviderMethodConfig> methods = providerConfig.getMethods();
+                if (!CollectionUtils.isEmpty(methods)) {
+                    ProviderMethodConfig methodConfig = methods.get(methodName);
+                    if (methodConfig != null && methodConfig.getPoolConfig() != null) {
+                        return DynamicThreadPoolFactory.getThreadPool(methodConfig.getPoolConfig());
+                    }
                 }
-            }
 
-            if (providerConfig.getPoolConfig() != null) {
-                return DynamicThreadPoolFactory.getThreadPool(providerConfig.getPoolConfig());
+                if (providerConfig.getPoolConfig() != null) {
+                    return DynamicThreadPoolFactory.getThreadPool(providerConfig.getPoolConfig());
+                }
             }
         }
 
