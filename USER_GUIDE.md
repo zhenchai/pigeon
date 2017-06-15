@@ -892,7 +892,10 @@ http://ip:4080/services.status 可以测试服务健康状况
 
 ## 配置负载均衡策略
 
-配置客户端的loadBalance属性，目前可以是random/roundRobin/weightedAutoware这几种类型，默认是weightedAutoware策略，一般场景不建议修改。
+###配置客户端的loadBalance属性
+
+目前可以是random/roundRobin/weightedAutoware这几种类型，默认是weightedAutoware策略，一般场景不建议修改。
+
 ```xml
 <bean id="echoService" class="com.dianping.pigeon.remoting.invoker.config.spring.ReferenceBean"	init-method="init">
 	<property name="url" value="http://service.dianping.com/com.dianping.pigeon.demo.EchoService" />
@@ -902,6 +905,21 @@ http://ip:4080/services.status 可以测试服务健康状况
 	<property name="loadBalance" value="weightedAutoware" />
 </bean>
 ```
+
+###运行中动态配置客户端的loadBalance属性
+
+在客户端应用xxx的lion管理端，添加配置项xxx.pigeon.loadbalance.dynamictype，内容为：
+
+```java
+{
+    "com.dianping.arch.test.benchmark.service.EchoService#echo" : "random",
+    "com.dianping.arch.test.benchmark.service.TestService" : "autoaware"
+}
+```
+
+优先级是method级别的loadbalance，然后到service级别的loadbalance，最后是应用静态配置的loadbalance。
+
+
 ## 客户端配置某个方法的超时时间
 
 pigeon支持客户端调用某个服务接口时，对整个服务的超时时间进行设置，也可以对该服务接口的某个方法设置单独的超时时间，没有配置超时的方法会以服务级别的超时时间为准。
@@ -1037,6 +1055,15 @@ pigeon支持在服务端配置某个客户端应用的最大请求QPS
 ```
 { "http://service.dianping.com/com.dianping.pigeon.demo.EchoService#echo": { "account-service": 2000, "deal-server": 5000} }
 ```
+
+3、配置服务端的总体最大QPS：
+
+首先打开开关：xxx-service.pigeon.provider.globallimit.enable=true
+
+增加配置项：xxx-service.pigeon.provider.globallimit=5000
+
+4、其他:
+
 以上配置第一次配置了之后，均可以通过lion动态在线设置实时生效
 
 ## 服务降级
@@ -1156,6 +1183,14 @@ xxx-service.pigeon.invoker.degrade.auto=true，默认为false
 强制降级 > 自动降级 > 失败降级
 
 其中自动降级包含失败降级策略
+
+###自动降级添加指定业务异常到失败统计并支持降级
+
+在一些业务场景中，调用端希望被调用端的一些常见业务异常，实际上是程序bug或底层逻辑或数据故障导致的异常，也可以被降级，例如空指针异常，数据库访问异常等等。
+在这样的情况下，可以在调用端应用，如：app1应用，想要添加指定异常java.lang.NullPointerException和org.springframework.dao.DataAccessException
+请在lion管理端添加key：app1.pigeon.invoker.degrade.customized.exception
+内容为：java.lang.NullPointerException,org.springframework.dao.DataAccessException
+多个异常之间用逗号隔开，以上配置可以动态修改
 
 ### 业务自行降级
 前面提到的降级是pigeon内置的服务降级功能，通常pigeon提供的服务降级功能足够满足业务需求，但如果业务想自行进行服务降级，可以catch pigeon的RpcException，这个RpcException包括了超时等所有pigeon异常：
