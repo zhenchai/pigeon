@@ -177,7 +177,7 @@ public class GatewayProcessFilter implements ServiceInvocationFilter<ProviderCon
 						long requests = ProviderStatisticsHolder.getMethodAppCapacityBucket(request)
 								.getRequestsInCurrentSecond();
 						if (requests + 1 > limit) {
-							monitor.logEvent("PigeonService.methodAppLimit", fromApp + "@" + requestMethod + ":" + limit, "");
+							monitor.logEvent("PigeonService.methodAppLimit", fromApp + ":" + limit, "");
 							throw new RejectedException(
 									String.format("Max requests limit %s reached for request %s from app:%s", limit,
 											requestMethod, fromApp));
