@@ -6,15 +6,10 @@ import com.dianping.pigeon.config.ConfigManagerLoader;
 import com.dianping.pigeon.monitor.Monitor;
 import com.dianping.pigeon.monitor.MonitorLoader;
 import com.dianping.pigeon.monitor.MonitorTransaction;
-import com.dianping.pigeon.remoting.common.monitor.trace.InvokerMonitorData;
-import com.dianping.pigeon.remoting.common.monitor.trace.ApplicationKey;
-import com.dianping.pigeon.remoting.common.monitor.trace.MethodKey;
-import com.dianping.pigeon.remoting.common.monitor.trace.OtherKey;
-import com.dianping.pigeon.remoting.common.monitor.trace.SourceKey;
+import com.dianping.pigeon.remoting.common.monitor.trace.*;
 import com.dianping.pigeon.remoting.common.domain.CallMethod;
 import com.dianping.pigeon.remoting.common.domain.InvocationResponse;
 import com.dianping.pigeon.remoting.common.domain.MessageType;
-import com.dianping.pigeon.remoting.common.monitor.trace.MonitorDataFactory;
 import com.dianping.pigeon.remoting.common.process.ServiceInvocationHandler;
 import com.dianping.pigeon.remoting.common.util.Constants;
 import com.dianping.pigeon.remoting.invoker.config.InvokerConfig;
@@ -48,20 +43,22 @@ public class TraceFilter extends InvocationInvokeFilter {
 
         InvokerConfig config = invocationContext.getInvokerConfig();
 
-//        MonitorTransaction transaction = monitor.getCurrentCallTransaction();
-//        String rootMessage = StringUtils.EMPTY;
-//
-//        if (transaction != null) {
-//            rootMessage = transaction.getParentRootMessage();
-//        }
-//        SourceKey srcKey = null;
-//        if (StringUtils.isNotBlank(rootMessage)) {
-//            srcKey = new OtherKey(rootMessage);
-//        } else {
-//            srcKey = new ApplicationKey(appName);
-//        }
+        MonitorTransaction transaction = monitor.getCurrentCallTransaction();
+        String rootMessage = StringUtils.EMPTY;
 
-        SourceKey srcKey = new ApplicationKey(appName);
+        if (transaction != null) {
+            rootMessage = transaction.getParentRootMessage();
+        }
+
+        SourceKey srcKey = null;
+
+        if (UrlUtils.url(rootMessage)) {
+            srcKey = new OtherKey(rootMessage);
+        } else {
+            srcKey = new ApplicationKey(appName);
+        }
+
+//        SourceKey srcKey = new ApplicationKey(appName);
 
         InvokerMonitorData monitorData = MonitorDataFactory.newInvokerMonitorData(srcKey,
                 new MethodKey(config.getUrl(), invocationContext.getMethodName()));
