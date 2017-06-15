@@ -45,7 +45,7 @@ public class ProviderStatusChecker implements StatusChecker {
                             Map<String, Object> item = new LinkedHashMap<String, Object>();
                             item.put("service", key);
                             item.put("to", client.getAddress());
-                            item.put("weight", RegistryManager.getInstance().getServiceWeight(client.getAddress()));
+                            item.put("weight", RegistryManager.getInstance().getServiceWeight(client.getAddress(), key));
                             int requests = 0;
                             if (client.getAddress() != null && buckets.get(client.getAddress()) != null) {
                                 requests = buckets.get(client.getAddress()).getLastSecondRequest();

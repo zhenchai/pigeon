@@ -70,7 +70,7 @@ public class CuratorRegistryTest {
 		registry.init();
 		registry.registerService("srv_a", "group_a", "1.1.1.1:1234", 5);
 		assertEquals(registry.getServiceAddress("srv_a", "group_a"), "1.1.1.1:1234");
-		assertEquals(registry.getServerWeight("1.1.1.1:1234"), 5);
+		assertEquals(registry.getServerWeight("1.1.1.1:1234", "srv_a"), 5);
 		assertEquals(registry.getServiceAddress("srv_a"), "");
 	}
 
@@ -98,7 +98,7 @@ public class CuratorRegistryTest {
 		registry.registerService("srv_a", "group_a", "1.1.1.1:1234", 5);
 		registry.unregisterService("srv_a", "group_a", "1.1.1.1:1234");
 		assertEquals(registry.getServiceAddress("srv_a", "group_a"), "");
-		assertEquals(registry.getServerWeight("1.1.1.1:1234"), 5);
+		assertEquals(registry.getServerWeight("1.1.1.1:1234", "srv_a"), 5);
 	}
 
 	@Test
@@ -111,9 +111,9 @@ public class CuratorRegistryTest {
 		Registry registry = ExtensionLoader.getExtension(Registry.class);
 		registry.init();
 		registry.registerService("srv_a", "group_a", "1.1.1.1:1234", 5);
-		assertEquals(registry.getServerWeight("1.1.1.1:1234"), 5);
+		assertEquals(registry.getServerWeight("1.1.1.1:1234", "srv_a"), 5);
 		registry.setServerWeight("1.1.1.1:1234", 7);
-		assertEquals(registry.getServerWeight("1.1.1.1:1234"), 7);
+		assertEquals(registry.getServerWeight("1.1.1.1:1234", "srv_a"), 7);
 	}
 
 	@Test

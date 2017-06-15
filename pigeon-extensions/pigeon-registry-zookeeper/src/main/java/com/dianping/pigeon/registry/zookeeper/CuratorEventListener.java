@@ -7,6 +7,8 @@ import com.dianping.pigeon.registry.config.RegistryConfig;
 import com.dianping.pigeon.registry.exception.RegistryException;
 import com.dianping.pigeon.registry.listener.*;
 import com.dianping.pigeon.registry.util.Constants;
+import com.dianping.pigeon.registry.util.HeartBeatSupport;
+import com.dianping.pigeon.util.VersionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.api.CuratorEvent;
@@ -31,8 +33,6 @@ public class CuratorEventListener implements CuratorListener {
 	private static final int HOST_CONFIG= 6;
 
 	private CuratorClient client;
-
-	private final RegistryNotifyListener registryNotifyListener = RegistryNotifyListenerLoader.getRegistryNotifyListener();
 
 	public CuratorEventListener(CuratorClient client) {
 		this.client = client;
@@ -89,74 +89,125 @@ public class CuratorEventListener implements CuratorListener {
 	 * against cache 3. notify if changed 4. pay attention to group fallback
 	 * notification
 	 */
-	private void addressChanged(PathInfo pathInfo) throws Exception {
-		if (shouldNotify(pathInfo)) {
-			String hosts = client.get(pathInfo.path);
-			logger.info("Service address changed, path " + pathInfo.path + " value " + hosts);
-			List<String[]> hostDetail = Utils.getServiceIpPortList(hosts);
-			registryNotifyListener.onServiceHostChange(pathInfo.serviceName, hostDetail, Constants.REGISTRY_CURATOR_NAME);
+	private void addressChanged(PathInfo pathInfo) {
+		try {
+			if (shouldNotify(pathInfo)) {
+                String hosts = client.get(pathInfo.path);
+                logger.info("Service address changed, path " + pathInfo.path + " value " + hosts);
+                List<String[]> hostDetail = Utils.getServiceIpPortList(hosts);
+                RegistryNotifyListenerLoader.getRegistryNotifyListener()
+                        .onServiceHostChange(pathInfo.serviceName, hostDetail, Constants.REGISTRY_CURATOR_NAME);
+            }
+		} catch (Throwable e) {
+			logger.warn("failed to notify address list change...", e);
 		}
-		// Watch again
-		client.watch(pathInfo.path);
+
+		try {
+			client.watch(pathInfo.path);
+		} catch (Exception e) {
+			logger.info("failed to watch path: " + pathInfo.path);
+		}
 	}
 
 	private boolean shouldNotify(PathInfo pathInfo) throws Exception {
 		String serviceName = pathInfo.serviceName;
 		String currentGroup = RegistryManager.getInstance().getGroup(serviceName);
 		currentGroup = Utils.normalizeGroup(currentGroup);
-		if (currentGroup.equals(pathInfo.group))
-			return true;
-		if (StringUtils.isEmpty(currentGroup) && !StringUtils.isEmpty(pathInfo.group)) // 当前无group配置, 通知来自group
-			return false;
-		if (!StringUtils.isEmpty(currentGroup) && StringUtils.isEmpty(pathInfo.group)
-				&& RegistryManager.fallbackDefaultGroup) { // group中 && 默认group改变的通知 && 可fallback
-			String servicePath = Utils.getServicePath(pathInfo.serviceName, currentGroup);
-			if (!client.exists(servicePath)) { // group地址为空或被删除,fallback
-				return true;
+
+		// 1. 当前无group配置,通知来自默认路径 or 当前有group配置,接受group路径的value变更,当group路径无有效数据,fallback
+		if (currentGroup.equals(pathInfo.group)) {
+			if (StringUtils.isNotBlank(currentGroup) && RegistryManager.fallbackDefaultGroup) { // 有group配置,且可能fallback
+				String servicePath = Utils.getServicePath(pathInfo.serviceName, currentGroup);
+				String addr = client.get(servicePath); // 尝试取出group路径的value
+				if (!Utils.isValidAddress(addr)) { // group路径没有有效的value,尝试fallback
+					logger.info("node " + pathInfo.path + " does not contain valid address, fallback to default group");
+					pathInfo.path = Utils.getServicePath(pathInfo.serviceName, Constants.DEFAULT_GROUP);
+					pathInfo.group = Constants.DEFAULT_GROUP;
+					return true;
+				}
 			}
-			String addr = client.get(servicePath); // group地址不为空,取出group的value
-			if (!Utils.isValidAddress(addr)) { // group地址的value有效
+			return true;
+		}
+
+		// 2. 当前无group配置,通知来自group路径,一定不通知
+		if (StringUtils.isEmpty(currentGroup) && !StringUtils.isEmpty(pathInfo.group)) {
+			return false;
+		}
+
+		// 3. 当前有group配置 && 默认路径改变的通知 && 可fallback
+		if (!StringUtils.isEmpty(currentGroup) && StringUtils.isEmpty(pathInfo.group)
+				&& RegistryManager.fallbackDefaultGroup) {
+			String servicePath = Utils.getServicePath(pathInfo.serviceName, currentGroup);
+			String addr = client.get(servicePath); // 尝试取出group路径的value
+			if (!Utils.isValidAddress(addr)) { // group路径没有有效的value,fallback通知有效
 				return true;
 			}
 		}
+
 		return false;
 	}
 
-	private void weightChanged(PathInfo pathInfo) throws RegistryException {
+	private void weightChanged(PathInfo pathInfo) {
 		try {
 			String newValue = client.get(pathInfo.path);
 			logger.info("service weight changed, path " + pathInfo.path + " value " + newValue);
 			int weight = newValue == null ? 0 : Integer.parseInt(newValue);
-			registryNotifyListener.onHostWeightChange(pathInfo.server, weight, Constants.REGISTRY_CURATOR_NAME);
+			RegistryNotifyListenerLoader.getRegistryNotifyListener()
+					.onHostWeightChange(pathInfo.server, weight, Constants.REGISTRY_CURATOR_NAME);
+		} catch (Throwable e) {
+			logger.warn("failed to notify weight change...", e);
+		}
+
+		try {
 			client.watch(pathInfo.path);
 		} catch (Exception e) {
-			throw new RegistryException(e);
+			logger.info("failed to watch path: " + pathInfo.path);
 		}
 	}
 
-	private void appChanged(PathInfo pathInfo) throws RegistryException {
+	private void appChanged(PathInfo pathInfo) {
 		try {
 			String app = client.get(pathInfo.path);
 			logger.info("app changed, path " + pathInfo.path + " value " + app);
-			registryNotifyListener.serverAppChanged(pathInfo.server, app, Constants.REGISTRY_CURATOR_NAME);
+			RegistryNotifyListenerLoader.getRegistryNotifyListener()
+					.serverAppChanged(pathInfo.server, app, Constants.REGISTRY_CURATOR_NAME);
+		} catch (Throwable e) {
+			logger.warn("failed to notify app change...", e);
+		}
+
+		try {
 			client.watch(pathInfo.path);
 		} catch (Exception e) {
-			throw new RegistryException(e);
+			logger.info("failed to watch path: " + pathInfo.path);
 		}
 	}
 
-	private void versionChanged(PathInfo pathInfo) throws RegistryException {
+	private void versionChanged(PathInfo pathInfo) {
 		try {
 			String version = client.get(pathInfo.path);
 			logger.info("version changed, path " + pathInfo.path + " value " + version);
-			registryNotifyListener.serverVersionChanged(pathInfo.server, version, Constants.REGISTRY_CURATOR_NAME);
+			RegistryNotifyListenerLoader.getRegistryNotifyListener()
+					.serverVersionChanged(pathInfo.server, version, Constants.REGISTRY_CURATOR_NAME);
+			byte heartBeatSupport;
+			if (VersionUtils.isThriftSupported(version)) {
+				heartBeatSupport = HeartBeatSupport.BothSupport.getValue();
+			} else {
+				heartBeatSupport = HeartBeatSupport.P2POnly.getValue();
+			}
+			RegistryNotifyListenerLoader.getRegistryNotifyListener()
+					.serverHeartBeatSupportChanged(pathInfo.server, heartBeatSupport, Constants.REGISTRY_CURATOR_NAME);
+		} catch (Throwable e) {
+			logger.warn("failed to notify version change...", e);
+		}
+
+		try {
 			client.watch(pathInfo.path);
 		} catch (Exception e) {
-			throw new RegistryException(e);
+			logger.info("failed to watch path: " + pathInfo.path);
 		}
 	}
 
-	private void protocolChanged(PathInfo pathInfo) throws Exception {
+	private void protocolChanged(PathInfo pathInfo) {
 		try {
 			String info = "{}";
 			Map<String, Boolean> infoMap = new HashMap<>();
@@ -167,24 +218,33 @@ public class CuratorEventListener implements CuratorListener {
 				logger.info("failed to get protocol info: " + e.toString());
 			}
 			logger.info("protocol changed, path " + pathInfo.path + " value " + info);
-			registryNotifyListener.serverProtocolChanged(pathInfo.server, infoMap, Constants.REGISTRY_CURATOR_NAME);
+			RegistryNotifyListenerLoader.getRegistryNotifyListener()
+					.serverProtocolChanged(pathInfo.server, infoMap, Constants.REGISTRY_CURATOR_NAME);
 		} catch (Throwable e) {
-			throw new RegistryException(e);
-		} finally {
+			logger.warn("failed to notify protocol change...", e);
+		}
+
+		try {
 			client.watch(pathInfo.path);
+		} catch (Exception e) {
+			logger.info("failed to watch path: " + pathInfo.path);
 		}
 	}
 
-	private void registryConfigChanged(PathInfo pathInfo) throws Exception {
+	private void registryConfigChanged(PathInfo pathInfo) {
 		try {
 			String info = client.get(pathInfo.path);
 			RegistryConfig registryConfig = Utils.getRegistryConfig(info);
 			logger.info("registry config changed, path " + pathInfo.path + " value " + info);
 			RegistryManager.getInstance().registryConfigChanged(pathInfo.server, registryConfig);
 		} catch (Throwable e) {
-			throw new RegistryException(e);
-		} finally {
+			logger.warn("failed to notify registry config change...", e);
+		}
+
+		try {
 			client.watch(pathInfo.path);
+		} catch (Exception e) {
+			logger.info("failed to watch path: " + pathInfo.path);
 		}
 	}
 

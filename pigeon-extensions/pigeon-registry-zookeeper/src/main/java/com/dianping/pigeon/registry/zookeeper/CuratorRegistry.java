@@ -123,7 +123,7 @@ public class CuratorRegistry implements Registry {
         } catch (Throwable e) {
             if (e instanceof BadVersionException || e instanceof NodeExistsException) {
                 try {
-                    Thread.sleep(500);
+                    Thread.sleep(10);
                 } catch (InterruptedException ie) {
                     // ignore
                 }
@@ -191,7 +191,7 @@ public class CuratorRegistry implements Registry {
         } catch (Throwable e) {
             if (e instanceof BadVersionException) {
                 try {
-                    Thread.sleep(500);
+                    Thread.sleep(10);
                 } catch (InterruptedException ie) {
                     // ignore
                 }
@@ -204,7 +204,7 @@ public class CuratorRegistry implements Registry {
     }
 
     @Override
-    public int getServerWeight(String serverAddress) throws RegistryException {
+    public int getServerWeight(String serverAddress, String serviceName) throws RegistryException {
         String path = Utils.getWeightPath(serverAddress);
         String strWeight;
         try {
@@ -255,7 +255,7 @@ public class CuratorRegistry implements Registry {
     }
 
     @Override
-    public String getServerApp(String serverAddress) throws RegistryException {
+    public String getServerApp(String serverAddress, String serviceName) throws RegistryException {
         String path = Utils.getAppPath(serverAddress);
         try {
             return client.get(path);
@@ -301,7 +301,7 @@ public class CuratorRegistry implements Registry {
     }
 
     @Override
-    public String getServerVersion(String serverAddress) throws RegistryException {
+    public String getServerVersion(String serverAddress, String serviceName) throws RegistryException {
         String path = Utils.getVersionPath(serverAddress);
         try {
             return client.get(path);
@@ -328,7 +328,7 @@ public class CuratorRegistry implements Registry {
     }
 
     @Override
-    public byte getServerHeartBeatSupport(String serviceAddress) throws RegistryException {
+    public byte getServerHeartBeatSupport(String serviceAddress, String serviceName) throws RegistryException {
         if (isSupportNewProtocol(serviceAddress)) {
             return HeartBeatSupport.BothSupport.getValue();
         } else {
@@ -389,24 +389,8 @@ public class CuratorRegistry implements Registry {
             String address = client.get(path, needListener);
             if (!StringUtils.isBlank(group)) {
                 boolean needFallback = false;
-                if (StringUtils.isBlank(address)) {
+                if (!Utils.isValidAddress(address)) {
                     needFallback = true;
-                } else {
-                    String[] addressArray = address.split(",");
-                    int weightCount = 0;
-                    for (String addr : addressArray) {
-                        addr = addr.trim();
-                        if (addr.length() > 0) {
-                            int weight = RegistryManager.getInstance().getServiceWeight(addr);
-                            if (weight > 0) {
-                                weightCount += weight;
-                            }
-                        }
-                    }
-                    if (weightCount == 0) {
-                        needFallback = true;
-                        logger.info("weight is 0 with address:" + address);
-                    }
                 }
                 if (fallbackDefaultGroup && needFallback) {
                     logger.info("node " + path + " does not exist, fallback to default group");
@@ -443,7 +427,7 @@ public class CuratorRegistry implements Registry {
 
     @Override
     public boolean isSupportNewProtocol(String serviceAddress) throws RegistryException {
-        String version = getServerVersion(serviceAddress);
+        String version = getServerVersion(serviceAddress, null);
 
         if (StringUtils.isBlank(version)) {
             throw new RegistryException("version is blank");
@@ -453,7 +437,7 @@ public class CuratorRegistry implements Registry {
     }
 
     @Override
-    public Map<String, Boolean> getServiceProtocols(String serviceAddress) throws RegistryException {
+    public Map<String, Boolean> getServiceProtocols(String serviceAddress, String serviceName) throws RegistryException {
         try {
             String protocolPath = Utils.getProtocolPath(serviceAddress);
             String info = client.get(protocolPath);
@@ -514,7 +498,7 @@ public class CuratorRegistry implements Registry {
         } catch (Throwable e) {
             if (e instanceof BadVersionException || e instanceof NodeExistsException) {
                 try {
-                    Thread.sleep(500);
+                    Thread.sleep(10);
                 } catch (InterruptedException ie) {
                     // ignore
                 }
@@ -552,7 +536,7 @@ public class CuratorRegistry implements Registry {
         } catch (Throwable e) {
             if (e instanceof BadVersionException || e instanceof NodeExistsException) {
                 try {
-                    Thread.sleep(500);
+                    Thread.sleep(10);
                 } catch (InterruptedException ie) {
                     // ignore
                 }

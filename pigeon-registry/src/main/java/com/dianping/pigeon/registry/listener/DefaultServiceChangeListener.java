@@ -84,7 +84,7 @@ public class DefaultServiceChangeListener implements ServiceChangeListener {
 				String port = parts[1];
 				String serviceAddress = host + ":" + port;
 
-				int weight = RegistryManager.getInstance().getServiceWeight(serviceAddress);
+				int weight = RegistryManager.getInstance().getServiceWeight(serviceAddress, serviceName);
 				hpSet.add(new HostInfo(host, Integer.parseInt(port), weight));
 			}
 		}

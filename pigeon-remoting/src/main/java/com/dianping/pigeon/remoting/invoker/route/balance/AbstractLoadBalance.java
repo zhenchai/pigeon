@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
+import com.dianping.pigeon.remoting.invoker.ClientManager;
 import com.dianping.pigeon.remoting.invoker.route.quality.RequestQualityManager;
 import org.apache.commons.lang.StringUtils;
 import com.dianping.pigeon.log.Logger;
@@ -32,9 +33,6 @@ public abstract class AbstractLoadBalance implements LoadBalance {
 
 	@Override
 	public Client select(List<Client> clients, InvokerConfig<?> invokerConfig, InvocationRequest request) {
-		if (clients == null || clients.isEmpty()) {
-			return null;
-		}
 		Client selectedClient = null;
 		String forceAddress = InvokerHelper.getAddress();
 		if (StringUtils.isNotBlank(forceAddress)) {
@@ -44,7 +42,10 @@ public abstract class AbstractLoadBalance implements LoadBalance {
 					forceAddress = configManager.getLocalIp() + forceAddress.substring(forceAddress.lastIndexOf(":"));
 				}
 			}
-			for (Client client : clients) {
+
+			// 拿到未经region或其他策略过滤的client列表
+			List<Client> allClients = ClientManager.getInstance().getClusterListener().getClientList(invokerConfig);
+			for (Client client : allClients) {
 				if (forceAddress.equals(client.getAddress())) {
 					selectedClient = client;
 					break;
@@ -53,9 +54,12 @@ public abstract class AbstractLoadBalance implements LoadBalance {
 			if (selectedClient == null) {
 				throw new ServiceUnavailableException("address[" + forceAddress
 						+ "] is not in available providers of service:" + request.getServiceName()
-						+ ", available providers:" + clients);
+						+ ", available providers:" + allClients);
 			}
 		} else {
+			if (clients == null || clients.isEmpty()) {
+				return null;
+			}
 			try {
 				selectedClient = doSelect(clients, invokerConfig, request,
 						getWeights(clients, request));

@@ -17,7 +17,6 @@ import com.dianping.pigeon.registry.listener.RegistryEventListener;
 import com.dianping.pigeon.registry.listener.ServiceProviderChangeEvent;
 import com.dianping.pigeon.registry.listener.ServiceProviderChangeListener;
 import com.dianping.pigeon.remoting.common.domain.Disposable;
-import com.dianping.pigeon.remoting.invoker.Client;
 import com.dianping.pigeon.remoting.invoker.domain.ConnectInfo;
 
 public class ClusterListenerManager implements Disposable {
@@ -42,7 +41,7 @@ public class ClusterListenerManager implements Disposable {
         RegistryEventListener.addListener(providerChangeListener);
     }
 
-    public void addConnect(ConnectInfo cmd) {
+    public void addConnect(ConnectInfo cmd, String serviceName) {
         ConnectInfo connectInfo = this.connectInfoMap.get(cmd.getConnect());
         if (connectInfo == null) {
             ConnectInfo oldConnectInfo = this.connectInfoMap.putIfAbsent(cmd.getConnect(), cmd);
@@ -61,7 +60,7 @@ public class ClusterListenerManager implements Disposable {
             }
         }
         for (ClusterListener listener : listeners) {
-            listener.addConnect(cmd);
+            listener.addConnect(cmd, serviceName);
         }
     }
 

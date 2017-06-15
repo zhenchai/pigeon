@@ -5,7 +5,6 @@
 package com.dianping.pigeon.remoting.invoker.route.balance;
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
@@ -68,6 +67,10 @@ public class LoadBalanceManager {
 		LoadBalanceManager.register(AutoawareLoadBalance.NAME, null, AutoawareLoadBalance.instance);
 		LoadBalanceManager.register(RoundRobinLoadBalance.NAME, null, RoundRobinLoadBalance.instance);
 		LoadBalanceManager.register(WeightedAutoawareLoadBalance.NAME, null, WeightedAutoawareLoadBalance.instance);
+	}
+
+	public static LoadBalance getLoadBalance(String loadBalanceKey) {
+		return loadBalanceMap.get(loadBalanceKey);
 	}
 
 	/**
@@ -284,8 +287,8 @@ public class LoadBalanceManager {
 		}
 
 		@Override
-		public void addConnect(ConnectInfo cmd) {
-			addWeight(cmd.getConnect(), RegistryManager.getInstance().getServiceWeight(cmd.getConnect()));
+		public void addConnect(ConnectInfo cmd, String serviceName) {
+			addWeight(cmd.getConnect(), RegistryManager.getInstance().getServiceWeight(cmd.getConnect(), serviceName));
 		}
 
 		@Override

@@ -4,19 +4,15 @@
  */
 package com.dianping.pigeon.remoting.invoker.route;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.lang.StringUtils;
-import com.dianping.pigeon.log.Logger;
-import org.springframework.util.CollectionUtils;
-
+import com.dianping.pigeon.config.ConfigChangeListener;
 import com.dianping.pigeon.config.ConfigManagerLoader;
+import com.dianping.pigeon.log.Logger;
 import com.dianping.pigeon.log.LoggerLoader;
 import com.dianping.pigeon.registry.RegistryManager;
 import com.dianping.pigeon.registry.listener.RegistryEventListener;
 import com.dianping.pigeon.registry.listener.ServiceProviderChangeEvent;
 import com.dianping.pigeon.registry.listener.ServiceProviderChangeListener;
+import com.dianping.pigeon.remoting.common.codec.json.JacksonSerializer;
 import com.dianping.pigeon.remoting.common.domain.Disposable;
 import com.dianping.pigeon.remoting.common.domain.InvocationRequest;
 import com.dianping.pigeon.remoting.common.util.Constants;
@@ -30,6 +26,13 @@ import com.dianping.pigeon.remoting.invoker.route.balance.RandomLoadBalance;
 import com.dianping.pigeon.remoting.invoker.route.balance.WeightedAutoawareLoadBalance;
 import com.dianping.pigeon.remoting.invoker.route.quality.RequestQualityManager;
 import com.dianping.pigeon.remoting.invoker.route.region.RegionPolicyManager;
+import org.apache.commons.lang.StringUtils;
+import org.springframework.util.CollectionUtils;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class DefaultRouteManager implements RouteManager, Disposable {
 
@@ -49,6 +52,32 @@ public class DefaultRouteManager implements RouteManager, Disposable {
 
     private static boolean enablePreferAddresses = ConfigManagerLoader.getConfigManager().getBooleanValue(
             "pigeon.route.preferaddresses.enable", false);
+
+    private static final JacksonSerializer jacksonSerializer = new JacksonSerializer();
+    private static final String KEY_LOADBALANCE_DYNAMICTYPE = "pigeon.loadbalance.dynamictype";
+
+    // s1#m1-->lbName or s1-->lbName
+    private static volatile Map<String, String> dynamicLoadBalanceTypes = new HashMap<>();
+
+    static {
+        String dynamicLoadBalanceConfig = ConfigManagerLoader.getConfigManager().getStringValue(KEY_LOADBALANCE_DYNAMICTYPE);
+        parseDynamicLoadBalanceConfig(dynamicLoadBalanceConfig);
+        ConfigManagerLoader.getConfigManager().registerConfigChangeListener(new InnerConfigChangeListener());
+    }
+
+    private static void parseDynamicLoadBalanceConfig(String dynamicLoadBalanceConfig) {
+        if (StringUtils.isNotBlank(dynamicLoadBalanceConfig)) {
+            Map<String, String> map;
+            try {
+                map = (HashMap) jacksonSerializer.toObject(HashMap.class, dynamicLoadBalanceConfig);
+                dynamicLoadBalanceTypes = map;
+            } catch (Throwable t) {
+                logger.warn("error while parsing dynamic loadbalance configuration:" + dynamicLoadBalanceConfig, t);
+            }
+        } else {
+            dynamicLoadBalanceTypes = new HashMap<>();
+        }
+    }
 
     private DefaultRouteManager() {
         RegistryEventListener.addListener(providerChangeListener);
@@ -146,6 +175,13 @@ public class DefaultRouteManager implements RouteManager, Disposable {
                 loadBalance = RandomLoadBalance.instance;
             }
         }
+
+        // 判断是否有动态配置的loadbalance
+        LoadBalance dynamicLoadBalance = getDynamicLoadBalance(request);
+        if (dynamicLoadBalance != null) {
+            loadBalance = dynamicLoadBalance;
+        }
+
         List<Client> preferClients = null;
         if (enablePreferAddresses) {
             if (availableClients != null && availableClients.size() > 1 && !CollectionUtils.isEmpty(preferAddresses)) {
@@ -171,9 +207,45 @@ public class DefaultRouteManager implements RouteManager, Disposable {
         return selectedClient;
     }
 
+    private LoadBalance getDynamicLoadBalance(InvocationRequest request) {
+        String loadBalanceName = dynamicLoadBalanceTypes.get(request.getServiceName() + "#" + request.getMethodName());
+        if (StringUtils.isBlank(loadBalanceName)) { // fallback to service config
+            loadBalanceName = dynamicLoadBalanceTypes.get(request.getServiceName());
+        }
+
+        if (StringUtils.isNotBlank(loadBalanceName)) {
+            return LoadBalanceManager.getLoadBalance(loadBalanceName);
+        }
+
+        return null;
+    }
+
     @Override
     public void destroy() throws Exception {
         RegistryEventListener.removeListener(providerChangeListener);
+    }
+
+    private static class InnerConfigChangeListener implements ConfigChangeListener {
+        @Override
+        public void onKeyUpdated(String key, String value) {
+            try {
+                if (key.endsWith(KEY_LOADBALANCE_DYNAMICTYPE)) {
+                    parseDynamicLoadBalanceConfig(value);
+                }
+            } catch (Throwable t) {
+                logger.warn("invalid value for key " + key, t);
+            }
+        }
+
+        @Override
+        public void onKeyAdded(String key, String value) {
+
+        }
+
+        @Override
+        public void onKeyRemoved(String key) {
+
+        }
     }
 
     class InnerServiceProviderChangeListener implements ServiceProviderChangeListener {

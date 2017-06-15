@@ -5,6 +5,7 @@
 package com.dianping.pigeon.remoting.http.provider;
 
 import java.util.List;
+import java.util.Random;
 
 import com.dianping.pigeon.log.LoggerLoader;
 
@@ -34,6 +35,7 @@ public class JettyHttpServer extends AbstractServer implements Disposable {
     private final ConfigManager configManager = ConfigManagerLoader.getConfigManager();
     private final int minThreads = configManager.getIntValue("pigeon.provider.http.minthreads", 2);
     private final int maxThreads = configManager.getIntValue("pigeon.provider.http.maxthreads", 300);
+    private final Random random = new Random();
 
     public JettyHttpServer() {
     }
@@ -52,18 +54,7 @@ public class JettyHttpServer extends AbstractServer implements Disposable {
     }
 
     private Server newServer(ServerConfig serverConfig) {
-        // if (serverConfig.isAutoSelectPort()) {
-        int availablePort = NetUtils.getAvailablePort(serverConfig.getHttpPort());
-        this.port = availablePort;
-        // } else {
-        // if (NetUtils.isPortInUse(serverConfig.getHttpPort())) {
-        // logger.error("unable to start jetty server on port " +
-        // serverConfig.getHttpPort()
-        // + ", the port is in use");
-        // System.exit(0);
-        // }
-        // this.port = serverConfig.getHttpPort();
-        // }
+        this.port = NetUtils.getAvailablePort(this.port);
 
         DispatcherServlet.addHttpHandler(port, new HttpServerHandler(this));
         QueuedThreadPool threadPool = new QueuedThreadPool();
@@ -88,6 +79,7 @@ public class JettyHttpServer extends AbstractServer implements Disposable {
     @Override
     public void doStart(ServerConfig serverConfig) {
         int retries = 0;
+        this.port = serverConfig.getHttpPort();
         while (!started) {
             server = newServer(serverConfig);
             retries++;
@@ -98,8 +90,34 @@ public class JettyHttpServer extends AbstractServer implements Disposable {
                 started = true;
             } catch (Throwable e) {
                 if (retries > 5) {
-                    throw new IllegalStateException("failed to start jetty server on " + serverConfig.getHttpPort()
-                            + ", cause: " + e.getMessage(), e);
+                    this.port += random.nextInt(20);
+                    try {
+                        Thread.sleep(random.nextInt(100));
+                    } catch (InterruptedException e1) {
+                        //
+                    }
+                    while (!started) {
+                        server = newServer(serverConfig);
+                        retries++;
+                        try {
+                            server.start();
+                            serverConfig.setIp(configManager.getLocalIp());
+                            serverConfig.setHttpPort(this.port);
+                            started = true;
+                        } catch (Throwable e1) {
+                            if (retries > 10) {
+                                throw new IllegalStateException("failed to start jetty server on " + this.port
+                                        + ", cause: " + e1.getMessage(), e1);
+                            }
+                        }
+                    }
+                } else {
+                    this.port ++;
+                    try {
+                        Thread.sleep(random.nextInt(100));
+                    } catch (InterruptedException e1) {
+                        //
+                    }
                 }
             }
         }

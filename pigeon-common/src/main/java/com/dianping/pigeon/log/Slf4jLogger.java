@@ -18,7 +18,13 @@ public class Slf4jLogger implements Logger {
     public Slf4jLogger(String loggerName) {
         this.logger = org.slf4j.LoggerFactory.getLogger(loggerName);
         if (!Constants.ACCESS_LOG_NAME.equals(loggerName) && this.logger instanceof LocationAwareLogger) {
-            isLocationAware = true;
+            try {
+                ((LocationAwareLogger)logger).log(null, ADAPTER_FQCN,
+                        LocationAwareLogger.DEBUG_INT, "init slf4j logger", null, null);
+                isLocationAware = true;
+            } catch(Throwable t) {
+                isLocationAware = false;
+            }
         }
     }
 

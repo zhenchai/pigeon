@@ -1,8 +1,6 @@
 package com.dianping.pigeon.registry.composite;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 import com.dianping.pigeon.registry.config.RegistryConfig;
 import org.apache.commons.lang.StringUtils;
@@ -213,13 +211,13 @@ public class CompositeRegistry implements Registry {
     }
 
     @Override
-    public int getServerWeight(String serverAddress) throws RegistryException {
+    public int getServerWeight(String serverAddress, String serviceName) throws RegistryException {
         int weight = Constants.DEFAULT_WEIGHT;
         List<Integer> checkList = Lists.newArrayList();
 
         for (Registry registry : registryList) {
             try {
-                checkList.add(registry.getServerWeight(serverAddress));
+                checkList.add(registry.getServerWeight(serverAddress, serviceName));
             } catch (Throwable t) {
                 logger.info("failed to get weight from registry: " + registry.getName());
             }
@@ -252,13 +250,13 @@ public class CompositeRegistry implements Registry {
     }
 
     @Override
-    public String getServerApp(String serverAddress) throws RegistryException {
+    public String getServerApp(String serverAddress, String serviceName) throws RegistryException {
         String app = "";
         List<String> checkList = Lists.newArrayList();
 
         for (Registry registry : registryList) {
             try {
-                checkList.add(registry.getServerApp(serverAddress));
+                checkList.add(registry.getServerApp(serverAddress, serviceName));
             } catch (Throwable t) {
                 logger.info("failed to get app from registry: " + registry.getName());
             }
@@ -307,13 +305,13 @@ public class CompositeRegistry implements Registry {
     }
 
     @Override
-    public String getServerVersion(String serverAddress) throws RegistryException {
+    public String getServerVersion(String serverAddress, String serviceName) throws RegistryException {
         String version = "";
         List<String> checkList = Lists.newArrayList();
 
         for (Registry registry : registryList) {
             try {
-                checkList.add(registry.getServerVersion(serverAddress));
+                checkList.add(registry.getServerVersion(serverAddress, serviceName));
             } catch (Throwable t) {
                 logger.info("failed to get version from registry: " + registry.getName());
             }
@@ -351,13 +349,13 @@ public class CompositeRegistry implements Registry {
     }
 
     @Override
-    public byte getServerHeartBeatSupport(String serviceAddress) throws RegistryException {
+    public byte getServerHeartBeatSupport(String serviceAddress, String serviceName) throws RegistryException {
         byte support = HeartBeatSupport.BothSupport.getValue();
         List<Byte> checkList = Lists.newArrayList();
 
         for (Registry registry : registryList) {
             try {
-                checkList.add(registry.getServerHeartBeatSupport(serviceAddress));
+                checkList.add(registry.getServerHeartBeatSupport(serviceAddress, serviceName));
             } catch (Throwable t) {
                 logger.info("failed to get heartbeat support from registry: " + registry.getName());
             }
@@ -373,13 +371,13 @@ public class CompositeRegistry implements Registry {
     }
 
     @Override
-    public Map<String, Boolean> getServiceProtocols(String serviceAddress) throws RegistryException {
+    public Map<String, Boolean> getServiceProtocols(String serviceAddress, String serviceName) throws RegistryException {
         Map<String, Boolean> serviceProtocols = new HashMap<String, Boolean>();
         List<Map<String, Boolean>> checkList = Lists.newArrayList();
 
         for (Registry registry : registryList) {
             try {
-                checkList.add(registry.getServiceProtocols(serviceAddress));
+                checkList.add(registry.getServiceProtocols(serviceAddress, serviceName));
             } catch (Throwable t) {
                 logger.info("failed to get service protocols from registry: " + registry.getName());
             }

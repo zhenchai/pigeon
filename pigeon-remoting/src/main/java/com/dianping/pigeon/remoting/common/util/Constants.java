@@ -191,7 +191,7 @@ public final class Constants {
     public static final String KEY_WEIGHT_INITIAL = "pigeon.weight.initial";
     public static final int DEFAULT_WEIGHT_INITIAL = 0;
     public static final String KEY_WEIGHT_DEFAULT = "pigeon.weight.default";
-    public static final int DEFAULT_WEIGHT_DEFAULT = 1;
+    public static final int DEFAULT_WEIGHT_DEFAULT = 10;
     public static final String KEY_AUTOREGISTER_ENABLE = "pigeon.autoregister.enable";
     public static final String KEY_AUTOPUBLISH_ENABLE = "pigeon.autopublish.enable";
     public static final String KEY_AUTOUNPUBLISH_ENABLE = "pigeon.autounpublish.enable";
