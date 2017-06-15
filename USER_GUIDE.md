@@ -1,3 +1,5 @@
+[toc]
+
 # Pigeon开发指南
 
 Pigeon是一个分布式服务通信框架（RPC），在美团点评内部广泛使用，是美团点评最基础的底层框架之一。
@@ -892,7 +894,7 @@ http://ip:4080/services.status 可以测试服务健康状况
 
 ## 配置负载均衡策略
 
-###配置客户端的loadBalance属性
+### 配置客户端的loadBalance属性
 
 目前可以是random/roundRobin/weightedAutoware这几种类型，默认是weightedAutoware策略，一般场景不建议修改。
 
@@ -906,7 +908,7 @@ http://ip:4080/services.status 可以测试服务健康状况
 </bean>
 ```
 
-###运行中动态配置客户端的loadBalance属性
+### 运行中动态配置客户端的loadBalance属性
 
 在客户端应用xxx的lion管理端，添加配置项xxx.pigeon.loadbalance.dynamictype，内容为：
 
@@ -1184,7 +1186,7 @@ xxx-service.pigeon.invoker.degrade.auto=true，默认为false
 
 其中自动降级包含失败降级策略
 
-###自动降级添加指定业务异常到失败统计并支持降级
+### 自动降级添加指定业务异常到失败统计并支持降级
 
 在一些业务场景中，调用端希望被调用端的一些常见业务异常，实际上是程序bug或底层逻辑或数据故障导致的异常，也可以被降级，例如空指针异常，数据库访问异常等等。
 在这样的情况下，可以在调用端应用，如：app1应用，想要添加指定异常java.lang.NullPointerException和org.springframework.dao.DataAccessException
