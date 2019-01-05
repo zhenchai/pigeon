@@ -26,6 +26,9 @@ public final class ProviderProcessHandlerFactory {
 
 	private static final Logger logger = LoggerLoader.getLogger(ProviderProcessHandlerFactory.class);
 
+	/**
+	 * 创建并维护了几个ServiceInvocationHandler，构造了一个责任链的模式
+	 */
 	private static List<ServiceInvocationFilter<ProviderContext>> bizProcessFilters = new LinkedList<ServiceInvocationFilter<ProviderContext>>();
 
 	private static List<ServiceInvocationFilter<ProviderContext>> heartBeatProcessFilters = new LinkedList<ServiceInvocationFilter<ProviderContext>>();
@@ -55,6 +58,7 @@ public final class ProviderProcessHandlerFactory {
 	}
 
 	public static void init() {
+		//registerBizProcess
 		registerBizProcessFilter(new TraceFilter());
 		if (Constants.MONITOR_ENABLE) {
 			registerBizProcessFilter(new MonitorProcessFilter());

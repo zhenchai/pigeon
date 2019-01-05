@@ -58,6 +58,7 @@ public abstract class AbstractServiceProxy implements ServiceProxy {
                 service = services.get(invokerConfig);
                 if (service == null) {
                     try {
+                        //调用端的初始化,在需要新建一个代理的时候触发
                         InvokerBootStrap.startup();
 
                         service = SerializerFactory.getSerializer(invokerConfig.getSerialize()).proxyRequest(invokerConfig);

@@ -13,6 +13,9 @@ import com.dianping.pigeon.config.ConfigManagerLoader;
 import com.dianping.pigeon.remoting.common.util.Constants;
 import com.dianping.pigeon.util.LangUtils;
 
+/**
+ * 服务配置，每个提供的接口都有单独的
+ */
 public class ServerConfig {
 
 	private static ConfigManager configManager = ConfigManagerLoader.getConfigManager();

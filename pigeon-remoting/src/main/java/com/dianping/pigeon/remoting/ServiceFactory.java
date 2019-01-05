@@ -40,6 +40,7 @@ public class ServiceFactory {
 
 	static {
 		try {
+			//服务端初始化
 			ProviderBootStrap.init();
 		} catch (Throwable t) {
 			logger.error("error while initializing service factory:", t);

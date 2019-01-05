@@ -46,6 +46,7 @@ public final class ProviderBootStrap {
         if (!isInitialized) {
             synchronized (ProviderBootStrap.class) {
                 if (!isInitialized) {
+                    //工厂初始化
                     ProviderProcessHandlerFactory.init();
                     SerializerFactory.init();
                     ClassUtils.loadClasses("com.dianping.pigeon");
