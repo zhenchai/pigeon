@@ -36,6 +36,12 @@ public abstract class AbstractServiceProxy implements ServiceProxy {
 
     }
 
+    /**
+     * 获取proxy，不存在则：新建proxy
+     * @param invokerConfig
+     * @param <T>
+     * @return
+     */
     @Override
     public <T> T getProxy(InvokerConfig<T> invokerConfig) {
         if (invokerConfig.getServiceInterface() == null) {
@@ -54,13 +60,14 @@ public abstract class AbstractServiceProxy implements ServiceProxy {
         Object service = null;
         service = services.get(invokerConfig);
         if (service == null) {
+            // TODO: 2019/1/5 interner.intern干嘛用的？
             synchronized (interner.intern(invokerConfig)) {
                 service = services.get(invokerConfig);
                 if (service == null) {
                     try {
                         //调用端的初始化,在需要新建一个代理的时候触发
                         InvokerBootStrap.startup();
-
+                        //先 获取 序列化Serializer，再获取代理Service
                         service = SerializerFactory.getSerializer(invokerConfig.getSerialize()).proxyRequest(invokerConfig);
                         if (StringUtils.isNotBlank(invokerConfig.getLoadbalance())) {
                             LoadBalanceManager.register(invokerConfig.getUrl(), invokerConfig.getSuffix(),

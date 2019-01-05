@@ -100,6 +100,7 @@ public final class ServicePublisher {
 		if (service instanceof InitializingService) {
 			((InitializingService) service).initialize();
 		}
+		//服务方法init
 		ServiceMethodFactory.init(url);
 	}
 
@@ -127,9 +128,16 @@ public final class ServicePublisher {
 			boolean autoPublishEnable = ConfigManagerLoader.getConfigManager().getBooleanValue(
 					Constants.KEY_AUTOPUBLISH_ENABLE, true);
 			if (autoPublishEnable || forcePublish) {
+			    /**
+                 *  根据providerConfig获取server
+                 *  获取所有的Server实例，server是用来监听发来的服务请求
+                 *  按照pigeon设计，一台机器会有多个server,目前拥有netty和jetty两种server的实现
+                 */
 				List<Server> servers = ProviderBootStrap.getServers(providerConfig);
+
 				int registerCount = 0;
 				for (Server server : servers) {
+					//发布service到注册机
 					publishServiceToRegistry(url, server.getRegistryUrl(url), server.getPort(),
 							RegistryManager.getInstance().getGroup(url), providerConfig.isSupported());
 					registerCount++;
@@ -223,6 +231,7 @@ public final class ServicePublisher {
 			logger.info("publish service to registry, url:" + registryUrl + ", port:" + port + ", group:" + group
 					+ ", address:" + serverAddress + ", weight:" + weight + ", support: " + support);
 		}
+		//registry注册
 		RegistryManager.getInstance().registerService(registryUrl, group, serverAddress, weight);
 		RegistryManager.getInstance().registerSupportNewProtocol(serverAddress, registryUrl, support);
 

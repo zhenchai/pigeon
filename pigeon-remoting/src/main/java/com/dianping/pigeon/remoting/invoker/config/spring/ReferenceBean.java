@@ -286,6 +286,7 @@ public class ReferenceBean implements FactoryBean {
         checkRemoteAppkey();
         invokerConfig.setRemoteAppKey(remoteAppKey);
 
+        //servicefactory 获取 服务
         this.obj = ServiceFactory.getService(invokerConfig);
         configLoadBalance(invokerConfig);
     }

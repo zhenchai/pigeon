@@ -31,6 +31,9 @@ public final class ProviderProcessHandlerFactory {
 	 */
 	private static List<ServiceInvocationFilter<ProviderContext>> bizProcessFilters = new LinkedList<ServiceInvocationFilter<ProviderContext>>();
 
+	/**
+	 * 心跳filter
+	 */
 	private static List<ServiceInvocationFilter<ProviderContext>> heartBeatProcessFilters = new LinkedList<ServiceInvocationFilter<ProviderContext>>();
 
 	private static List<ServiceInvocationFilter<ProviderContext>> healthCheckProcessFilters = new LinkedList<ServiceInvocationFilter<ProviderContext>>();
@@ -85,6 +88,9 @@ public final class ProviderProcessHandlerFactory {
 	}
 
 	@SuppressWarnings({ "rawtypes" })
+	/**
+	 * 创建 invocation 的处理
+	 */
 	private static <K, V extends ServiceInvocationFilter> ServiceInvocationHandler createInvocationHandler(
 			List<V> internalFilters) {
 		ServiceInvocationHandler last = null;

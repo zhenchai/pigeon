@@ -48,15 +48,24 @@ public final class ProviderBootStrap {
                 if (!isInitialized) {
                     //工厂初始化
                     ProviderProcessHandlerFactory.init();
+                    //序列化
                     SerializerFactory.init();
+                    //从包中获取所有的class
                     ClassUtils.loadClasses("com.dianping.pigeon");
+                    //异步初始化shutdownHook，定义一些在系统关闭时候执行的动作，大部分是做一些清理工作
                     Thread shutdownHook = new Thread(new ShutdownHookListener());
                     shutdownHook.setDaemon(true);
                     shutdownHook.setPriority(Thread.MAX_PRIORITY);
                     Runtime.getRuntime().addShutdownHook(shutdownHook);
                     ServerConfig config = new ServerConfig();
                     config.setProtocol(Constants.PROTOCOL_HTTP);
+                    //registry配置，定义了和服务操作有关的接口，如注册服务，获取服务地址等
                     RegistryManager.getInstance();
+                    /**
+                     * server初始化
+                     * 读取配置，配置了NettyServer和JettyHttpServer两种，说明一台运行Pigeon的代码的机器会有两个Server实例
+                     * 设定dispatcherServlet
+                     */
                     List<Server> servers = ExtensionLoader.getExtensionList(Server.class);
                     for (Server server : servers) {
                         if (!server.isStarted()) {

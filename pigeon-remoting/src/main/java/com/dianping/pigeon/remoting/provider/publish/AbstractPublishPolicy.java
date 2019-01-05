@@ -40,13 +40,20 @@ public class AbstractPublishPolicy implements PublishPolicy {
 
     }
 
+    /**
+     * 添加 & 发布 service
+     * @param providerConfig
+     */
     @Override
     public void doAddService(ProviderConfig providerConfig) {
         try {
             checkServiceName(providerConfig);
+            //1、在本地保存服务实例
             ServicePublisher.addService(providerConfig);
+            //根据xml的service配置 获取 service的服务config
             ServerConfig serverConfig = ProviderBootStrap.startup(providerConfig);
             providerConfig.setServerConfig(serverConfig);
+            //2、将服务发布到ZK
             ServicePublisher.publishService(providerConfig, false);
         } catch (Throwable t) {
             throw new RpcException("error while adding service:" + providerConfig, t);

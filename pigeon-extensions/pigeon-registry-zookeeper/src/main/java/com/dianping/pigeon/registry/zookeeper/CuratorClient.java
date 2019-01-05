@@ -34,6 +34,9 @@ import com.dianping.pigeon.monitor.MonitorLoader;
 import com.dianping.pigeon.registry.listener.RegistryEventListener;
 import com.dianping.pigeon.threadpool.DefaultThreadFactory;
 
+/**
+ * 该类是pigeon与ZooKeeper结合的节点
+ */
 public class CuratorClient {
 
 	private static final String CHARSET = "UTF-8";

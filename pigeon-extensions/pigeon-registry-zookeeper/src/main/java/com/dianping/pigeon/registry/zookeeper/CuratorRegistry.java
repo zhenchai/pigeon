@@ -90,6 +90,16 @@ public class CuratorRegistry implements Registry {
         registerPersistentNode(serviceName, group, serviceAddress, weight);
     }
 
+    /**
+     * 判断client中是否包含该服务，
+     * 若存在，则set
+     * 若不存在，则create
+     * @param serviceName
+     * @param group
+     * @param serviceAddress
+     * @param weight
+     * @throws RegistryException
+     */
     void registerPersistentNode(String serviceName, String group, String serviceAddress, int weight)
             throws RegistryException {
         String weightPath = Utils.getWeightPath(serviceAddress);
