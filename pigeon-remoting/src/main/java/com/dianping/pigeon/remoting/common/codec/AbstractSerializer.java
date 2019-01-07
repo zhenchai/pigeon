@@ -24,8 +24,12 @@ import com.dianping.pigeon.util.ClassUtils;
 public abstract class AbstractSerializer implements Serializer {
 
 
+
 	@Override
 	public Object proxyRequest(InvokerConfig<?> invokerConfig) throws SerializationException {
+		/**
+		 * java的动态代理机制，实际上执行的是invocationHandler接口中的invoke方法
+		 */
 		return Proxy.newProxyInstance(ClassUtils.getCurrentClassLoader(invokerConfig.getClassLoader()),
 				new Class[] { invokerConfig.getServiceInterface() }, new ServiceInvocationProxy(invokerConfig,
 						InvokerProcessHandlerFactory.selectInvocationHandler(invokerConfig)));

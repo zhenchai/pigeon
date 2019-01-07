@@ -182,6 +182,7 @@ public class ClientManager {
 		if (vip != null && vip.startsWith("console:")) {
 			localHost = configManager.getLocalIp() + vip.substring(vip.indexOf(":"));
 		}
+		//getServiceAddress
 		String serviceAddress = getServiceAddress(invokerConfig);
 		String[] addressArray = serviceAddress.split(",");
 		Set<HostInfo> addresses = Collections.newSetFromMap(new ConcurrentHashMap<HostInfo, Boolean>());

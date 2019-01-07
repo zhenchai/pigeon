@@ -24,6 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public abstract class AbstractServiceProxy implements ServiceProxy {
 
+    //服务代理的缓存
     protected final static Map<InvokerConfig<?>, Object> services = new ConcurrentHashMap<InvokerConfig<?>, Object>();
     protected Logger logger = LoggerLoader.getLogger(this.getClass());
 
@@ -85,6 +86,7 @@ public abstract class AbstractServiceProxy implements ServiceProxy {
                         throw new RouteException("error while setup region route policy: " + invokerConfig, t);
                     }
 
+                    //registerClients，调用者不知道服务地址时，向zk询问服务地址
                     try {
                         ClientManager.getInstance().registerClients(invokerConfig);
                     } catch (Throwable t) {

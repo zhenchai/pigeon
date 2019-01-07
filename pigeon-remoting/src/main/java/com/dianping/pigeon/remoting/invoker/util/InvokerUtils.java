@@ -31,6 +31,13 @@ public class InvokerUtils {
 
     private static final Logger logger = LoggerLoader.getLogger(InvokerUtils.class);
 
+    /**
+     * 发起 client
+     * @param client
+     * @param request
+     * @param callback
+     * @return
+     */
     public static InvocationResponse sendRequest(Client client, InvocationRequest request, Callback callback) {
         if (request.getCallType() == Constants.CALLTYPE_REPLY) {
             RemoteInvocationBean invocationBean = new RemoteInvocationBean();

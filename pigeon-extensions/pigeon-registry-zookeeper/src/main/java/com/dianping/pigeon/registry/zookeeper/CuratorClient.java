@@ -36,6 +36,7 @@ import com.dianping.pigeon.threadpool.DefaultThreadFactory;
 
 /**
  * 该类是pigeon与ZooKeeper结合的节点
+ *
  */
 public class CuratorClient {
 
@@ -248,6 +249,12 @@ public class CuratorClient {
 		}
 	}
 
+	/**
+	 * get方法会变成 zk api里面的getData().forPath()链式调用
+	 * @param path
+	 * @return
+	 * @throws Exception
+	 */
 	public String get(String path) throws Exception {
 		return get(path, true);
 	}

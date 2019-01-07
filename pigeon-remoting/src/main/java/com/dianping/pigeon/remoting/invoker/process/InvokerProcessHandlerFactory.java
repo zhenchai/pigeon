@@ -18,6 +18,7 @@ import com.dianping.pigeon.remoting.invoker.process.filter.*;
 
 public final class InvokerProcessHandlerFactory {
 
+	//责任链模式
 	private static List<InvocationInvokeFilter> bizProcessFilters = new LinkedList<InvocationInvokeFilter>();
 
 	private static ServiceInvocationHandler bizInvocationHandler = null;
@@ -32,10 +33,14 @@ public final class InvokerProcessHandlerFactory {
 			registerBizProcessFilter(new TraceFilter());
 			registerBizProcessFilter(new FaultInjectionFilter());
 			registerBizProcessFilter(new DegradationFilter());
+			//集群策略
 			registerBizProcessFilter(new ClusterInvokeFilter());
+			//网关，实际上只负责 统计下
 			registerBizProcessFilter(new GatewayInvokeFilter());
+			//将调用环境（invokerContext）设置到请求（invocationRequest）
 			registerBizProcessFilter(new ContextPrepareInvokeFilter());
 			registerBizProcessFilter(new SecurityFilter());
+			//发出请求
 			registerBizProcessFilter(new RemoteCallInvokeFilter());
 			bizInvocationHandler = createInvocationHandler(bizProcessFilters);
 			isInitialized = true;
