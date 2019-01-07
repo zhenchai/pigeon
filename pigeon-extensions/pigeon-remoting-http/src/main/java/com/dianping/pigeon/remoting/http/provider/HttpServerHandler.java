@@ -42,6 +42,13 @@ public class HttpServerHandler implements HttpHandler {
 		this.server = server;
 	}
 
+	/**
+	 * 1、将请求解码还原成服务调用请求（invocationRequest），构造服务环境（ProviderContext）
+	 * 2、将服务调用请求交给Server实例处理
+	 * @param request
+	 * @param response
+	 * @throws Exception
+	 */
 	@Override
 	public void handle(HttpServletRequest request, HttpServletResponse response) throws Exception {
 		long createTime = System.currentTimeMillis();
@@ -85,6 +92,7 @@ public class HttpServerHandler implements HttpHandler {
 				return;
 
 			} else {
+			    //反序列化
 				Serializer serializer = SerializerFactory.getSerializer(Byte.parseByte(serialize));
 				obj = serializer.deserializeRequest(request.getInputStream());
 			}
@@ -105,6 +113,7 @@ public class HttpServerHandler implements HttpHandler {
 		try {
 			callbacks.put(invocationRequest.getSequence(), new HttpCallbackFuture(invocationRequest, invocationContext));
 
+			//实例server 处理 processRequest
 			invocationResponse = server.processRequest(invocationRequest, invocationContext);
 			if (invocationResponse != null) {
 				if(Constants.REPLY_MANUAL || invocationContext.isAsync()) {

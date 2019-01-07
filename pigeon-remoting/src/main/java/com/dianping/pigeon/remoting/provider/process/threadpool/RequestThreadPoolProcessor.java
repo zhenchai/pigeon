@@ -175,12 +175,24 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
     public void doStop() {
     }
 
+
+    /**
+     * 处理processRequest
+     * @param request
+     * @param providerContext
+     * @return
+     */
     public Future<InvocationResponse> doProcessRequest(final InvocationRequest request,
                                                        final ProviderContext providerContext) {
         requestContextMap.put(request, providerContext);
 
         startMonitorData(request, providerContext);
 
+        /**
+         * 1、构造一个匿名内部的Callable的实现
+         * 2、主要的就是获得一个ServiceInvocationHandler的实例
+         * 3、ServiceInvocationHandler 与 调用者类似，构造一个责任链，进行filter处理
+         */
         Callable<InvocationResponse> requestExecutor = new Callable<InvocationResponse>() {
 
             @Override

@@ -13,6 +13,9 @@ import com.dianping.pigeon.log.LoggerLoader;
 
 import com.dianping.pigeon.log.Logger;
 
+/**
+ * 服务器接收到服务请求之后，经过dispatcherServlet进行分发任务
+ */
 public class DispatcherServlet extends HttpServlet {
 
 	private static final long serialVersionUID = 5766349180380479888L;
@@ -39,6 +42,8 @@ public class DispatcherServlet extends HttpServlet {
 		DispatcherServlet.INSTANCE = this;
 	}
 
+
+	//负责处理服务
 	protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException,
 			IOException {
 		HttpHandler handler = handlers.get(request.getLocalPort());
