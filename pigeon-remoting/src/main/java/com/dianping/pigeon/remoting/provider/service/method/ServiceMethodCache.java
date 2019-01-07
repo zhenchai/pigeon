@@ -24,6 +24,9 @@ public class ServiceMethodCache {
 
 	private Map<String, Map<ServiceParam, ServiceMethod>> bestMacthMethod = new ConcurrentHashMap<String, Map<ServiceParam, ServiceMethod>>();
 
+	/**
+	 * 当前处理的 method 的
+	 */
 	private ServiceMethod currentMethod;
 
 	private int methodSize = 0;
@@ -45,6 +48,7 @@ public class ServiceMethodCache {
 		if (this.currentMethod == null) {
 			this.currentMethod = method;
 		}
+		//key:参数个数
 		Map<Integer, List<ServiceMethod>> methodMap = this.methods.get(methodName);
 		if (methodMap == null) {
 			methodMap = new HashMap<Integer, List<ServiceMethod>>();

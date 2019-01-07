@@ -12,6 +12,9 @@ import org.apache.commons.lang.builder.ToStringStyle;
 
 import com.dianping.pigeon.remoting.common.util.InvocationUtils;
 
+/**
+ * service中一个method的封装
+ */
 public class ServiceMethod {
 
 	private Method method;

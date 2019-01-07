@@ -32,6 +32,10 @@ public class DynamicThreadPoolFactory {
         return threadPool;
     }
 
+    /**
+     * 刷新线程池
+     * @param poolConfig
+     */
     public static void refreshThreadPool(PoolConfig poolConfig) {
         DynamicThreadPool threadPool = dynamicThreadPools.get(poolConfig);
         if (threadPool == null) {

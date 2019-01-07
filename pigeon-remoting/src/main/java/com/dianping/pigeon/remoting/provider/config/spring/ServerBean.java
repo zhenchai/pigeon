@@ -24,6 +24,8 @@ public class ServerBean {
 	private int corePoolSize = Constants.PROVIDER_POOL_CORE_SIZE;
 	private int maxPoolSize = Constants.PROVIDER_POOL_MAX_SIZE;
 	private int workQueueSize = Constants.PROVIDER_POOL_QUEUE_SIZE;
+
+
 	private String suffix = ConfigManagerLoader.getConfigManager().getGroup();
 	private volatile ServerConfig serverConfig;
 

@@ -48,7 +48,11 @@ public class AbstractPublishPolicy implements PublishPolicy {
     public void doAddService(ProviderConfig providerConfig) {
         try {
             checkServiceName(providerConfig);
-            //1、在本地保存服务实例
+            /**
+             * 1、在本地保存服务实例
+             * 2、初始化ServicePublisher.serviceCache
+             * 3、初始化ServiceMethodFactory.methods
+             */
             ServicePublisher.addService(providerConfig);
             //根据xml的service配置 获取 service的服务config
             ServerConfig serverConfig = ProviderBootStrap.startup(providerConfig);

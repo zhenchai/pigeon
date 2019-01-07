@@ -404,6 +404,11 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
         return !providerConfig.isUseSharedPool();
     }
 
+    /**
+     * 将服务添加进serviceThreadPools
+     * @param providerConfig
+     * @param <T>
+     */
     @Override
     public synchronized <T> void addService(ProviderConfig<T> providerConfig) {
         String url = providerConfig.getUrl();
@@ -411,9 +416,13 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
         ServiceMethodCache methodCache = ServiceMethodFactory.getServiceMethodCache(url);
         Set<String> methodNames = methodCache.getMethodMap().keySet();
         if (needStandalonePool(providerConfig)) {
-            if (providerConfig.getPoolConfig() != null) { // 服务的poolConfig方式,支持方法的fallback
+            //需要独立线程池
+            if (providerConfig.getPoolConfig() != null) {
+                // 服务的poolConfig方式,支持方法的fallback
+                // TODO: 2019/1/7 每个service有独自的线程池吗？ 
                 DynamicThreadPoolFactory.refreshThreadPool(providerConfig.getPoolConfig());
-            } else if (providerConfig.getActives() > 0 && CollectionUtils.isEmpty(methodConfigs)) { // 服务的actives方式,不支持方法的fallback,不支持动态修改
+            } else if (providerConfig.getActives() > 0 && CollectionUtils.isEmpty(methodConfigs)) {
+                // 服务的actives方式,不支持方法的fallback,不支持动态修改
                 DynamicThreadPool pool = serviceThreadPools.get(url);
                 if (pool == null) {
                     int actives = providerConfig.getActives();
@@ -427,15 +436,18 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
                 }
             }
 
-            if (!CollectionUtils.isEmpty(methodConfigs)) { // 方法级设置方式
+            if (!CollectionUtils.isEmpty(methodConfigs)) {
+                // 方法级设置方式
                 for (String name : methodNames) {
                     String key = url + "#" + name;
                     ProviderMethodConfig methodConfig = methodConfigs.get(name);
                     DynamicThreadPool pool = methodThreadPools.get(key);
                     if (methodConfig != null) {
-                        if (methodConfig.getPoolConfig() != null) { // 方法poolConfig方式
+                        if (methodConfig.getPoolConfig() != null) {
+                            // 方法poolConfig方式
                             DynamicThreadPoolFactory.refreshThreadPool(methodConfig.getPoolConfig());
-                        } else if (pool == null) { // 方法actives方式
+                        } else if (pool == null) {
+                            // 方法actives方式
                             int actives = DEFAULT_POOL_ACTIVES;
                             if (methodConfig.getActives() > 0) {
                                 actives = methodConfig.getActives();

@@ -31,8 +31,12 @@ public final class ServiceMethodFactory {
 
 	private static final Logger logger = LoggerLoader.getLogger(ContextTransferProcessFilter.class);
 
+	/**
+	 * key: url，value：服务里的方法cache
+	 */
 	private static Map<String, ServiceMethodCache> methods = new ConcurrentHashMap<String, ServiceMethodCache>();
 
+	//可忽略的 method名称，解析时，用过过滤
 	private static Set<String> ingoreMethods = new HashSet<String>();
 
 	private static final String KEY_COMPACT = "pigeon.invoker.request.compact";
@@ -80,6 +84,11 @@ public final class ServiceMethodFactory {
 		return serviceMethodCache.getMethod(methodName, new ServiceParam(paramClassNames));
 	}
 
+	/**
+	 * serviceMethod获取
+	 * @param url
+	 * @return
+	 */
 	public static ServiceMethodCache getServiceMethodCache(String url) {
 		ServiceMethodCache serviceMethodCache = methods.get(url);
 		if (serviceMethodCache == null) {
@@ -89,7 +98,9 @@ public final class ServiceMethodFactory {
 				Object service = providerConfig.getService();
 				Method[] methodArray = service.getClass().getMethods();
 				serviceMethodCache = new ServiceMethodCache(url, service);
+
 				for (Method method : methodArray) {
+					//ingoreMethods过滤
 					if (!ingoreMethods.contains(method.getName())) {
 						method.setAccessible(true);
 						serviceMethodCache.addMethod(method.getName(), new ServiceMethod(service, method));
@@ -97,6 +108,7 @@ public final class ServiceMethodFactory {
 						if (isCompact) {
 							int id = LangUtils.hash(url + "#" + method.getName(), 0, Integer.MAX_VALUE);
 							ServiceId serviceId = new ServiceId(url, method.getName());
+							//添加id 与 method.name 的map
 							ServiceId lastId = CompactRequest.PROVIDER_ID_MAP.putIfAbsent(id, serviceId);
 							if (lastId != null && !serviceId.equals(lastId)) {
 								throw new IllegalArgumentException("same id for service:" + url + ", method:"

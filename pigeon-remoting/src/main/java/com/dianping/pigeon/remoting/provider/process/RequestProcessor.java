@@ -13,6 +13,9 @@ import com.dianping.pigeon.remoting.provider.config.ServerConfig;
 import com.dianping.pigeon.remoting.provider.domain.ProviderContext;
 import com.dianping.pigeon.threadpool.ThreadPool;
 
+/**
+ * 处理调用者的请求request
+ */
 public interface RequestProcessor {
 
     void start(ServerConfig serverConfig);

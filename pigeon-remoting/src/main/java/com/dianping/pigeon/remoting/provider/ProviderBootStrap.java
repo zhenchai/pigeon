@@ -86,6 +86,12 @@ public final class ProviderBootStrap {
         }
     }
 
+    /**
+     * 启动
+     * 根据providerConfig获取serverConfig，用于发布
+     * @param providerConfig
+     * @return
+     */
     public static ServerConfig startup(ProviderConfig<?> providerConfig) {
         ServerConfig serverConfig = providerConfig.getServerConfig();
         if (serverConfig == null) {
@@ -93,6 +99,7 @@ public final class ProviderBootStrap {
         }
         Server server = serversMap.get(serverConfig.getProtocol() + serverConfig.getPort());
         if (server != null) {
+            //server加上providerConfig服务
             server.addService(providerConfig);
             return server.getServerConfig();
         } else {

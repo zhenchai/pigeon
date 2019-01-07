@@ -26,6 +26,7 @@ public class ProviderConfig<T> {
     private boolean published = false;
     private boolean cancelTimeout = Constants.DEFAULT_TIMEOUT_CANCEL;
     private ConfigManager configManager = ConfigManagerLoader.getConfigManager();
+    //是否使用 共享线程池
     private boolean useSharedPool = configManager.getBooleanValue(Constants.KEY_SERVICE_SHARED,
             Constants.DEFAULT_SERVICE_SHARED);
     private Map<String, ProviderMethodConfig> methods;
