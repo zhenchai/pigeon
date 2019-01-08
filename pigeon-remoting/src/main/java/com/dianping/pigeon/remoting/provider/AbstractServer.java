@@ -57,8 +57,11 @@ public abstract class AbstractServer implements Server {
 
 	@Override
 	public <T> void addService(ProviderConfig<T> providerConfig) {
+		//RequestThreadPoolProcessor
 		requestProcessor.addService(providerConfig);
+		// TODO: 2019/1/8 nettyServer or jettyHttpServer添加服务
 		doAddService(providerConfig);
+		// TODO: 2019/1/8 服务改变的监听器
 		List<ServiceChangeListener> listeners = ServiceChangeListenerContainer.getListeners();
 		for (ServiceChangeListener listener : listeners) {
 			listener.notifyServiceAdded(providerConfig);

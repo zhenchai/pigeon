@@ -103,6 +103,10 @@ public final class ProviderBootStrap {
             server.addService(providerConfig);
             return server.getServerConfig();
         } else {
+            /**
+             * 1、启动server
+             * 2、将服务添加到server上
+             */
             synchronized (ProviderBootStrap.class) {
                 List<Server> servers = ExtensionLoader.newExtensionList(Server.class);
                 for (Server s : servers) {
@@ -118,6 +122,7 @@ public final class ProviderBootStrap {
                 }
                 server = serversMap.get(serverConfig.getProtocol() + serverConfig.getPort());
                 if (server != null) {
+                    //预启动coreThreads
                     server.getRequestProcessor().getRequestProcessThreadPool().prestartAllCoreThreads();
                     return server.getServerConfig();
                 }

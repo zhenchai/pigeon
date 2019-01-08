@@ -64,8 +64,14 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
             "Pigeon-Server-Slow-Request-Processor", SLOW_POOL_CORESIZE, SLOW_POOL_MAXSIZE,
             SLOW_POOL_QUEUESIZE, new ThreadPoolExecutor.AbortPolicy(), false, true);
 
+    /**
+     * methodName、所对应的线程池 映射
+     */
     private static final ConcurrentMap<String, DynamicThreadPool> methodThreadPools = new ConcurrentHashMap<>();
 
+    /**
+     * URL、所对应的线程池 映射
+     */
     private static final ConcurrentMap<String, DynamicThreadPool> serviceThreadPools = new ConcurrentHashMap<>();
 
     private static final int DEFAULT_POOL_ACTIVES = configManager.getIntValue(
@@ -213,11 +219,15 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
                 return null;
             }
         };
+        /**
+         * 请求过来后，先挑选该请求或方法对应的线程池，将调用service处理请求的任务提交到线程池执行
+         */
         final ThreadPool pool = selectThreadPool(request);
 
         try {
             checkRequest(pool, request);
             providerContext.getTimeline().add(new TimePoint(TimePhase.T));
+            //处理请求的过程 也是 使用 一个责任链处理请求的模式
             return pool.submit(requestExecutor);
         } catch (RejectedExecutionException e) {
             requestContextMap.remove(request);
@@ -260,6 +270,9 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
         GatewayProcessFilter.checkRequest(request);
     }
 
+    /**
+     * 请求过来后，先挑选该请求或方法对应的线程池，将调用service处理请求的任务提交到线程池执行
+     */
     private ThreadPool selectThreadPool(final InvocationRequest request) {
         ThreadPool pool = null;
         String serviceKey = request.getServiceName();
@@ -419,7 +432,7 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
             //需要独立线程池
             if (providerConfig.getPoolConfig() != null) {
                 // 服务的poolConfig方式,支持方法的fallback
-                // TODO: 2019/1/7 每个service有独自的线程池吗？ 
+                // TODO: 2019/1/7 每个service有独自的线程池吗？
                 DynamicThreadPoolFactory.refreshThreadPool(providerConfig.getPoolConfig());
             } else if (providerConfig.getActives() > 0 && CollectionUtils.isEmpty(methodConfigs)) {
                 // 服务的actives方式,不支持方法的fallback,不支持动态修改
@@ -430,12 +443,14 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
                             : actives;
                     int maxSize = actives;
                     int queueSize = actives;
+                    //新建 动态线程池
                     pool = new DynamicThreadPool("Pigeon-Server-Request-Processor-service", coreSize, maxSize,
                             queueSize);
                     serviceThreadPools.putIfAbsent(url, pool);
                 }
             }
 
+            //对服务的方法提供 独立线程池 使用
             if (!CollectionUtils.isEmpty(methodConfigs)) {
                 // 方法级设置方式
                 for (String name : methodNames) {
@@ -443,6 +458,9 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
                     ProviderMethodConfig methodConfig = methodConfigs.get(name);
                     DynamicThreadPool pool = methodThreadPools.get(key);
                     if (methodConfig != null) {
+                        /**
+                         * methodConfig是否有poolConfig配置
+                         */
                         if (methodConfig.getPoolConfig() != null) {
                             // 方法poolConfig方式
                             DynamicThreadPoolFactory.refreshThreadPool(methodConfig.getPoolConfig());

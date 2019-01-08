@@ -34,6 +34,7 @@ public class DynamicThreadPoolFactory {
 
     /**
      * 刷新线程池
+     * url 与 method 公用？
      * @param poolConfig
      */
     public static void refreshThreadPool(PoolConfig poolConfig) {

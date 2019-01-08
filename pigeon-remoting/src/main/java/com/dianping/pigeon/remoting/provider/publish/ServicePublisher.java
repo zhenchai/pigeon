@@ -146,15 +146,16 @@ public final class ServicePublisher {
 					boolean isHeartbeatEnable = configManager.getBooleanValue(Constants.KEY_HEARTBEAT_ENABLE,
 							DEFAULT_HEARTBEAT_ENABLE);
 					if (isHeartbeatEnable) {
+					    //注册 心跳监听
 						HeartBeatListener.registerHeartBeat(providerConfig);
 					}
-
+                    //service改变监听
 					boolean isNotify = configManager
 							.getBooleanValue(Constants.KEY_NOTIFY_ENABLE, false);
 					if (isNotify && serviceChangeListener != null) {
 						serviceChangeListener.notifyServicePublished(providerConfig);
 					}
-
+                    //自动注册
 					boolean autoRegisterEnable = ConfigManagerLoader.getConfigManager().getBooleanValue(
 							Constants.KEY_AUTOREGISTER_ENABLE, true);
 					if (autoRegisterEnable) {
@@ -194,6 +195,16 @@ public final class ServicePublisher {
 		}
 	}
 
+    /**
+     * 发布 service 至 注册
+     * @param url
+     * @param registryUrl
+     * @param port
+     * @param group
+     * @param support
+     * @param <T>
+     * @throws RegistryException
+     */
 	private synchronized static <T> void publishServiceToRegistry(String url, String registryUrl, int port, String group, boolean support)
 			throws RegistryException {
 		String ip = configManager.getLocalIp();

@@ -30,6 +30,9 @@ public class ProviderConfig<T> {
     private boolean useSharedPool = configManager.getBooleanValue(Constants.KEY_SERVICE_SHARED,
             Constants.DEFAULT_SERVICE_SHARED);
     private Map<String, ProviderMethodConfig> methods;
+    /**
+     * 线程池：可活动线程数
+     */
     private int actives = 0;
 
     private boolean supported;
