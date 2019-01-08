@@ -27,6 +27,10 @@ public class NettyServerPipelineFactory implements ChannelPipelineFactory {
         this.server = server;
     }
 
+    /**
+     * 由Netty内部初始化过程进行调用，这里的关键点是对编码器和事件处理器的初始化和设置
+     * @return
+     */
     public ChannelPipeline getPipeline() {
         ChannelPipeline pipeline = pipeline();
         pipeline.addLast("framePrepender", new FramePrepender());

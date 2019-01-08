@@ -137,7 +137,9 @@ public final class ServicePublisher {
 
 				int registerCount = 0;
 				for (Server server : servers) {
-					//发布service到注册机
+                    /**
+                     * 发布Provider配置信息至注册中心
+                     */
 					publishServiceToRegistry(url, server.getRegistryUrl(url), server.getPort(),
 							RegistryManager.getInstance().getGroup(url), providerConfig.isSupported());
 					registerCount++;
@@ -146,7 +148,7 @@ public final class ServicePublisher {
 					boolean isHeartbeatEnable = configManager.getBooleanValue(Constants.KEY_HEARTBEAT_ENABLE,
 							DEFAULT_HEARTBEAT_ENABLE);
 					if (isHeartbeatEnable) {
-					    //注册 心跳监听
+					    //设置心跳线程，注册心跳至注册中心
 						HeartBeatListener.registerHeartBeat(providerConfig);
 					}
                     //service改变监听

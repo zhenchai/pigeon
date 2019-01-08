@@ -46,7 +46,7 @@ public final class ProviderBootStrap {
         if (!isInitialized) {
             synchronized (ProviderBootStrap.class) {
                 if (!isInitialized) {
-                    //工厂初始化
+                    //工厂初始化，初始化Server端调用链Filter
                     ProviderProcessHandlerFactory.init();
                     //序列化
                     SerializerFactory.init();
@@ -71,7 +71,12 @@ public final class ProviderBootStrap {
                         if (!server.isStarted()) {
                             if (server.support(config)) {
                                 server.start(config);
+                                //注册Console信息至注册中心
                                 registerConsoleServer(config);
+                                //从注册中心拉取或初始化当前应用的服务注册信息
+                                //主要用来获取服务名对应的Swimlane（Group）的信息
+                                //如果当前应用所在服务器已经在本地设置了Swimlane，则不会再使用注册中心中配置
+                                //此处获取的配置在后续的ServicePublisher.publishServer中使用
                                 initRegistryConfig(config);
 
                                 httpServer = server;
@@ -111,6 +116,7 @@ public final class ProviderBootStrap {
                 List<Server> servers = ExtensionLoader.newExtensionList(Server.class);
                 for (Server s : servers) {
                     if (!s.isStarted()) {
+                        // Protocol支持，default使用NettyServer，http使用JettyHttpServer
                         if (s.support(serverConfig)) {
                             s.start(serverConfig);
                             s.addService(providerConfig);

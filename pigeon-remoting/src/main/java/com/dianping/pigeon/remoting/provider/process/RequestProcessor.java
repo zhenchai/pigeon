@@ -15,6 +15,7 @@ import com.dianping.pigeon.threadpool.ThreadPool;
 
 /**
  * 处理调用者的请求request
+ * RequestProcessor是一个SPI扩展点，用于创建请求处理器
  */
 public interface RequestProcessor {
 

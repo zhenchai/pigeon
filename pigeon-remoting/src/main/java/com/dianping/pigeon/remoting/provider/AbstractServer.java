@@ -41,8 +41,10 @@ public abstract class AbstractServer implements Server {
 			logger.info("server config:" + serverConfig);
 		}
 		requestProcessor = RequestProcessorFactory.selectProcessor();
+		//实际的启动Server的处理，由其实现类完成
 		doStart(serverConfig);
 		if (requestProcessor != null) {
+			//启动请求处理的线程池
 			requestProcessor.start(serverConfig);
 		}
 		this.serverConfig = serverConfig;
@@ -55,6 +57,12 @@ public abstract class AbstractServer implements Server {
 		}
 	}
 
+	/**
+	 * 设置RequestThreadPoolProcessor的线程池
+	 * Service级别线程池和Method级别线程池
+	 * @param providerConfig
+	 * @param <T>
+	 */
 	@Override
 	public <T> void addService(ProviderConfig<T> providerConfig) {
 		//RequestThreadPoolProcessor

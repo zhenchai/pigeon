@@ -40,7 +40,7 @@ public class ServiceFactory {
 
 	static {
 		try {
-			//服务端初始化
+			//服务端初始化,jettyHttpServer和console
 			ProviderBootStrap.init();
 		} catch (Throwable t) {
 			logger.error("error while initializing service factory:", t);

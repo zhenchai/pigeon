@@ -42,6 +42,7 @@ public class AbstractPublishPolicy implements PublishPolicy {
 
     /**
      * 添加 & 发布 service
+     * 启动Server监听和服务的注册
      * @param providerConfig
      */
     @Override
@@ -54,10 +55,15 @@ public class AbstractPublishPolicy implements PublishPolicy {
              * 3、初始化ServiceMethodFactory.methods
              */
             ServicePublisher.addService(providerConfig);
-            //根据xml的service配置 获取 service的服务config
+            /**
+             * 根据xml的service配置 获取 service的服务config
+             * 启动Server监听，默认情况下Pigeon将根据ServerConfig中的Protocol定义来选择启动NettyServer还是JettyHttpServer
+             */
             ServerConfig serverConfig = ProviderBootStrap.startup(providerConfig);
             providerConfig.setServerConfig(serverConfig);
-            //2、将服务发布到ZK
+            /**
+             * 将Provider的服务信息发布到注册中心，默认情况下Pigeon使用Zookeeper作为注册中心
+             */
             ServicePublisher.publishService(providerConfig, false);
         } catch (Throwable t) {
             throw new RpcException("error while adding service:" + providerConfig, t);

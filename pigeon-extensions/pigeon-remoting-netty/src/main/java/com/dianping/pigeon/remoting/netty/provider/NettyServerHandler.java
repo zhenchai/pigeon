@@ -20,6 +20,10 @@ public class NettyServerHandler extends SimpleChannelUpstreamHandler {
 
     private NettyServer server;
 
+    /**
+     * nettyServerHandler,nettyServer核心处理类
+     * @param server
+     */
     public NettyServerHandler(NettyServer server) {
         this.server = server;
     }

@@ -22,6 +22,17 @@ public class DynamicThreadPool implements ThreadPool, ExecutorAware {
                 new ThreadPoolExecutor.AbortPolicy(), true, false);
     }
 
+    /**
+     * DynamicThreadPool是Pigeon中对ThreadPoolExecutor的封装，
+     * 在Pigeon中主要用作Provider端请求的异步处理
+     * @param poolName
+     * @param corePoolSize
+     * @param maximumPoolSize
+     * @param workQueueCapacity
+     * @param handler
+     * @param prestartAllCoreThreads
+     * @param allowCoreThreadTimeOut
+     */
     public DynamicThreadPool(String poolName, int corePoolSize, int maximumPoolSize,
                              int workQueueCapacity, RejectedExecutionHandler handler,
                              boolean prestartAllCoreThreads, boolean allowCoreThreadTimeOut) {

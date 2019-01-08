@@ -36,6 +36,14 @@ public final class ExtensionLoader {
 		return extension;
 	}
 
+	/**
+	 * 第一次调用ExtensionLoader.getExtensionList(Server.class)时，
+	 * 会创建配置了SPI的所有的Server实例，
+	 * Pigeon中默认会创建JettyHttpServer和NettyServer这两个对象。
+	 * @param clazz
+	 * @param <T>
+	 * @return
+	 */
 	public static <T> List<T> getExtensionList(Class<T> clazz) {
 		List<T> extensions = (List<T>) extensionListMap.get(clazz);
 		if (extensions == null) {
@@ -55,7 +63,10 @@ public final class ExtensionLoader {
 		return null;
 	}
 
+
+
 	public static <T> List<T> newExtensionList(Class<T> clazz) {
+        // TODO: 2019/1/8
 		ServiceLoader<T> serviceLoader = ServiceLoader.load(clazz);
 		List<T> extensions = new ArrayList<T>();
 		for (T service : serviceLoader) {

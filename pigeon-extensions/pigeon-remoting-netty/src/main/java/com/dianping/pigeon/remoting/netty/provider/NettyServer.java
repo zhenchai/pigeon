@@ -47,6 +47,9 @@ public class NettyServer extends AbstractServer implements Disposable {
     private static ChannelFactory channelFactory = new NioServerSocketChannelFactory(bossExecutor, workerExecutor,
             workerCount);
 
+    /**
+     * nettyServer初始化
+     */
     public NettyServer() {
         this.bootstrap = new ServerBootstrap(channelFactory);
         this.bootstrap.setPipelineFactory(new NettyServerPipelineFactory(this));
