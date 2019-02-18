@@ -60,6 +60,13 @@ public final class ProviderProcessHandlerFactory {
 		}
 	}
 
+	/**
+	 * provider初始化
+	 * 1、主业务，bizProcess
+	 * 2、心跳
+	 * 3、健康监测
+	 * 4、scanner
+	 */
 	public static void init() {
 		//registerBizProcess
 		registerBizProcessFilter(new TraceFilter());

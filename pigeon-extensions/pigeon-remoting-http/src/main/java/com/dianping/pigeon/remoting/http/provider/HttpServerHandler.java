@@ -90,7 +90,6 @@ public class HttpServerHandler implements HttpHandler {
 					response.setStatus(500);
 				}
 				return;
-
 			} else {
 			    //反序列化
 				Serializer serializer = SerializerFactory.getSerializer(Byte.parseByte(serialize));
@@ -111,6 +110,7 @@ public class HttpServerHandler implements HttpHandler {
 				response));
 		Future<InvocationResponse> invocationResponse = null;
 		try {
+            // TODO: 2019/1/9 callback？？
 			callbacks.put(invocationRequest.getSequence(), new HttpCallbackFuture(invocationRequest, invocationContext));
 
 			//实例server 处理 processRequest

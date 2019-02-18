@@ -35,7 +35,16 @@ import com.dianping.pigeon.remoting.provider.publish.ServicePublisher;
 public class ServiceFactory {
 
 	private static Logger logger = LoggerLoader.getLogger(ServiceFactory.class);
+    /**
+     * invoker的代理类
+     * 供：invoker
+     */
 	private static ServiceProxy serviceProxy = ServiceProxyLoader.getServiceProxy();
+
+    /**
+     * provider的policy类
+     * 供：provider
+     */
 	private static PublishPolicy publishPolicy = PublishPolicyLoader.getPublishPolicy();
 
 	static {

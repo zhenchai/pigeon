@@ -90,6 +90,9 @@ public class RegistryManager {
 		return instance;
 	}
 
+	/**
+	 * 注册中心管理，默认：ZK
+	 */
 	private void init() {
 		List<Registry> _registryList = ExtensionLoader.getExtensionList(Registry.class);
 		try {
@@ -98,6 +101,7 @@ public class RegistryManager {
 						Constants.REGISTRY_CURATOR_NAME);
 				for (Registry registry : _registryList) {
 					if (registry.getName().equals(customizedRegistryName)) {
+						//注册中心init
 						registry.init();
 						RegistryManager.registry = registry;
 						logger.info(registry.getName() + " registry started.");
@@ -106,6 +110,7 @@ public class RegistryManager {
 			} else {
 				throw new RegistryException("failed to find registry extension type, please check dependencies!");
 			}
+			//配置更改监听器
 			configManager.registerConfigChangeListener(new InnerConfigChangeListener());
 		} catch (Throwable t) {
 			initializeException = t;

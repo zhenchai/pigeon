@@ -72,6 +72,9 @@ public final class SerializerFactory {
                         }
                     }
 
+                    /**
+                     * 注册序列化方式
+                     */
                     List<SerializerRegister> serializerRegisters = ExtensionLoader.getExtensionList(SerializerRegister.class);
                     for (SerializerRegister serializerRegister : serializerRegisters) {
                         if (!serializerRegister.isRegistered()) {
