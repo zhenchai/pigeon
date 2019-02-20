@@ -39,6 +39,9 @@ import com.dianping.pigeon.remoting.provider.service.method.ServiceMethodFactory
 import com.dianping.pigeon.threadpool.DynamicThreadPool;
 import com.dianping.pigeon.threadpool.ThreadPool;
 
+/**
+ * 请求线程池处理类
+ */
 public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
 
     private static final Logger logger = LoggerLoader.getLogger(RequestThreadPoolProcessor.class);

@@ -17,14 +17,19 @@ public class ServiceInitializeListener implements ApplicationListener {
 
 	private static final Logger logger = LoggerLoader.getLogger(ServiceInitializeListener.class);
 
+	@Override
 	public void onApplicationEvent(ApplicationEvent event) {
 		synchronized (ServiceInitializeListener.class) {
 			if (ServicePublisher.isAutoPublish() && !isOnline()) {
 				if (event instanceof ContextRefreshedEvent) {
 					ContextRefreshedEvent refreshEvent = (ContextRefreshedEvent) event;
+					/**
+					 * 防止执行两次，特判断非父容器不执行service initialized
+					 */
 					if (refreshEvent.getApplicationContext().getParent() == null) {
 						logger.info("service initialized");
 						try {
+							//online
 							ServiceFactory.online();
 						} catch (RegistryException e) {
 							logger.error("error with services online", e);

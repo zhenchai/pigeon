@@ -43,6 +43,7 @@ public final class ServicePublisher {
 
 	private static boolean DEFAULT_HEARTBEAT_ENABLE = true;
 
+	//服务权重 缓存？key:serverAddress
 	private static ConcurrentHashMap<String, Integer> serverWeightCache = new ConcurrentHashMap<String, Integer>();
 
 	private static final int UNPUBLISH_WAITTIME = configManager.getIntValue(Constants.KEY_UNPUBLISH_WAITTIME,
@@ -174,6 +175,10 @@ public final class ServicePublisher {
 		}
 	}
 
+	/**
+	 * 是否自动发布服务
+	 * @return
+	 */
 	public static boolean isAutoPublish() {
 		boolean autoPublishEnable = ConfigManagerLoader.getConfigManager().getBooleanValue(
 				Constants.KEY_AUTOPUBLISH_ENABLE, true);

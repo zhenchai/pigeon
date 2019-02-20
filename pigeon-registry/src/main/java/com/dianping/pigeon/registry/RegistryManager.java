@@ -82,6 +82,7 @@ public class RegistryManager {
 				if (!isInit) {
 					instance.init();
 					initializeException = null;
+					// TODO: 2019/2/20 没看懂是如何工作的？
 					RegistryEventListener.addListener(new InnerServerInfoListener());
 					isInit = true;
 				}

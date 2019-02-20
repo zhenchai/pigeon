@@ -50,7 +50,7 @@ public final class ProviderBootStrap {
                     ProviderProcessHandlerFactory.init();
                     //序列化
                     SerializerFactory.init();
-                    //从包中获取所有的class
+                    //从包中加载所有的class到JVM
                     ClassUtils.loadClasses("com.dianping.pigeon");
                     //异步初始化shutdownHook，定义一些在系统关闭时候执行的动作，大部分是做一些清理工作
                     Thread shutdownHook = new Thread(new ShutdownHookListener());

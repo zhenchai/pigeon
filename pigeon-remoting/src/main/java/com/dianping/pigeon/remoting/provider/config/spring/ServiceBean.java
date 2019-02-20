@@ -24,7 +24,13 @@ public final class ServiceBean extends ServiceInitializeListener {
 
 	private boolean publish = true;
 	private Map<String, Object> services;
+    /**
+     * 非http的监听端口
+     */
 	private int port = ServerConfig.DEFAULT_PORT;
+    /**
+     * 4080，http服务器的监听端口
+     */
 	private int httpPort = ServerConfig.DEFAULT_HTTP_PORT;
 	private boolean autoSelectPort = true;
 	private boolean cancelTimeout = Constants.DEFAULT_TIMEOUT_CANCEL;

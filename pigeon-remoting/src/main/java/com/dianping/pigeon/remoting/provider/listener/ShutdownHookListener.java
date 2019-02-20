@@ -14,6 +14,9 @@ import com.dianping.pigeon.remoting.ServiceFactory;
 import com.dianping.pigeon.remoting.invoker.InvokerBootStrap;
 import com.dianping.pigeon.remoting.provider.ProviderBootStrap;
 
+/**
+ * 程序关闭前的hook钩子函数，作用：程序退出前的，安全退出措施
+ */
 public class ShutdownHookListener implements Runnable {
 
 	static final Logger logger = LoggerLoader.getLogger(ProviderBootStrap.class);

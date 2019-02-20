@@ -96,6 +96,7 @@ public final class ServiceMethodFactory {
 			ProviderConfig<?> providerConfig = services.get(url);
 			if (providerConfig != null) {
 				Object service = providerConfig.getService();
+				//反射
 				Method[] methodArray = service.getClass().getMethods();
 				serviceMethodCache = new ServiceMethodCache(url, service);
 
