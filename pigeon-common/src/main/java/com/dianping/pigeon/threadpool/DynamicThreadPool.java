@@ -8,15 +8,30 @@ import java.util.concurrent.*;
 /**
  * Created by chenchongze on 16/12/10.
  */
+
+/**
+ * 具体线程池
+ */
 public class DynamicThreadPool implements ThreadPool, ExecutorAware {
 
     private static final Logger logger = LoggerLoader.getLogger(DynamicThreadPool.class);
 
     private final String name;
+    /**
+     * executor
+     */
     private final ThreadPoolExecutor executor;
+
     private final DefaultThreadFactory factory;
     private final ResizableBlockingQueue<Runnable> workQueue;
 
+    /**
+     * 初始化-动态线程池
+     * @param poolName
+     * @param corePoolSize
+     * @param maximumPoolSize
+     * @param workQueueCapacity
+     */
     public DynamicThreadPool(String poolName, int corePoolSize, int maximumPoolSize, int workQueueCapacity) {
         this(poolName, corePoolSize, maximumPoolSize, workQueueCapacity,
                 new ThreadPoolExecutor.AbortPolicy(), true, false);

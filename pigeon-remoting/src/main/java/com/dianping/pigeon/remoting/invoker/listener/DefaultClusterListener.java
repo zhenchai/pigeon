@@ -35,6 +35,10 @@ public class DefaultClusterListener implements ClusterListener {
 
     private ConcurrentHashMap<String, List<Client>> serviceClients = new ConcurrentHashMap<String, List<Client>>();
 
+
+    /**
+     * 客户端所有创建的client
+     */
     private ConcurrentHashMap<String, Client> allClients = new ConcurrentHashMap<String, Client>();
 
     private ScheduledThreadPoolExecutor closeExecutor = new ScheduledThreadPoolExecutor(3, new DefaultThreadFactory(

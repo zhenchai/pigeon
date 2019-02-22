@@ -18,7 +18,10 @@ public class DynamicThreadPoolFactory {
 
     private static final Logger logger = LoggerLoader.getLogger(DynamicThreadPoolFactory.class);
     private static final Interner<PoolConfig> interner = Interners.newWeakInterner();
-    // poolConfig --> threadPool
+    /**
+     * poolConfig --> threadPool
+     * Map<线程池配置, 线程池>
+      */
     private static final ConcurrentMap<PoolConfig, DynamicThreadPool> dynamicThreadPools = Maps.newConcurrentMap();
 
     // for lion poolConfig

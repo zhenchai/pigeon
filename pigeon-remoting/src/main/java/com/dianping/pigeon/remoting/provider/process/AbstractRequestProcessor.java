@@ -26,7 +26,10 @@ public abstract class AbstractRequestProcessor implements RequestProcessor {
 
 	private static ThreadPool timeCheckThreadPool = new DefaultThreadPool("Pigeon-Provider-Timeout-Checker");
 
-	//是否包含删除操作
+	/**
+	 * 请求上下文
+	 * Map<客户端传入的请求，请求上下文(包括获取请求的channel，时间线打点等等)>
+	 */
 	protected Map<InvocationRequest, ProviderContext> requestContextMap = new ConcurrentHashMap<InvocationRequest, ProviderContext>();
 
 	protected static final Logger logger = LoggerLoader.getLogger(RequestThreadPoolProcessor.class);

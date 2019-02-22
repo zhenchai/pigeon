@@ -67,6 +67,11 @@ public class GatewayProcessFilter implements ServiceInvocationFilter<ProviderCon
 
 	private static final JacksonSerializer jacksonSerializer = new JacksonSerializer();
 	private static ThreadPool statisticsCheckerPool = new DefaultThreadPool("Pigeon-Server-Statistics-Checker");
+
+	/**
+	 * 方法和该方法正在处理的请求数量
+	 * Map<servicename() + "#" + methodname,该方法当前正在处理的请求数量>
+	 */
 	private static final ConcurrentHashMap<String, AtomicInteger> methodActives = new ConcurrentHashMap<String, AtomicInteger>();
 	private static final AtomicInteger total = new AtomicInteger();
 	private static final int MAX_THREADS = ConfigManagerLoader.getConfigManager()

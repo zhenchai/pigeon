@@ -24,6 +24,10 @@ import com.dianping.pigeon.util.ThreadPoolUtils;
 public class ServiceInvocationRepository {
 
     private static final Logger logger = LoggerLoader.getLogger(ServiceInvocationRepository.class);
+    /**
+     * 客户端发出请求的上下文和回调
+     * 请求序列号，请求上下文和回调
+     */
     private static Map<Long, RemoteInvocationBean> invocations = new ConcurrentHashMap<Long, RemoteInvocationBean>();
     private static ServiceInvocationRepository instance = new ServiceInvocationRepository();
     private static ThreadPool invocatinTimeCheckThreadPool = new DefaultThreadPool(

@@ -35,6 +35,9 @@ public final class ServicePublisher {
 
 	private static Logger logger = LoggerLoader.getLogger(ServicePublisher.class);
 
+	/**
+	 * 服务端发布的服务配置缓存
+	 */
 	private static ConcurrentHashMap<String, ProviderConfig<?>> serviceCache = new ConcurrentHashMap<String, ProviderConfig<?>>();
 
 	private static ConfigManager configManager = ConfigManagerLoader.getConfigManager();
@@ -43,7 +46,10 @@ public final class ServicePublisher {
 
 	private static boolean DEFAULT_HEARTBEAT_ENABLE = true;
 
-	//服务权重 缓存？key:serverAddress
+	/**
+	 * 服务端权重缓存
+	 * 服务权重 缓存？key:serverAddress
+	 */
 	private static ConcurrentHashMap<String, Integer> serverWeightCache = new ConcurrentHashMap<String, Integer>();
 
 	private static final int UNPUBLISH_WAITTIME = configManager.getIntValue(Constants.KEY_UNPUBLISH_WAITTIME,

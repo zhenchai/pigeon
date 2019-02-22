@@ -52,6 +52,7 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
 
     private volatile boolean poolConfigSwitchable = false;
 
+    //动态线程池，共享请求处理连接池
     private static DynamicThreadPool sharedRequestProcessThreadPool = null;
 
     private static final int SLOW_POOL_CORESIZE = configManager.getIntValue(
@@ -63,6 +64,7 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
     private static final int SLOW_POOL_QUEUESIZE = configManager.getIntValue(
             "pigeon.provider.pool.slow.queuesize", 500);
 
+    //慢请求处理线程池
     private static final DynamicThreadPool slowRequestProcessThreadPool = new DynamicThreadPool(
             "Pigeon-Server-Slow-Request-Processor", SLOW_POOL_CORESIZE, SLOW_POOL_MAXSIZE,
             SLOW_POOL_QUEUESIZE, new ThreadPoolExecutor.AbortPolicy(), false, true);
@@ -131,6 +133,11 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
         logger.info("init pool config success!");
     }
 
+    /**
+     * 刷新线程池
+     * @param poolInfo
+     * @throws Throwable
+     */
     private static synchronized void refreshPool(String poolInfo) throws Throwable {
         if (StringUtils.isNotBlank(poolInfo)) {
             PoolConfig[] poolConfigArr = (PoolConfig[]) jacksonSerializer.toObject(PoolConfig[].class, poolInfo);
@@ -296,7 +303,8 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
         if (pool == null && poolConfigSwitchable && !CollectionUtils.isEmpty(apiPoolNameMapping)) {
             PoolConfig poolConfig = null;
             String poolName = apiPoolNameMapping.get(methodKey);
-            if (StringUtils.isNotBlank(poolName)) { // 方法级别
+            if (StringUtils.isNotBlank(poolName)) {
+                // 方法级别
                 poolConfig = poolConfigs.get(poolName);
                 if (poolConfig != null) {
                     pool = DynamicThreadPoolFactory.getThreadPool(poolConfig);
@@ -422,6 +430,8 @@ public class RequestThreadPoolProcessor extends AbstractRequestProcessor {
 
     /**
      * 将服务添加进serviceThreadPools
+     * pigeon服务需要独立线程池的，新建新的独立线程池 serviceThreadPools
+     * pigeon服务中的方法，需要独立线程池的，创建新的独立线程池 methodThreadPools
      * @param providerConfig
      * @param <T>
      */

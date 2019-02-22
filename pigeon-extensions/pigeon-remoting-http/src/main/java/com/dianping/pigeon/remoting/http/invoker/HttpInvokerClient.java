@@ -27,6 +27,9 @@ import com.dianping.pigeon.remoting.invoker.domain.ConnectInfo;
 public class HttpInvokerClient extends AbstractClient {
 
 	private ConnectInfo connectInfo;
+	/**
+	 * http的执行器
+	 */
 	private HttpInvokerExecutor httpInvokerExecutor;
 	private String serviceUrlPrefix = null;
 	private String defaultServiceUrl = null;

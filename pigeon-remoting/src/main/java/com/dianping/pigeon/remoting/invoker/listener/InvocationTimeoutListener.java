@@ -17,6 +17,9 @@ import com.dianping.pigeon.remoting.invoker.route.statistics.ServiceStatisticsHo
 public class InvocationTimeoutListener implements Runnable {
 
 	private static final Logger logger = LoggerLoader.getLogger(InvocationTimeoutListener.class);
+	/**
+	 * 客户端发出请求的上下文和回调
+	 */
 	private Map<Long, RemoteInvocationBean> invocations;
 	private long timeoutInterval = ConfigManagerLoader.getConfigManager().getLongValue(
 			"pigeon.invoker.timeout.interval", 1000);

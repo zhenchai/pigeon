@@ -22,6 +22,9 @@ public class ServiceMethodCache {
 	 */
 	private Map<String, Map<Integer, List<ServiceMethod>>> methods = new ConcurrentHashMap<String, Map<Integer, List<ServiceMethod>>>();
 
+	/**
+	 * 缓存的最佳匹配方法
+	 */
 	private Map<String, Map<ServiceParam, ServiceMethod>> bestMacthMethod = new ConcurrentHashMap<String, Map<ServiceParam, ServiceMethod>>();
 
 	/**

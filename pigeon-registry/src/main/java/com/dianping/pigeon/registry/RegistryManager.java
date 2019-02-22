@@ -45,8 +45,14 @@ public class RegistryManager {
 
 	private static final String BLANK_GROUP = "";
 
+    /**
+     * 客户端服务ip和端口缓存，包括weight为0的
+     */
 	private static ConcurrentHashMap<String, Set<HostInfo>> referencedServiceAddresses = new ConcurrentHashMap<String, Set<HostInfo>>();
 
+    /**
+     * 客户端服务ip和端口缓存，包括weight为0的
+     */
 	private static ConcurrentHashMap<String, HostInfo> referencedAddresses = new ConcurrentHashMap<String, HostInfo>();
 
 	private static final Interner<String> stringInterner = Interners.newWeakInterner();

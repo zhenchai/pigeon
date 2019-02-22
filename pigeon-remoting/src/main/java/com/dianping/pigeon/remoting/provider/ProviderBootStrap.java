@@ -70,6 +70,7 @@ public final class ProviderBootStrap {
                     for (Server server : servers) {
                         if (!server.isStarted()) {
                             if (server.support(config)) {
+                                //netty启动，requestThreadPool启动
                                 server.start(config);
                                 //注册Console信息至注册中心
                                 registerConsoleServer(config);
@@ -94,6 +95,7 @@ public final class ProviderBootStrap {
     /**
      * 启动
      * 根据providerConfig获取serverConfig，用于发布
+     * 将providerConfig服务 添加 到httpServer or nettyServer中
      * @param providerConfig
      * @return
      */

@@ -44,8 +44,14 @@ public class LoadBalanceManager {
 	public static final String DEFAULT_LOADBALANCE = configManager.getStringValue(Constants.KEY_LOADBALANCE,
 			WeightedAutoawareLoadBalance.NAME);
 
+	/**
+	 * 权重因子
+	 */
 	private static ConcurrentHashMap<String, WeightFactor> weightFactors = new ConcurrentHashMap<String, WeightFactor>();
 
+	/**
+	 * 权重
+	 */
 	private static ConcurrentHashMap<String, Integer> weights = new ConcurrentHashMap<String, Integer>();
 
 	private static int initialFactor = configManager.getIntValue("pigeon.loadbalance.initialFactor", 0);

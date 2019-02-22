@@ -34,12 +34,19 @@ public class RequestTimeoutListener implements Runnable {
 
     private static final Logger logger = LoggerLoader.getLogger(RequestTimeoutListener.class);
     private static final Monitor monitor = MonitorLoader.getMonitor();
+    /**
+     * Map<客户端传入的请求，请求上下文(包括获取请求的channel，时间线打点等等)>
+     */
     private Map<InvocationRequest, ProviderContext> requestContextMap;
     private RequestProcessor requestProcessor;
     private static final ConfigManager configManager = ConfigManagerLoader.getConfigManager();
     private static int requestQueueSize = configManager.getIntValue("pigeon.provider.timeout.requestqueue.size", 100);
     private Queue<Map<String, Count>> timeoutRequestQueue = new ArrayBlockingQueue<Map<String, Count>>(
             requestQueueSize);
+
+    /**
+     * Map<请求url({servicename}#{methodname}#{参数类型}#{app})，请求数量>
+     */
     private volatile Map<String, Count> timeoutRequestCountMap = Maps.newConcurrentMap();
     private static final String KEY_TIMEOUT_SLOW_PCT_THRESHOLD = "pigeon.provider.timeout.slow.pct.threshold";
     private static final String KEY_TIMEOUT_SLOW_COUNT_THRESHOLD = "pigeon.provider.timeout.slow.count.threshold";
