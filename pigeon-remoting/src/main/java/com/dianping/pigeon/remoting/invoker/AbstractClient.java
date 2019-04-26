@@ -23,6 +23,9 @@ public abstract class AbstractClient implements Client {
 
     protected final Logger logger = LoggerLoader.getLogger(getClass());
 
+    /**
+     * 地区
+     */
     protected volatile Region region;
 
     protected volatile boolean isActive = true;
